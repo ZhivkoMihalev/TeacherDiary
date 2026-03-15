@@ -39,6 +39,8 @@ public class AuthController(IAuthService auth) : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
+        throw new Exception("Test exception");
+
         var result = await auth.LoginAsync(request, cancellationToken);
         return result.Success 
             ? Ok(result.Data) 
