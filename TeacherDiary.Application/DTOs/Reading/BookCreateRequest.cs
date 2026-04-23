@@ -9,4 +9,6 @@ public sealed class BookCreateRequest
     public int? GradeLevel { get; set; }
 
     public bool IsGlobal { get; set; } = false;
+
+    public int? TotalPages { get; set; }
 }

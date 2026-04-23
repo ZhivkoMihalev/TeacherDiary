@@ -331,6 +331,22 @@ public sealed class DashboardService(AppDbContext db, ICurrentUser currentUser) 
             })
             .FirstOrDefaultAsync(cancellationToken);
 
+        var learningActivities = await db.StudentLearningActivityProgress
+            .AsNoTracking()
+            .Where(p => p.StudentProfileId == studentId)
+            .Select(p => new StudentLearningActivityDto
+            {
+                LearningActivityId = p.LearningActivityId,
+                Title = p.LearningActivity.Title,
+                Type = p.LearningActivity.Type,
+                Status = p.Status,
+                CurrentValue = p.CurrentValue ?? 0,
+                TargetValue = p.TargetValue,
+                Score = p.Score,
+                DueDateUtc = p.LearningActivity.DueDateUtc
+            })
+            .ToListAsync(cancellationToken);
+
         return Result<StudentDetailsDto>.Ok(new StudentDetailsDto
         {
             StudentId = student.Id,
@@ -341,7 +357,8 @@ public sealed class DashboardService(AppDbContext db, ICurrentUser currentUser) 
             CompletedAssignments = stats?.AssignmentsCompleted ?? 0,
             Reading = reading,
             Assignments = assignments,
-            ActivityLast7Days = activityByDay
+            ActivityLast7Days = activityByDay,
+            LearningActivities = learningActivities
         });
     }
 

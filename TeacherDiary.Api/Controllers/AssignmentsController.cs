@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TeacherDiary.Application.Abstractions.Services;
 using TeacherDiary.Application.DTOs.Assignments;
@@ -10,56 +10,51 @@ namespace TeacherDiary.Api.Controllers;
 public class AssignmentsController(IAssignmentService assignments) : ControllerBase
 {
     /// <summary>
-    /// Creates a new assignment for a specific class.
+    /// Creates a new assignment for a class.
     /// </summary>
     /// <remarks>
-    /// This endpoint allows a teacher to create a new assignment that will be automatically
-    /// assigned to all students in the class. Progress rows for each student are created automatically.
+    /// On creation, progress rows (NotStarted) are automatically created for every active student
+    /// in the class, and a corresponding LearningActivity entry is added to the unified tracking engine.
+    /// Progress updates are submitted by parents via <c>PATCH /api/parent/students/{studentId}/assignments/{assignmentId}</c>.
     /// </remarks>
-    /// <param name="classId">The unique identifier of the class.</param>
-    /// <param name="request">Assignment creation data (title, description, subject, due date).</param>
+    /// <param name="classId">ID of the class the assignment belongs to.</param>
+    /// <param name="request">Assignment data (title, description, subject, due date).</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The ID of the newly created assignment.</returns>
-    /// <response code="200">Assignment created successfully</response>
-    /// <response code="400">Invalid request</response>
+    /// <response code="200">Assignment created — returns <c>{ assignmentId }</c>.</response>
+    /// <response code="400">Validation error or class not found.</response>
     [HttpPost("api/classes/{classId:guid}/assignments")]
     public async Task<IActionResult> Create(
-        Guid classId, 
-        [FromBody] AssignmentCreateRequest request, 
+        Guid classId,
+        [FromBody] AssignmentCreateRequest request,
         CancellationToken cancellationToken)
     {
         var result = await assignments.CreateAssignmentAsync(classId, request, cancellationToken);
-        return result.Success 
-            ? Ok(new { assignmentId = result.Data }) 
+        return result.Success
+            ? Ok(new { assignmentId = result.Data })
             : BadRequest(new { error = result.Error });
     }
 
     /// <summary>
-    /// Returns all assignments created for a specific class.
+    /// Returns all assignments for a class.
     /// </summary>
     /// <remarks>
-    /// Used by the teacher dashboard to display all assignments assigned to the class.
-    /// 
-    /// The response includes basic assignment information such as:
-    /// - title
-    /// - subject
+    /// Returns a list of assignments created for the class, each with:
+    /// - title, subject, description
     /// - due date
-    /// 
-    /// It also provides aggregated statistics showing how many students
-    /// have completed the assignment.
+    /// - completion statistics (how many students have submitted)
     /// </remarks>
-    /// <param name="classId">The unique identifier of the class.</param>
+    /// <param name="classId">ID of the class.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A list of assignments assigned to the class.</returns>
-    /// <response code="200">Assignments returned successfully</response>
-    /// <response code="404">Class not found</response>
+    /// <returns>List of assignments with per-student completion statistics.</returns>
+    /// <response code="200">Returns the list of assignments.</response>
+    /// <response code="404">Class not found or does not belong to the current teacher.</response>
     [HttpGet("api/classes/{classId:guid}/assignments")]
     public async Task<IActionResult> GetAssignments(
         Guid classId,
         CancellationToken cancellationToken)
     {
         var result = await assignments.GetAssignmentsByClassAsync(classId, cancellationToken);
-
         return result.Success
             ? Ok(result.Data)
             : NotFound(result.Error);

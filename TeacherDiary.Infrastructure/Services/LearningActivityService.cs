@@ -6,7 +6,7 @@ using TeacherDiary.Infrastructure.Persistence;
 
 namespace TeacherDiary.Infrastructure.Services;
 
-public sealed class LearningActivityService(AppDbContext db) : ILearningActivityService
+public sealed class LearningActivityService(AppDbContext db, ICurrentUser currentUser) : ILearningActivityService
 {
     public async Task<Guid> CreateForAssignedBookAsync(AssignedBook assignedBook, CancellationToken cancellationToken)
     {
@@ -19,9 +19,11 @@ public sealed class LearningActivityService(AppDbContext db) : ILearningActivity
         {
             ClassId = assignedBook.ClassId,
             Type = LearningActivityType.Reading,
+            Status = LearningActivityStatus.Active,
+            CreatedByTeacherId = currentUser.UserId,
             Title = book.Title,
             TargetValue = book.TotalPages,
-            Description = $"Reading: {book}",
+            Description = $"Reading: {book.Title}",
             StartDateUtc = assignedBook.StartDateUtc,
             DueDateUtc = assignedBook.EndDateUtc,
             AssignedBookId = assignedBook.Id
@@ -40,10 +42,12 @@ public sealed class LearningActivityService(AppDbContext db) : ILearningActivity
             StudentProfileId = s,
             LearningActivityId = activity.Id,
             Status = ProgressStatus.NotStarted,
-            CurrentValue = 0
+            CurrentValue = 0,
+            TargetValue = activity.TargetValue
         });
 
         db.StudentLearningActivityProgress.AddRange(rows);
+        await db.SaveChangesAsync(cancellationToken);
         return activity.Id;
     }
 
@@ -53,6 +57,8 @@ public sealed class LearningActivityService(AppDbContext db) : ILearningActivity
         {
             ClassId = assignment.ClassId,
             Type = LearningActivityType.Assignment,
+            Status = LearningActivityStatus.Active,
+            CreatedByTeacherId = currentUser.UserId,
             Title = assignment.Title,
             Description = assignment.Description,
             DueDateUtc = assignment.DueDate,
@@ -75,6 +81,7 @@ public sealed class LearningActivityService(AppDbContext db) : ILearningActivity
         });
 
         db.StudentLearningActivityProgress.AddRange(rows);
+        await db.SaveChangesAsync(cancellationToken);
         return activity.Id;
     }
 
@@ -84,6 +91,8 @@ public sealed class LearningActivityService(AppDbContext db) : ILearningActivity
         {
             ClassId = challenge.ClassId,
             Type = LearningActivityType.Challenge,
+            Status = LearningActivityStatus.Active,
+            CreatedByTeacherId = currentUser.UserId,
             Title = challenge.Title,
             Description = challenge.Description,
             StartDateUtc = challenge.StartDate,
@@ -108,6 +117,7 @@ public sealed class LearningActivityService(AppDbContext db) : ILearningActivity
         });
 
         db.StudentLearningActivityProgress.AddRange(rows);
+        await db.SaveChangesAsync(cancellationToken);
         return activity.Id;
     }
 

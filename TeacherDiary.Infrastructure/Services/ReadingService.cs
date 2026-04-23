@@ -32,6 +32,7 @@ public sealed class ReadingService(
             Author = request.Author,
             GradeLevel = request.GradeLevel,
             IsGlobal = request.IsGlobal,
+            TotalPages = request.TotalPages,
             CreatedByTeacherId = currentUser.UserId
         };
 
@@ -63,6 +64,8 @@ public sealed class ReadingService(
         if (book is null)
             return Result<Guid>.Fail("Book not found.");
 
+        var totalPages = book.TotalPages;
+
         var assigned = new AssignedBook
         {
             ClassId = currentClass.Id,
@@ -84,7 +87,8 @@ public sealed class ReadingService(
             StudentProfileId = sid,
             AssignedBookId = assigned.Id,
             Status = ProgressStatus.NotStarted,
-            CurrentPage = 0
+            CurrentPage = 0,
+            TotalPages = totalPages
         });
 
         db.ReadingProgress.AddRange(progressRows);
@@ -147,11 +151,13 @@ public sealed class ReadingService(
         }
 
         var pagesDelta = currentPage - previousPage;
+        var bookCompleted = progress.Status == ProgressStatus.Completed;
 
         await activityService.LogReadingAsync(
             studentId,
             assignedBookId,
             pagesDelta,
+            bookCompleted,
             cancellationToken);
 
         await learningActivityService.UpdateReadingProgressAsync(

@@ -64,6 +64,7 @@ public sealed class StudentService(AppDbContext db, ICurrentUser currentUser) : 
         // Bootstrap reading progress
         var assignedBooks = await db.AssignedBooks
             .Where(b => b.ClassId == cls.Id)
+            .Select(b => new { b.Id, TotalPages = b.Book.TotalPages })
             .ToListAsync(cancellationToken);
 
         var readingRows = assignedBooks.Select(book => new ReadingProgress
@@ -71,7 +72,8 @@ public sealed class StudentService(AppDbContext db, ICurrentUser currentUser) : 
             StudentProfileId = student.Id,
             AssignedBookId = book.Id,
             Status = ProgressStatus.NotStarted,
-            CurrentPage = 0
+            CurrentPage = 0,
+            TotalPages = book.TotalPages
         });
 
         db.ReadingProgress.AddRange(readingRows);
@@ -136,8 +138,10 @@ public sealed class StudentService(AppDbContext db, ICurrentUser currentUser) : 
         var query = db.Students
             .AsNoTracking()
             .Where(s =>
-                s.FirstName.ToLower().Contains(name) ||
-                s.LastName.ToLower().Contains(name));
+                (s.ClassId == null ||
+                 db.Classes.Any(c => c.Id == s.ClassId && c.OrganizationId == currentUser.OrganizationId)) &&
+                (s.FirstName.ToLower().Contains(name) ||
+                 s.LastName.ToLower().Contains(name)));
 
         var total = await query.CountAsync(cancellationToken);
 
