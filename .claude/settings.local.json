@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(node --version)",
+      "PowerShell(npm --version)",
+      "PowerShell(npm.cmd --version)",
+      "PowerShell(cd \"c:\\\\Users\\\\jivko\\\\source\\\\repos\\\\TeacherDiary\"; npm.cmd create vite@latest teacherdiary-web -- --template react-ts 2>&1)",
+      "Bash(dotnet ef *)",
+      "Bash(dotnet build *)",
+      "Bash(npx tsc *)"
+    ]
+  }
+}
