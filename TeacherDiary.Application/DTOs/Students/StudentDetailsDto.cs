@@ -14,6 +14,12 @@ public sealed class StudentDetailsDto
 
     public int CompletedAssignments { get; set; }
 
+    public int TotalPoints { get; set; }
+
+    public string? TopMedalCode { get; set; }
+
+    public string? TopPointsMedalCode { get; set; }
+
     public List<StudentReadingDto> Reading { get; set; } = new();
 
     public List<StudentAssignmentDto> Assignments { get; set; } = new();

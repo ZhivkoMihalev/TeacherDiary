@@ -17,6 +17,7 @@ public sealed class ActivityService(
         Guid assignedBookId,
         int pagesRead,
         bool bookCompleted,
+        int bookPoints,
         CancellationToken cancellationToken)
     {
         if (pagesRead <= 0)
@@ -28,15 +29,18 @@ public sealed class ActivityService(
             ActivityType = ActivityType.ReadingProgress,
             ReferenceType = ActivityReferenceType.AssignedBook,
             ReferenceId = assignedBookId,
-            PagesRead = pagesRead
+            PagesRead = pagesRead,
+            PointsEarned = bookCompleted ? bookPoints : 0
         });
 
         await UpdateChallengeProgressAsync(studentId, TargetType.Pages, pagesRead, cancellationToken);
 
         if (bookCompleted)
+        {
             await UpdateChallengeProgressAsync(studentId, TargetType.Books, 1, cancellationToken);
+            await gamificationService.AddReadingPointsAsync(studentId, bookPoints, cancellationToken);
+        }
 
-        await gamificationService.AddReadingPointsAsync(studentId, pagesRead, cancellationToken);
         await gamificationService.UpdateStreakAsync(studentId, cancellationToken);
         await badgeService.EvaluateAsync(studentId, cancellationToken);
     }
@@ -44,6 +48,7 @@ public sealed class ActivityService(
     public async Task LogAssignmentCompletedAsync(
         Guid studentId,
         Guid assignmentId,
+        int points,
         CancellationToken cancellationToken)
     {
         db.ActivityLogs.Add(new ActivityLog
@@ -51,12 +56,13 @@ public sealed class ActivityService(
             StudentProfileId = studentId,
             ActivityType = ActivityType.AssignmentCompleted,
             ReferenceType = ActivityReferenceType.Assignment,
-            ReferenceId = assignmentId
+            ReferenceId = assignmentId,
+            PointsEarned = points
         });
 
         await UpdateChallengeProgressAsync(studentId, TargetType.Assignments, 1, cancellationToken);
 
-        await gamificationService.AddAssignmentPointsAsync(studentId, cancellationToken);
+        await gamificationService.AddAssignmentPointsAsync(studentId, points, cancellationToken);
         await gamificationService.UpdateStreakAsync(studentId, cancellationToken);
         await badgeService.EvaluateAsync(studentId, cancellationToken);
     }
@@ -87,6 +93,19 @@ public sealed class ActivityService(
             {
                 row.Completed = true;
                 row.CompletedAt = now;
+                await gamificationService.AddChallengePointsAsync(studentId, row.Challenge.Points, cancellationToken);
+
+                if (row.Challenge.Points > 0)
+                {
+                    db.ActivityLogs.Add(new ActivityLog
+                    {
+                        StudentProfileId = studentId,
+                        ActivityType = ActivityType.ChallengeCompleted,
+                        ReferenceType = ActivityReferenceType.Challenge,
+                        ReferenceId = row.ChallengeId,
+                        PointsEarned = row.Challenge.Points
+                    });
+                }
             }
 
             await learningActivityService.UpdateChallengeProgressAsync(

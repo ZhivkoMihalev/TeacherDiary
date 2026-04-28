@@ -1,20 +1,28 @@
-﻿namespace TeacherDiary.Application.DTOs.Book;
+namespace TeacherDiary.Application.DTOs.Book;
 
 public sealed class AssignedBookDto
 {
-    public Guid AssignedBookId { get; set; }
+    public Guid Id { get; set; }
 
     public Guid BookId { get; set; }
 
     public string Title { get; set; } = default!;
 
-    public string Author { get; set; }
+    public string Author { get; set; } = default!;
 
-    public DateTime? StartDate { get; set; }
+    public int TotalPages { get; set; }
 
-    public DateTime? EndDate { get; set; }
+    public DateTime? StartDateUtc { get; set; }
 
-    public int StudentsReading { get; set; }
+    public DateTime? EndDateUtc { get; set; }
 
-    public int StudentsCompleted { get; set; }
+    public int NotStartedCount { get; set; }
+
+    public int InProgressCount { get; set; }
+
+    public int CompletedCount { get; set; }
+
+    public int Points { get; set; }
+
+    public bool IsExpired { get; set; }
 }

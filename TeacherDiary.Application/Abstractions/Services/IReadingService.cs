@@ -15,4 +15,12 @@ public interface IReadingService
     Task<Result<List<BookDto>>> GetBooksAsync(int? gradeLevel, CancellationToken cancellationToken);
 
     Task<Result<List<AssignedBookDto>>> GetAssignedBooksAsync(Guid classId, CancellationToken cancellationToken);
+
+    Task<Result<bool>> RemoveAssignedBookAsync(Guid classId, Guid assignedBookId, CancellationToken cancellationToken);
+
+    Task<Result<List<AssignedBookStudentProgressDto>>> GetStudentProgressForBookAsync(Guid classId, Guid assignedBookId, CancellationToken cancellationToken);
+
+    Task<Result<bool>> UpdateAssignedBookAsync(Guid classId, Guid assignedBookId, UpdateAssignedBookRequest request, CancellationToken cancellationToken);
+
+    Task<Result<bool>> UpdateBookAsync(Guid bookId, BookUpdateRequest request, CancellationToken cancellationToken);
 }

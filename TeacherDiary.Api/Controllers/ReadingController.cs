@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TeacherDiary.Application.Abstractions.Services;
+using TeacherDiary.Application.DTOs.Book;
 using TeacherDiary.Application.DTOs.Reading;
 
 namespace TeacherDiary.Api.Controllers;
@@ -56,6 +57,43 @@ public class ReadingController(IReadingService readingService) : ControllerBase
     /// <returns>List of assigned books with class-wide reading statistics.</returns>
     /// <response code="200">Returns the list of assigned books.</response>
     /// <response code="400">Class not found or does not belong to the current teacher.</response>
+    [HttpGet("{classId:guid}/assigned-books/{assignedBookId:guid}/students")]
+    public async Task<IActionResult> GetStudentProgress(
+        Guid classId,
+        Guid assignedBookId,
+        CancellationToken cancellationToken)
+    {
+        var result = await readingService.GetStudentProgressForBookAsync(classId, assignedBookId, cancellationToken);
+        return result.Success
+            ? Ok(result.Data)
+            : BadRequest(new { error = result.Error });
+    }
+
+    [HttpDelete("{classId:guid}/assigned-books/{assignedBookId:guid}")]
+    public async Task<IActionResult> RemoveAssignedBook(
+        Guid classId,
+        Guid assignedBookId,
+        CancellationToken cancellationToken)
+    {
+        var result = await readingService.RemoveAssignedBookAsync(classId, assignedBookId, cancellationToken);
+        return result.Success
+            ? Ok()
+            : BadRequest(new { error = result.Error });
+    }
+
+    [HttpPatch("{classId:guid}/assigned-books/{assignedBookId:guid}")]
+    public async Task<IActionResult> UpdateAssignedBook(
+        Guid classId,
+        Guid assignedBookId,
+        [FromBody] UpdateAssignedBookRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await readingService.UpdateAssignedBookAsync(classId, assignedBookId, request, cancellationToken);
+        return result.Success
+            ? Ok()
+            : BadRequest(new { error = result.Error });
+    }
+
     [HttpGet("{classId:guid}/books")]
     public async Task<IActionResult> GetClassBooks(
         Guid classId,

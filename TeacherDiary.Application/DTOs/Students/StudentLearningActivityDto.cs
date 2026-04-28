@@ -19,4 +19,6 @@ public sealed class StudentLearningActivityDto
     public int? Score { get; set; }
 
     public DateTime? DueDateUtc { get; set; }
+
+    public bool IsExpired { get; set; }
 }

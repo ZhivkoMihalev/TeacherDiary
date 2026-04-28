@@ -5,9 +5,11 @@ namespace TeacherDiary.Application.Abstractions.Services;
 
 public interface IGamificationService
 {
-    Task AddReadingPointsAsync(Guid studentId, int pagesRead, CancellationToken cancellationToken);
+    Task AddReadingPointsAsync(Guid studentId, int points, CancellationToken cancellationToken);
 
-    Task AddAssignmentPointsAsync(Guid studentId, CancellationToken cancellationToken);
+    Task AddAssignmentPointsAsync(Guid studentId, int points, CancellationToken cancellationToken);
+
+    Task AddChallengePointsAsync(Guid studentId, int points, CancellationToken cancellationToken);
 
     Task UpdateStreakAsync(Guid studentId, CancellationToken cancellationToken);
 

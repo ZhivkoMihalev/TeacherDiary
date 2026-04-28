@@ -7,4 +7,8 @@ public sealed class LeaderboardItemDto
     public string StudentName { get; set; } = default!;
 
     public int Points { get; set; }
+
+    public string? TopMedalCode { get; set; }
+
+    public string? TopPointsMedalCode { get; set; }
 }

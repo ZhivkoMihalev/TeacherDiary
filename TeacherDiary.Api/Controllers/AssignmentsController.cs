@@ -49,12 +49,37 @@ public class AssignmentsController(IAssignmentService assignments) : ControllerB
     /// <returns>List of assignments with per-student completion statistics.</returns>
     /// <response code="200">Returns the list of assignments.</response>
     /// <response code="404">Class not found or does not belong to the current teacher.</response>
+    [HttpPatch("api/classes/{classId:guid}/assignments/{assignmentId:guid}")]
+    public async Task<IActionResult> Update(
+        Guid classId,
+        Guid assignmentId,
+        [FromBody] AssignmentUpdateRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await assignments.UpdateAssignmentAsync(classId, assignmentId, request, cancellationToken);
+        return result.Success
+            ? Ok()
+            : BadRequest(new { error = result.Error });
+    }
+
     [HttpGet("api/classes/{classId:guid}/assignments")]
     public async Task<IActionResult> GetAssignments(
         Guid classId,
         CancellationToken cancellationToken)
     {
         var result = await assignments.GetAssignmentsByClassAsync(classId, cancellationToken);
+        return result.Success
+            ? Ok(result.Data)
+            : NotFound(result.Error);
+    }
+
+    [HttpGet("api/classes/{classId:guid}/assignments/{assignmentId:guid}/students")]
+    public async Task<IActionResult> GetStudentProgress(
+        Guid classId,
+        Guid assignmentId,
+        CancellationToken cancellationToken)
+    {
+        var result = await assignments.GetStudentProgressForAssignmentAsync(classId, assignmentId, cancellationToken);
         return result.Success
             ? Ok(result.Data)
             : NotFound(result.Error);

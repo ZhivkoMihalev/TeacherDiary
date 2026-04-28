@@ -26,11 +26,18 @@ namespace TeacherDiary.Api
             try
             {
                 Log.Information("Starting TeacherDiary API");
+                Log.Information("Step 1: Creating WebApplication builder");
                 var builder = WebApplication.CreateBuilder(args);
+                Log.Information("Step 2: Builder created");
 
                 builder.Host.UseSerilog();
 
-                builder.Services.AddControllers();
+                builder.Services.AddControllers()
+                    .AddJsonOptions(opt =>
+                    {
+                        opt.JsonSerializerOptions.Converters.Add(
+                            new System.Text.Json.Serialization.JsonStringEnumConverter());
+                    });
                 builder.Services.AddEndpointsApiExplorer();
 
                 builder.Services.AddInfrastructure(builder.Configuration);
@@ -105,7 +112,9 @@ namespace TeacherDiary.Api
                     });
                 });
 
+                Log.Information("Step 3: Building app");
                 var app = builder.Build();
+                Log.Information("Step 4: App built, configuring middleware");
 
                 app.UseGlobalExceptionMiddleware();
                 app.UseSerilogRequestLogging(options =>
@@ -123,13 +132,19 @@ namespace TeacherDiary.Api
                     };
                 });
 
+                Log.Information("Step 5: Running database migrations");
                 using (var scope = app.Services.CreateScope())
                 {
                     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                     await db.Database.MigrateAsync();
                 }
+                Log.Information("Step 6: Migrations done, seeding badges");
 
                 await BadgeSeeder.SeedBadgesAsync(app.Services);
+                Log.Information("Step 7: Badge seeding done, re-evaluating badges");
+
+                await BadgeReEvaluator.ReEvaluateAllAsync(app.Services);
+                Log.Information("Step 8: Badge re-evaluation done, starting Kestrel");
 
                 app.UseSwagger();
                 app.UseSwaggerUI(c =>

@@ -34,7 +34,8 @@ public sealed class ChallengeService(
             TargetType = request.TargetType,
             TargetValue = request.TargetValue,
             StartDate = request.StartDate,
-            EndDate = request.EndDate
+            EndDate = request.EndDate,
+            Points = request.Points
         };
 
         db.Challenges.Add(challenge);
@@ -88,11 +89,35 @@ public sealed class ChallengeService(
                 TargetValue = c.TargetValue,
                 StartDate = c.StartDate,
                 EndDate = c.EndDate,
-                CompletedStudents = c.Progress.Count(p => p.Completed)
+                Points = c.Points,
+                TotalStudents = c.Progress.Count(p => p.StudentProfile.ClassId == classId),
+                CompletedCount = c.Progress.Count(p => p.Completed && p.StudentProfile.ClassId == classId),
+                IsExpired = c.EndDate < DateTime.UtcNow
             })
             .OrderByDescending(c => c.StartDate)
             .ToListAsync(cancellationToken);
 
         return Result<List<ChallengeDto>>.Ok(challenges);
+    }
+
+    public async Task<Result<bool>> ExtendChallengeDeadlineAsync(
+        Guid classId,
+        Guid challengeId,
+        ExtendChallengeDeadlineRequest request,
+        CancellationToken cancellationToken)
+    {
+        var challenge = await db.Challenges
+            .FirstOrDefaultAsync(c =>
+                c.Id == challengeId &&
+                c.ClassId == classId &&
+                c.Class.TeacherId == currentUser.UserId,
+                cancellationToken);
+
+        if (challenge is null)
+            return Result<bool>.Fail("Challenge not found.");
+
+        challenge.EndDate = request.EndDate;
+        await db.SaveChangesAsync(cancellationToken);
+        return Result<bool>.Ok(true);
     }
 }

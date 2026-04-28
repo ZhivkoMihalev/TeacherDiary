@@ -16,5 +16,7 @@ public class Assignment : BaseEntity
 
     public DateTime? DueDate { get; set; }
 
+    public int Points { get; set; }
+
     public ICollection<AssignmentProgress> Progress { get; set; } = new List<AssignmentProgress>();
 }

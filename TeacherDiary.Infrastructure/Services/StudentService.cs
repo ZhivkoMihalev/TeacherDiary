@@ -36,6 +36,30 @@ public sealed class StudentService(AppDbContext db, ICurrentUser currentUser) : 
             })
             .ToListAsync(cancellationToken);
 
+        var ids = list.Select(s => s.Id).ToList();
+        var streaks = await db.StudentStreaks
+            .AsNoTracking()
+            .Where(s => ids.Contains(s.StudentProfileId))
+            .Select(s => new { s.StudentProfileId, s.BestStreak })
+            .ToListAsync(cancellationToken);
+
+        var points = await db.ActivityLogs
+            .AsNoTracking()
+            .Where(a => ids.Contains(a.StudentProfileId))
+            .GroupBy(a => a.StudentProfileId)
+            .Select(g => new { StudentProfileId = g.Key, TotalPoints = g.Sum(a => a.PointsEarned ?? 0) })
+            .ToListAsync(cancellationToken);
+
+        var streakMap = streaks.ToDictionary(s => s.StudentProfileId, s => s.BestStreak);
+        var pointsMap = points.ToDictionary(p => p.StudentProfileId, p => p.TotalPoints);
+        foreach (var s in list)
+        {
+            if (streakMap.TryGetValue(s.Id, out var best))
+                s.TopMedalCode = BadgeCodes.GetStreakMedalCode(best);
+            if (pointsMap.TryGetValue(s.Id, out var pts))
+                s.TopPointsMedalCode = BadgeCodes.GetPointsMedalCode(pts);
+        }
+
         return Result<List<StudentDto>>.Ok(list);
     }
 
@@ -59,11 +83,31 @@ public sealed class StudentService(AppDbContext db, ICurrentUser currentUser) : 
 
         student.ClassId = cls.Id;
 
-        await db.SaveChangesAsync(cancellationToken);
+        // Load existing progress record IDs to avoid unique constraint violations
+        // (student may have been in this class before and retained their records)
+        var existingReadingBookIds = await db.ReadingProgress
+            .Where(r => r.StudentProfileId == student.Id)
+            .Select(r => r.AssignedBookId)
+            .ToListAsync(cancellationToken);
+
+        var existingAssignmentIds = await db.AssignmentProgress
+            .Where(a => a.StudentProfileId == student.Id)
+            .Select(a => a.AssignmentId)
+            .ToListAsync(cancellationToken);
+
+        var existingChallengeIds = await db.ChallengeProgress
+            .Where(c => c.StudentProfileId == student.Id)
+            .Select(c => c.ChallengeId)
+            .ToListAsync(cancellationToken);
+
+        var existingActivityIds = await db.StudentLearningActivityProgress
+            .Where(p => p.StudentProfileId == student.Id)
+            .Select(p => p.LearningActivityId)
+            .ToListAsync(cancellationToken);
 
         // Bootstrap reading progress
         var assignedBooks = await db.AssignedBooks
-            .Where(b => b.ClassId == cls.Id)
+            .Where(b => b.ClassId == cls.Id && !existingReadingBookIds.Contains(b.Id))
             .Select(b => new { b.Id, TotalPages = b.Book.TotalPages })
             .ToListAsync(cancellationToken);
 
@@ -80,7 +124,7 @@ public sealed class StudentService(AppDbContext db, ICurrentUser currentUser) : 
 
         // Bootstrap assignment progress
         var assignments = await db.Assignments
-            .Where(a => a.ClassId == cls.Id)
+            .Where(a => a.ClassId == cls.Id && !existingAssignmentIds.Contains(a.Id))
             .ToListAsync(cancellationToken);
 
         var assignmentRows = assignments.Select(a => new AssignmentProgress
@@ -94,7 +138,7 @@ public sealed class StudentService(AppDbContext db, ICurrentUser currentUser) : 
 
         // Bootstrap challenge progress
         var challenges = await db.Challenges
-            .Where(c => c.ClassId == cls.Id)
+            .Where(c => c.ClassId == cls.Id && !existingChallengeIds.Contains(c.Id))
             .ToListAsync(cancellationToken);
 
         var challengeRows = challenges.Select(c => new ChallengeProgress
@@ -108,7 +152,7 @@ public sealed class StudentService(AppDbContext db, ICurrentUser currentUser) : 
 
         // Bootstrap learning activity engine
         var activities = await db.LearningActivities
-            .Where(a => a.ClassId == cls.Id && a.IsActive)
+            .Where(a => a.ClassId == cls.Id && a.IsActive && !existingActivityIds.Contains(a.Id))
             .ToListAsync(cancellationToken);
 
         var activityRows = activities.Select(a => new StudentLearningActivityProgress

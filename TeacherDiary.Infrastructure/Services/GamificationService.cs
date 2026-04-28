@@ -9,48 +9,41 @@ namespace TeacherDiary.Infrastructure.Services;
 
 public sealed class GamificationService(AppDbContext db, ICurrentUser currentUser) : IGamificationService
 {
-    public async Task AddReadingPointsAsync(Guid studentId, int pagesRead, CancellationToken cancellationToken)
+    public async Task AddReadingPointsAsync(Guid studentId, int points, CancellationToken cancellationToken)
     {
-        var points = await db.StudentPoints
-            .FirstOrDefaultAsync(p => p.StudentProfileId == studentId, cancellationToken);
-
-        if (points is null)
-        {
-            points = new StudentPoints
-            {
-                StudentProfileId = studentId,
-                TotalPoints = pagesRead
-            };
-
-            db.StudentPoints.Add(points);
-        }
-        else
-        {
-            points.TotalPoints += pagesRead;
-            points.LastUpdatedAt = DateTime.UtcNow;
-        }
+        if (points <= 0) return;
+        await AddPointsAsync(studentId, points, cancellationToken);
     }
 
-    public async Task AddAssignmentPointsAsync(Guid studentId, CancellationToken cancellationToken)
+    public async Task AddAssignmentPointsAsync(Guid studentId, int points, CancellationToken cancellationToken)
     {
-        const int assignmentPoints = 10;
+        if (points <= 0) return;
+        await AddPointsAsync(studentId, points, cancellationToken);
+    }
 
-        var points = await db.StudentPoints
+    public async Task AddChallengePointsAsync(Guid studentId, int points, CancellationToken cancellationToken)
+    {
+        if (points <= 0) return;
+        await AddPointsAsync(studentId, points, cancellationToken);
+    }
+
+    private async Task AddPointsAsync(Guid studentId, int amount, CancellationToken cancellationToken)
+    {
+        var record = await db.StudentPoints
             .FirstOrDefaultAsync(p => p.StudentProfileId == studentId, cancellationToken);
 
-        if (points is null)
+        if (record is null)
         {
-            points = new StudentPoints
+            db.StudentPoints.Add(new StudentPoints
             {
                 StudentProfileId = studentId,
-                TotalPoints = assignmentPoints
-            };
-
-            db.StudentPoints.Add(points);
+                TotalPoints = amount
+            });
         }
         else
         {
-            points.TotalPoints += assignmentPoints;
+            record.TotalPoints += amount;
+            record.LastUpdatedAt = DateTime.UtcNow;
         }
     }
 

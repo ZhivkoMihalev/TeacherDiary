@@ -14,5 +14,7 @@ public class AssignedBook : BaseEntity
 
     public DateTime? EndDateUtc { get; set; }
 
+    public int Points { get; set; }
+
     public ICollection<ReadingProgress> ReadingProgress { get; set; } = new List<ReadingProgress>();
 }

@@ -67,4 +67,17 @@ public class ChallengesController(IChallengeService challenges) : ControllerBase
             ? Ok(result.Data)
             : BadRequest(result.Error);
     }
+
+    [HttpPatch("api/classes/{classId:guid}/challenges/{challengeId:guid}")]
+    public async Task<IActionResult> ExtendDeadline(
+        Guid classId,
+        Guid challengeId,
+        [FromBody] ExtendChallengeDeadlineRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await challenges.ExtendChallengeDeadlineAsync(classId, challengeId, request, cancellationToken);
+        return result.Success
+            ? Ok()
+            : BadRequest(new { error = result.Error });
+    }
 }

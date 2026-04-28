@@ -1,4 +1,4 @@
-﻿namespace TeacherDiary.Application.DTOs.Assignments;
+namespace TeacherDiary.Application.DTOs.Assignments;
 
 public sealed class AssignmentListDto
 {
@@ -8,9 +8,15 @@ public sealed class AssignmentListDto
 
     public string Subject { get; set; } = default!;
 
+    public string Description { get; set; } = string.Empty;
+
     public DateTime? DueDate { get; set; }
 
     public int TotalStudents { get; set; }
 
-    public int CompletedStudents { get; set; }
+    public int CompletedCount { get; set; }
+
+    public int Points { get; set; }
+
+    public bool IsExpired { get; set; }
 }

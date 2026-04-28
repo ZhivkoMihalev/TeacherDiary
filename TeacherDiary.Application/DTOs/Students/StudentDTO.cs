@@ -11,4 +11,8 @@ public sealed class StudentDto
     public string LastName { get; set; } = default!;
 
     public bool IsActive { get; set; }
+
+    public string? TopMedalCode { get; set; }
+
+    public string? TopPointsMedalCode { get; set; }
 }

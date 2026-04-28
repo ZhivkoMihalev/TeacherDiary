@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TeacherDiary.Application.Abstractions.Services;
+using TeacherDiary.Domain.Common;
 using TeacherDiary.Application.Common;
 using TeacherDiary.Application.DTOs.Dashboard;
 using TeacherDiary.Application.DTOs.Leaderboard;
@@ -77,18 +78,42 @@ public sealed class DashboardService(AppDbContext db, ICurrentUser currentUser) 
                     p.CompletedAt >= DateTime.UtcNow.AddDays(-7))
                 .CountAsync(cancellationToken);
 
-        // Leaderboard by points
-        var leaderboard = await db.StudentPoints
-            .Where(p => studentIds.Contains(p.StudentProfileId))
-            .OrderByDescending(p => p.TotalPoints)
-            .Take(5)
-            .Select(p => new LeaderboardItemDto
-            {
-                StudentId = p.StudentProfileId,
-                StudentName = p.StudentProfile.FirstName + " " + p.StudentProfile.LastName,
-                Points = p.TotalPoints
-            })
+        // Leaderboard by points (computed from ActivityLog to stay in sync)
+        var pointsByStudent = await db.ActivityLogs
+            .Where(a => studentIds.Contains(a.StudentProfileId))
+            .GroupBy(a => a.StudentProfileId)
+            .Select(g => new { StudentId = g.Key, Points = g.Sum(a => a.PointsEarned ?? 0) })
             .ToListAsync(cancellationToken);
+
+        var leaderboard = pointsByStudent
+            .OrderByDescending(p => p.Points)
+            .Take(5)
+            .Join(activeStudents,
+                p => p.StudentId,
+                s => s.Id,
+                (p, s) => new LeaderboardItemDto
+                {
+                    StudentId = s.Id,
+                    StudentName = $"{s.FirstName} {s.LastName}",
+                    Points = p.Points
+                })
+            .ToList();
+
+        // Attach medal icons to leaderboard
+        var lbIds = leaderboard.Select(l => l.StudentId).ToList();
+        var lbStreaks = await db.StudentStreaks
+            .AsNoTracking()
+            .Where(s => lbIds.Contains(s.StudentProfileId))
+            .Select(s => new { s.StudentProfileId, s.BestStreak })
+            .ToListAsync(cancellationToken);
+
+        var lbStreakMap = lbStreaks.ToDictionary(s => s.StudentProfileId, s => s.BestStreak);
+        foreach (var item in leaderboard)
+        {
+            if (lbStreakMap.TryGetValue(item.StudentId, out var best))
+                item.TopMedalCode = BadgeCodes.GetStreakMedalCode(best);
+            item.TopPointsMedalCode = BadgeCodes.GetPointsMedalCode(item.Points);
+        }
 
         // Top readers by pages last 7 days
         var topReadersRaw = await db.ActivityLogs
@@ -267,10 +292,13 @@ public sealed class DashboardService(AppDbContext db, ICurrentUser currentUser) 
             .Where(r => r.StudentProfileId == studentId)
             .Select(r => new StudentReadingDto
             {
+                AssignedBookId = r.AssignedBookId,
                 BookTitle = r.AssignedBook.Book.Title,
                 CurrentPage = r.CurrentPage,
                 TotalPages = r.TotalPages,
-                Status = r.Status
+                Status = r.Status,
+                EndDateUtc = r.AssignedBook.EndDateUtc,
+                IsExpired = r.AssignedBook.EndDateUtc.HasValue && r.AssignedBook.EndDateUtc.Value < DateTime.UtcNow
             })
             .ToListAsync(cancellationToken);
 
@@ -279,10 +307,12 @@ public sealed class DashboardService(AppDbContext db, ICurrentUser currentUser) 
             .Where(a => a.StudentProfileId == studentId)
             .Select(a => new StudentAssignmentDto
             {
+                AssignmentId = a.AssignmentId,
                 Title = a.Assignment.Title,
                 Subject = a.Assignment.Subject,
                 Status = a.Status,
-                DueDate = a.Assignment.DueDate
+                DueDate = a.Assignment.DueDate,
+                IsExpired = a.Assignment.DueDate.HasValue && a.Assignment.DueDate.Value < DateTime.UtcNow
             })
             .ToListAsync(cancellationToken);
 
@@ -304,7 +334,9 @@ public sealed class DashboardService(AppDbContext db, ICurrentUser currentUser) 
                     .Sum(a => a.PagesRead ?? 0),
 
                 AssignmentsCompleted = g
-                    .Count(a => a.ActivityType == ActivityType.AssignmentCompleted)
+                    .Count(a => a.ActivityType == ActivityType.AssignmentCompleted),
+
+                PointsEarned = g.Sum(a => a.PointsEarned ?? 0)
             })
             .OrderBy(x => x.Date)
             .ToList();
@@ -327,7 +359,9 @@ public sealed class DashboardService(AppDbContext db, ICurrentUser currentUser) 
                     .Sum(a => a.PagesRead ?? 0),
 
                 AssignmentsCompleted = g
-                    .Count(a => a.ActivityType == ActivityType.AssignmentCompleted)
+                    .Count(a => a.ActivityType == ActivityType.AssignmentCompleted),
+
+                TotalPoints = g.Sum(a => a.PointsEarned ?? 0)
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -340,12 +374,19 @@ public sealed class DashboardService(AppDbContext db, ICurrentUser currentUser) 
                 Title = p.LearningActivity.Title,
                 Type = p.LearningActivity.Type,
                 Status = p.Status,
-                CurrentValue = p.CurrentValue ?? 0,
+                CurrentValue = p.CurrentValue,
                 TargetValue = p.TargetValue,
                 Score = p.Score,
-                DueDateUtc = p.LearningActivity.DueDateUtc
+                DueDateUtc = p.LearningActivity.DueDateUtc,
+                IsExpired = p.LearningActivity.DueDateUtc.HasValue && p.LearningActivity.DueDateUtc.Value < DateTime.UtcNow
             })
             .ToListAsync(cancellationToken);
+
+        var studentBestStreak = await db.StudentStreaks
+            .AsNoTracking()
+            .Where(s => s.StudentProfileId == studentId)
+            .Select(s => s.BestStreak)
+            .FirstOrDefaultAsync(cancellationToken);
 
         return Result<StudentDetailsDto>.Ok(new StudentDetailsDto
         {
@@ -355,6 +396,9 @@ public sealed class DashboardService(AppDbContext db, ICurrentUser currentUser) 
             LastActivityAt = lastActivity,
             TotalPagesRead = stats?.PagesRead ?? 0,
             CompletedAssignments = stats?.AssignmentsCompleted ?? 0,
+            TotalPoints = stats?.TotalPoints ?? 0,
+            TopMedalCode = BadgeCodes.GetStreakMedalCode(studentBestStreak),
+            TopPointsMedalCode = BadgeCodes.GetPointsMedalCode(stats?.TotalPoints ?? 0),
             Reading = reading,
             Assignments = assignments,
             ActivityLast7Days = activityByDay,

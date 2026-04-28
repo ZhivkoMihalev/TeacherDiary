@@ -66,26 +66,33 @@ public sealed class BadgeService(AppDbContext db) : IBadgeService
                 badgesToAward.Add(BadgeCodes.Complete5Assignments);
         }
 
-        // 4. 7 day streak
-        if (!awardedSet.Contains(BadgeCodes.SevenDayStreak))
+        // 4. Streak medals (all tiers based on BestStreak)
         {
             var streak = await db.StudentStreaks
                 .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.StudentProfileId == studentId, cancellationToken);
 
-            if (streak is not null && streak.BestStreak >= 7)
-                badgesToAward.Add(BadgeCodes.SevenDayStreak);
+            if (streak is not null)
+            {
+                foreach (var (days, code) in BadgeCodes.StreakTiers)
+                {
+                    if (!awardedSet.Contains(code) && streak.BestStreak >= days)
+                        badgesToAward.Add(code);
+                }
+            }
         }
 
-        // 5. Reach 100 points
-        if (!awardedSet.Contains(BadgeCodes.Reach100Points))
+        // 5. Points milestones
         {
-            var points = await db.StudentPoints
-                .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.StudentProfileId == studentId, cancellationToken);
+            var totalPoints = await db.ActivityLogs
+                .Where(a => a.StudentProfileId == studentId)
+                .SumAsync(a => a.PointsEarned ?? 0, cancellationToken);
 
-            if (points is not null && points.TotalPoints >= 100)
-                badgesToAward.Add(BadgeCodes.Reach100Points);
+            foreach (var (threshold, code) in BadgeCodes.PointsTiers)
+            {
+                if (!awardedSet.Contains(code) && totalPoints >= threshold)
+                    badgesToAward.Add(code);
+            }
         }
 
         if (badgesToAward.Count == 0)

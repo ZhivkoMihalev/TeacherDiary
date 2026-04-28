@@ -20,5 +20,7 @@ public class Challenge : BaseEntity
 
     public DateTime EndDate { get; set; }
 
+    public int Points { get; set; }
+
     public ICollection<ChallengeProgress> Progress { get; set; } = new List<ChallengeProgress>();
 }

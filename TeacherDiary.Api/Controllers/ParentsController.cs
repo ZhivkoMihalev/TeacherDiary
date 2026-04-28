@@ -88,6 +88,15 @@ public class ParentsController(
             : BadRequest(result.Error);
     }
 
+    [HttpDelete("students/{studentId:guid}")]
+    public async Task<IActionResult> DeleteStudent(Guid studentId, CancellationToken cancellationToken)
+    {
+        var result = await parentService.DeleteStudentAsync(studentId, cancellationToken);
+        return result.Success
+            ? Ok()
+            : BadRequest(new { error = result.Error });
+    }
+
     /// <summary>
     /// Updates a student's reading progress for an assigned book.
     /// </summary>

@@ -8,4 +8,6 @@ public interface IChallengeService
     Task<Result<Guid>> CreateChallengeAsync(Guid classId, ChallengeCreateRequest request, CancellationToken cancellationToken);
 
     Task<Result<List<ChallengeDto>>> GetChallengesAsync(Guid classId, CancellationToken cancellationToken);
+
+    Task<Result<bool>> ExtendChallengeDeadlineAsync(Guid classId, Guid challengeId, ExtendChallengeDeadlineRequest request, CancellationToken cancellationToken);
 }

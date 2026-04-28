@@ -10,4 +10,8 @@ public interface IAssignmentService
     Task<Result<bool>> UpdateProgressAsync(Guid studentId, Guid assignmentId, bool completed, CancellationToken cancellationToken);
 
     Task<Result<List<AssignmentListDto>>> GetAssignmentsByClassAsync(Guid classId, CancellationToken cancellationToken);
+
+    Task<Result<bool>> UpdateAssignmentAsync(Guid classId, Guid assignmentId, AssignmentUpdateRequest request, CancellationToken cancellationToken);
+
+    Task<Result<List<AssignmentStudentProgressDto>>> GetStudentProgressForAssignmentAsync(Guid classId, Guid assignmentId, CancellationToken cancellationToken);
 }

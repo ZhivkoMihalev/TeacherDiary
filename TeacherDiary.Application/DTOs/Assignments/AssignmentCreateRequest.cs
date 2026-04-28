@@ -13,4 +13,6 @@ public sealed class AssignmentCreateRequest
 
     /// <example>2026-03-10</example>
     public DateTime? DueDate { get; set; }
+
+    public int Points { get; set; }
 }

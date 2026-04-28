@@ -59,4 +59,16 @@ public class BooksController(IReadingService readingService) : ControllerBase
             ? Ok(new { bookId = result.Data })
             : BadRequest(new { error = result.Error });
     }
+
+    [HttpPatch("{bookId:guid}")]
+    public async Task<IActionResult> UpdateBook(
+        Guid bookId,
+        [FromBody] BookUpdateRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await readingService.UpdateBookAsync(bookId, request, cancellationToken);
+        return result.Success
+            ? Ok()
+            : NotFound(new { error = result.Error });
+    }
 }

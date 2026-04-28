@@ -54,6 +54,25 @@ public sealed class ClassService(AppDbContext db, ICurrentUser currentUser) : IC
         return Result<List<ClassDto>>.Ok(list);
     }
 
+    public async Task<Result<bool>> UpdateAsync(Guid classId, ClassUpdateRequest request, CancellationToken cancellationToken)
+    {
+        var currentClass = await db.Classes.FirstOrDefaultAsync(
+            c => c.Id == classId &&
+                 c.OrganizationId == currentUser.OrganizationId &&
+                 c.TeacherId == currentUser.UserId,
+            cancellationToken);
+
+        if (currentClass is null)
+            return Result<bool>.Fail($"Class with id: {classId} was not found.");
+
+        currentClass.Name = request.Name;
+        currentClass.Grade = request.Grade;
+        currentClass.SchoolYear = request.SchoolYear;
+
+        await db.SaveChangesAsync(cancellationToken);
+        return Result<bool>.Ok(true);
+    }
+
     public async Task<Result<bool>> DeleteAsync(Guid classId, CancellationToken cancellationToken)
     {
         var currentClass = await db.Classes.FirstOrDefaultAsync(

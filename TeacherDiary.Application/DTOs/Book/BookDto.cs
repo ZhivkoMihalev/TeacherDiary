@@ -9,4 +9,6 @@ public sealed class BookDto
     public string Author { get; set; }
 
     public int? GradeLevel { get; set; }
+
+    public int TotalPages { get; set; }
 }

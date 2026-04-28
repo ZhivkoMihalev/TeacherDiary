@@ -63,6 +63,18 @@ public class ClassesController(IClassService classes, IReadingService readingSer
     /// <returns>Empty response on success.</returns>
     /// <response code="200">Class deleted successfully.</response>
     /// <response code="404">Class not found or does not belong to the current teacher.</response>
+    [HttpPatch("{classId:guid}")]
+    public async Task<IActionResult> Update(
+        Guid classId,
+        [FromBody] ClassUpdateRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await classes.UpdateAsync(classId, request, cancellationToken);
+        return result.Success
+            ? Ok()
+            : NotFound(new { error = result.Error });
+    }
+
     [HttpDelete("{classId:guid}")]
     public async Task<IActionResult> Delete(Guid classId, CancellationToken cancellationToken)
     {

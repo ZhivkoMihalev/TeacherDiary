@@ -18,5 +18,11 @@ public sealed class ChallengeDto
 
     public DateTime EndDate { get; set; }
 
-    public int CompletedStudents { get; set; }
+    public int TotalStudents { get; set; }
+
+    public int CompletedCount { get; set; }
+
+    public int Points { get; set; }
+
+    public bool IsExpired { get; set; }
 }

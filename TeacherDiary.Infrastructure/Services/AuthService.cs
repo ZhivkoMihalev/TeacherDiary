@@ -58,14 +58,15 @@ public sealed class AuthService(
         await users.AddToRoleAsync(user, RoleTeacher);
 
         var roles = await users.GetRolesAsync(user);
-        var (token, exp) = JwtTokenGenerator.CreateToken(user, roles, _jwt);
+        var (token, _) = JwtTokenGenerator.CreateToken(user, roles, _jwt);
 
         return Result<AuthResponse>.Ok(new AuthResponse
         {
-            AccessToken = token,
-            ExpiresAt = exp,
+            Token = token,
+            UserId = user.Id.ToString(),
             Email = user.Email!,
-            Roles = roles.ToArray()
+            FullName = $"{user.FirstName} {user.LastName}",
+            Role = roles.FirstOrDefault() ?? string.Empty
         });
     }
 
@@ -96,14 +97,15 @@ public sealed class AuthService(
 
         var roles = await users.GetRolesAsync(parent);
 
-        var (token, exp) = JwtTokenGenerator.CreateToken(parent, roles, _jwt);
+        var (token, _) = JwtTokenGenerator.CreateToken(parent, roles, _jwt);
 
         return Result<AuthResponse>.Ok(new AuthResponse
         {
-            AccessToken = token,
-            ExpiresAt = exp,
+            Token = token,
+            UserId = parent.Id.ToString(),
             Email = parent.Email!,
-            Roles = roles.ToArray()
+            FullName = $"{parent.FirstName} {parent.LastName}",
+            Role = roles.FirstOrDefault() ?? string.Empty
         });
     }
 
@@ -116,14 +118,15 @@ public sealed class AuthService(
         if (!successLogin) return Result<AuthResponse>.Fail("Invalid credentials.");
 
         var roles = await users.GetRolesAsync(user);
-        var (token, exp) = JwtTokenGenerator.CreateToken(user, roles, _jwt);
+        var (token, _) = JwtTokenGenerator.CreateToken(user, roles, _jwt);
 
         return Result<AuthResponse>.Ok(new AuthResponse
         {
-            AccessToken = token,
-            ExpiresAt = exp,
+            Token = token,
+            UserId = user.Id.ToString(),
             Email = user.Email!,
-            Roles = roles.ToArray()
+            FullName = $"{user.FirstName} {user.LastName}",
+            Role = roles.FirstOrDefault() ?? string.Empty
         });
     }
 

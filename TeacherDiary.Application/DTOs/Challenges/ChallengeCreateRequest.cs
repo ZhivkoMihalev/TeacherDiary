@@ -15,4 +15,6 @@ public sealed class ChallengeCreateRequest
     public DateTime StartDate { get; set; } = DateTime.UtcNow;
 
     public DateTime EndDate { get; set; } = DateTime.UtcNow.AddDays(30);
+
+    public int Points { get; set; }
 }

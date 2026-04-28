@@ -7,4 +7,6 @@ public sealed class StudentActivityDayDto
     public int PagesRead { get; set; }
 
     public int AssignmentsCompleted { get; set; }
+
+    public int PointsEarned { get; set; }
 }
