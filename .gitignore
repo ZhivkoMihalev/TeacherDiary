@@ -6,6 +6,9 @@ agents.md
 bin/
 obj/
 
+# test coverage results
+coverage-results/
+
 # Visual Studio
 .vs/
 *.user

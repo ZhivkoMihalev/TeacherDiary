@@ -153,6 +153,7 @@ Each authenticated user is placed in a SignalR group keyed by their user ID. `Hu
 | Authentication | JWT Bearer |
 | Logging | Serilog (structured, request logging) |
 | API docs | Swagger / OpenAPI (XML comments) |
+| Testing | xUnit, Moq, EF Core InMemory / SQLite |
 
 ---
 
@@ -161,38 +162,6 @@ Each authenticated user is placed in a SignalR group keyed by their user ID. `Hu
 ### Prerequisites
 - .NET 9 SDK
 - SQL Server (local or remote)
-
-### Configuration
-
-Create or update `TeacherDiary.Api/appsettings.json` (never commit secrets):
-
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=.;Database=TeacherDiary;Trusted_Connection=True;TrustServerCertificate=True"
-  },
-  "Jwt": {
-    "Issuer": "TeacherDiary",
-    "Audience": "TeacherDiary",
-    "SigningKey": "<at-least-32-character-secret>",
-    "ExpiresInMinutes": 1440
-  },
-  "AllowedCorsOrigins": [
-    "http://localhost:5173"
-  ],
-  "Serilog": {
-    "MinimumLevel": {
-      "Default": "Information",
-      "Override": {
-        "Microsoft": "Warning"
-      }
-    },
-    "WriteTo": [
-      { "Name": "Console" }
-    ]
-  }
-}
-```
 
 ### Running the API
 
