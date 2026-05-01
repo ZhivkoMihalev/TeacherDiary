@@ -52,6 +52,97 @@ TeacherDiary/
 
 ---
 
+## Notifications
+
+### Architectural Design — Domain Events
+
+Notifications are driven by the **Domain Events pattern**. Services do not create notifications directly; instead they publish a typed event, and a dedicated handler creates the notification. This keeps business logic decoupled from the notification layer.
+
+```
+Application layer defines:
+  IDomainEvent
+  IDomainEventHandler<TEvent>
+  IEventDispatcher
+
+Infrastructure layer implements:
+  EventDispatcher          — resolves all registered handlers for an event and calls them
+  NotificationHandler×12  — one handler per event type, creates the notification record(s)
+  NotificationService      — persists to DB and pushes in real time via SignalR
+```
+
+Because `NotificationHub` lives in the API project (to avoid a circular dependency), the push step is hidden behind an `INotificationPusher` abstraction defined in the Application layer and implemented in the API layer as `HubNotificationPusher`.
+
+---
+
+### Notification Flow — User-Triggered
+
+When a user takes an action (e.g. a student completes an assignment), the following happens synchronously inside the same HTTP request:
+
+```
+StudentSelfService.CompleteAssignmentAsync()
+  └─ eventDispatcher.PublishAsync(new AssignmentCompletedEvent(...))
+        └─ AssignmentCompletedNotificationHandler.HandleAsync()
+              └─ notificationService.CreateAsync(teacherId, ...)
+                    ├─ INSERT INTO Notifications
+                    └─ HubNotificationPusher.PushAsync()
+                          └─ SignalR → WebSocket → teacher's browser (real time)
+```
+
+The HTTP response is returned only after the notification has been persisted and pushed.
+
+---
+
+### Notification Flow — Background Service (Scheduled)
+
+`OverdueAndReminderService` is an ASP.NET Core `BackgroundService` that runs in a continuous loop alongside the API:
+
+```
+On startup:
+  API (HTTP requests)  ──┐
+                          ├── run in parallel inside the same process
+  OverdueAndReminderService ──┘
+
+Loop (every 1 hour):
+  1. Find assignments whose DueDate fell within the last hour → AssignmentOverdueEvent
+  2. Find assigned books whose EndDate fell within the last hour → BookOverdueEvent
+  3. Between 19:00–20:00 UTC once per day:
+       Find students with an active streak who haven't logged activity today → StreakReminderEvent
+  4. Sleep 1 hour, repeat
+```
+
+To avoid duplicate notifications, overdue events store the assignment/book ID in `Notification.ReferenceId`. Before dispatching, the service queries existing notifications of that type and excludes already-notified IDs.
+
+Because `BackgroundService` is a singleton but `AppDbContext` is scoped, each loop iteration creates a fresh DI scope via `IServiceScopeFactory`.
+
+---
+
+### Notification Types
+
+| Type | Trigger | Recipients |
+|---|---|---|
+| `AssignmentCreated` | Teacher creates an assignment | Students and parents in the class |
+| `AssignmentCompleted` | Student or parent marks assignment done | Teacher |
+| `AssignmentOverdue` | Background service (deadline passed) | Teacher, students, and parents in the class |
+| `BookAssigned` | Teacher assigns a book | Students and parents in the class |
+| `BookCompleted` | Student finishes a book | Teacher |
+| `BookOverdue` | Background service (end date passed) | Teacher, students, and parents in the class |
+| `ChallengeCreated` | Teacher creates a challenge | Students and parents in the class |
+| `ChallengeCompleted` | Student or parent completes a challenge | Teacher |
+| `BadgeEarned` | Badge evaluation engine awards a badge | Student and their parent |
+| `StreakReminder` | Background service (19:00–20:00 UTC daily) | Students with an active streak who haven't logged activity today |
+| `StreakBroken` | Activity service detects a broken streak | Student and their parent |
+| `StudentJoinedClass` | Teacher enrolls a student | Teacher |
+
+---
+
+### Real-Time Delivery
+
+The frontend connects to `/hubs/notifications` over WebSocket using `@microsoft/signalr`. Because WebSockets cannot set custom headers, the JWT token is passed as an `access_token` query parameter and extracted via the `JwtBearerEvents.OnMessageReceived` hook.
+
+Each authenticated user is placed in a SignalR group keyed by their user ID. `HubNotificationPusher` sends to that group, so notifications are delivered only to the intended recipient even if multiple browser tabs are open.
+
+---
+
 ## Technology Stack
 
 | Layer | Technology |

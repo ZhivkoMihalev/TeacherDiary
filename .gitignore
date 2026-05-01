@@ -1,3 +1,7 @@
+# Claude Code
+.claude/
+agents.md
+
 # build
 bin/
 obj/
@@ -15,6 +19,7 @@ obj/
 
 # logs
 *.log
+Logs/
 
 # secrets
 appsettings.Development.json

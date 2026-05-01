@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background-color: #f9fafb;
+  color: #111827;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* ── Login page character animations ── */
+@keyframes chalkDraw1 {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes chalkPiece {
+  from { transform: translate(0px, 0px) rotate(-15deg); }
+  to   { transform: translate(4px, 1px) rotate(-15deg); }
+}
+@keyframes pencilWrite {
+  0%   { transform: rotate(-10deg) translateY(0px); }
+  100% { transform: rotate(10deg)  translateY(-5px); }
+}
+@keyframes motionLine {
+  0%   { opacity: 0; transform: scaleX(0.3); }
+  100% { opacity: 0.7; transform: scaleX(1); }
+}
+@keyframes tabletTilt {
+  0%, 100% { transform: rotate(-4deg); }
+  50%       { transform: rotate(4deg); }
+}
+@keyframes screenGlow {
+  from { fill: #60a5fa; }
+  to   { fill: #93c5fd; }
+}
+@keyframes smilePop {
+  0%   { opacity: 0; transform: scale(0.4); }
+  80%  { transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
