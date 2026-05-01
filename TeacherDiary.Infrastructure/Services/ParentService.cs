@@ -126,21 +126,26 @@ public sealed class ParentService(AppDbContext db, ICurrentUser currentUser) : I
                 a.StudentProfileId == studentId &&
                 a.Date >= from &&
                 a.Date <= today)
+            .OrderBy(a => a.Date).ThenBy(a => a.CreatedAt)
             .ToListAsync(cancellationToken);
 
         var activityByDay = activityLast7
-            .GroupBy(a => a.Date)
-            .Select(g => new StudentActivityDayDto
+            .Select(a => new StudentActivityEntryDto
             {
-                Date = g.Key,
-                PagesRead = g
-                    .Where(a => a.ActivityType == ActivityType.ReadingProgress)
-                    .Sum(a => a.PagesRead ?? 0),
-                AssignmentsCompleted = g
-                    .Count(a => a.ActivityType == ActivityType.AssignmentCompleted),
-                PointsEarned = g.Sum(a => a.PointsEarned ?? 0)
+                Date = a.Date,
+                Description = a.ActivityType switch
+                {
+                    ActivityType.ReadingProgress => $"Прочел {a.PagesRead ?? 0} стр.",
+                    ActivityType.AssignmentCompleted => "Завърши задача",
+                    ActivityType.AssignmentStarted => "Стартира задача",
+                    ActivityType.ChallengeCompleted => "Завърши предизвикателство",
+                    ActivityType.ChallengeProgressUpdated => "Актуализира предизвикателство",
+                    ActivityType.LearningActivityCompleted => "Завърши учебна дейност",
+                    ActivityType.LearningActivityStarted => "Стартира учебна дейност",
+                    _ => "Активност"
+                },
+                PointsEarned = a.PointsEarned ?? 0
             })
-            .OrderBy(x => x.Date)
             .ToList();
 
         var lastActivity = await db.ActivityLogs
@@ -182,6 +187,26 @@ public sealed class ParentService(AppDbContext db, ICurrentUser currentUser) : I
             })
             .ToListAsync(cancellationToken);
 
+        var challenges = await db.ChallengeProgress
+            .AsNoTracking()
+            .Where(cp => cp.StudentProfileId == studentId)
+            .Select(cp => new StudentChallengeDto
+            {
+                ChallengeId = cp.ChallengeId,
+                Title = cp.Challenge.Title,
+                Description = cp.Challenge.Description,
+                TargetDescription = cp.Challenge.TargetDescription,
+                TargetValue = cp.Challenge.TargetValue,
+                CurrentValue = cp.CurrentValue,
+                Started = cp.StartedAt != null,
+                Completed = cp.Completed,
+                EndDate = cp.Challenge.EndDate,
+                IsExpired = cp.Challenge.EndDate < DateTime.UtcNow
+            })
+            .OrderBy(c => c.Completed)
+            .ThenBy(c => c.EndDate)
+            .ToListAsync(cancellationToken);
+
         var parentStudentBestStreak = await db.StudentStreaks
             .AsNoTracking()
             .Where(s => s.StudentProfileId == studentId)
@@ -202,8 +227,58 @@ public sealed class ParentService(AppDbContext db, ICurrentUser currentUser) : I
             Reading = reading,
             Assignments = assignments,
             ActivityLast7Days = activityByDay,
-            LearningActivities = learningActivities
+            LearningActivities = learningActivities,
+            Challenges = challenges
         });
+    }
+
+    public async Task<Result<bool>> StartChallengeForStudentAsync(Guid studentId, Guid challengeId, CancellationToken cancellationToken)
+    {
+        var student = await db.Students
+            .FirstOrDefaultAsync(s => s.Id == studentId && s.ParentId == currentUser.UserId, cancellationToken);
+
+        if (student is null)
+            return Result<bool>.Fail("Student not found.");
+
+        var progress = await db.ChallengeProgress
+            .FirstOrDefaultAsync(cp => cp.StudentProfileId == studentId && cp.ChallengeId == challengeId, cancellationToken);
+
+        if (progress is null)
+            return Result<bool>.Fail("Challenge not found.");
+
+        if (progress.StartedAt is not null)
+            return Result<bool>.Ok(true);
+
+        progress.StartedAt = DateTime.UtcNow;
+        await db.SaveChangesAsync(cancellationToken);
+        return Result<bool>.Ok(true);
+    }
+
+    public async Task<Result<bool>> CompleteChallengeForStudentAsync(Guid studentId, Guid challengeId, CancellationToken cancellationToken)
+    {
+        var student = await db.Students
+            .FirstOrDefaultAsync(s => s.Id == studentId && s.ParentId == currentUser.UserId, cancellationToken);
+
+        if (student is null)
+            return Result<bool>.Fail("Student not found.");
+
+        var progress = await db.ChallengeProgress
+            .Include(cp => cp.Challenge)
+            .FirstOrDefaultAsync(cp => cp.StudentProfileId == studentId && cp.ChallengeId == challengeId, cancellationToken);
+
+        if (progress is null)
+            return Result<bool>.Fail("Challenge not found.");
+
+        if (progress.Completed)
+            return Result<bool>.Ok(true);
+
+        progress.Completed = true;
+        progress.CompletedAt = DateTime.UtcNow;
+        if (progress.Challenge.TargetValue > 0)
+            progress.CurrentValue = Math.Max(progress.CurrentValue, progress.Challenge.TargetValue);
+
+        await db.SaveChangesAsync(cancellationToken);
+        return Result<bool>.Ok(true);
     }
 
     public async Task<Result<bool>> DeleteStudentAsync(Guid studentId, CancellationToken cancellationToken)

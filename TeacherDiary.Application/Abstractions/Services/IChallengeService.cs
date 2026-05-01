@@ -10,4 +10,6 @@ public interface IChallengeService
     Task<Result<List<ChallengeDto>>> GetChallengesAsync(Guid classId, CancellationToken cancellationToken);
 
     Task<Result<bool>> ExtendChallengeDeadlineAsync(Guid classId, Guid challengeId, ExtendChallengeDeadlineRequest request, CancellationToken cancellationToken);
+
+    Task<Result<List<ChallengeStudentProgressDto>>> GetStudentProgressAsync(Guid classId, Guid challengeId, CancellationToken cancellationToken);
 }

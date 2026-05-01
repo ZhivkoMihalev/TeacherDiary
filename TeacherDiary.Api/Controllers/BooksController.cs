@@ -60,6 +60,20 @@ public class BooksController(IReadingService readingService) : ControllerBase
             : BadRequest(new { error = result.Error });
     }
 
+    /// <summary>
+    /// Updates a book in the catalog.
+    /// </summary>
+    /// <remarks>
+    /// Allows editing the title, author, grade level, or total pages of an existing book.
+    /// Changes to total pages affect future progress percentage calculations but do not
+    /// retroactively change students' completed status.
+    /// </remarks>
+    /// <param name="bookId">ID of the book to update.</param>
+    /// <param name="request">Updated book data.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Empty response on success.</returns>
+    /// <response code="200">Book updated successfully.</response>
+    /// <response code="404">Book not found.</response>
     [HttpPatch("{bookId:guid}")]
     public async Task<IActionResult> UpdateBook(
         Guid bookId,

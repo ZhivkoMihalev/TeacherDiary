@@ -42,6 +42,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 
     public DbSet<StudentLearningActivityProgress> StudentLearningActivityProgress => Set<StudentLearningActivityProgress>();
 
+    public DbSet<Message> Messages => Set<Message>();
+
+    public DbSet<Notification> Notifications => Set<Notification>();
+
     protected override void OnModelCreating(ModelBuilder b)
     {
         base.OnModelCreating(b);
@@ -106,7 +110,20 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             .HasOne<AppUser>()
             .WithMany()
             .HasForeignKey(s => s.ParentId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
+
+        b.Entity<StudentProfile>()
+            .HasOne<AppUser>()
+            .WithMany()
+            .HasForeignKey(s => s.UserId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        b.Entity<StudentProfile>()
+            .HasIndex(s => s.UserId)
+            .IsUnique()
+            .HasFilter("[UserId] IS NOT NULL");
 
         b.Entity<StudentProfile>()
             .HasIndex(x => x.ClassId);
@@ -203,5 +220,21 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 
         b.Entity<StudentLearningActivityProgress>()
             .HasIndex(x => new { x.StudentProfileId, x.Status });
+
+        b.Entity<Message>(e =>
+        {
+            e.Property(m => m.Content).HasMaxLength(2000);
+            e.Property(m => m.ImageUrl).HasMaxLength(500);
+            e.HasIndex(m => m.ReceiverId);
+            e.HasIndex(m => new { m.SenderId, m.ReceiverId });
+        });
+
+        b.Entity<Notification>(e =>
+        {
+            e.Property(n => n.Message).HasMaxLength(500).IsRequired();
+            e.Property(n => n.NavigationUrl).HasMaxLength(300);
+            e.HasIndex(n => new { n.UserId, n.IsRead });
+            e.HasIndex(n => new { n.Type, n.ReferenceId });
+        });
     }
 }

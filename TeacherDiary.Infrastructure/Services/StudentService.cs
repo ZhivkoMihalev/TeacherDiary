@@ -1,7 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TeacherDiary.Application.Abstractions.Services;
 using TeacherDiary.Application.Common;
 using TeacherDiary.Application.DTOs.Students;
+using TeacherDiary.Application.Events;
 using TeacherDiary.Domain.Common;
 using TeacherDiary.Domain.Entities;
 using TeacherDiary.Domain.Enums;
@@ -9,14 +10,14 @@ using TeacherDiary.Infrastructure.Persistence;
 
 namespace TeacherDiary.Infrastructure.Services;
 
-public sealed class StudentService(AppDbContext db, ICurrentUser currentUser) : IStudentService
+public sealed class StudentService(AppDbContext db, ICurrentUser currentUser, IEventDispatcher eventDispatcher) : IStudentService
 {
     public async Task<Result<List<StudentDto>>> GetByClassAsync(Guid classId, CancellationToken cancellationToken)
     {
         var ok = await db.Classes.AnyAsync(
-            c => c.Id == classId 
-                 && c.OrganizationId == currentUser.OrganizationId 
-                 && c.TeacherId == currentUser.UserId, 
+            c => c.Id == classId
+                 && c.OrganizationId == currentUser.OrganizationId
+                 && c.TeacherId == currentUser.UserId,
             cancellationToken);
 
         if (!ok) return Result<List<StudentDto>>.Fail($"Class with id: {classId} was not found.");
@@ -83,8 +84,6 @@ public sealed class StudentService(AppDbContext db, ICurrentUser currentUser) : 
 
         student.ClassId = cls.Id;
 
-        // Load existing progress record IDs to avoid unique constraint violations
-        // (student may have been in this class before and retained their records)
         var existingReadingBookIds = await db.ReadingProgress
             .Where(r => r.StudentProfileId == student.Id)
             .Select(r => r.AssignedBookId)
@@ -105,7 +104,6 @@ public sealed class StudentService(AppDbContext db, ICurrentUser currentUser) : 
             .Select(p => p.LearningActivityId)
             .ToListAsync(cancellationToken);
 
-        // Bootstrap reading progress
         var assignedBooks = await db.AssignedBooks
             .Where(b => b.ClassId == cls.Id && !existingReadingBookIds.Contains(b.Id))
             .Select(b => new { b.Id, TotalPages = b.Book.TotalPages })
@@ -122,7 +120,6 @@ public sealed class StudentService(AppDbContext db, ICurrentUser currentUser) : 
 
         db.ReadingProgress.AddRange(readingRows);
 
-        // Bootstrap assignment progress
         var assignments = await db.Assignments
             .Where(a => a.ClassId == cls.Id && !existingAssignmentIds.Contains(a.Id))
             .ToListAsync(cancellationToken);
@@ -136,7 +133,6 @@ public sealed class StudentService(AppDbContext db, ICurrentUser currentUser) : 
 
         db.AssignmentProgress.AddRange(assignmentRows);
 
-        // Bootstrap challenge progress
         var challenges = await db.Challenges
             .Where(c => c.ClassId == cls.Id && !existingChallengeIds.Contains(c.Id))
             .ToListAsync(cancellationToken);
@@ -150,7 +146,6 @@ public sealed class StudentService(AppDbContext db, ICurrentUser currentUser) : 
 
         db.ChallengeProgress.AddRange(challengeRows);
 
-        // Bootstrap learning activity engine
         var activities = await db.LearningActivities
             .Where(a => a.ClassId == cls.Id && a.IsActive && !existingActivityIds.Contains(a.Id))
             .ToListAsync(cancellationToken);
@@ -167,6 +162,10 @@ public sealed class StudentService(AppDbContext db, ICurrentUser currentUser) : 
         db.StudentLearningActivityProgress.AddRange(activityRows);
 
         await db.SaveChangesAsync(cancellationToken);
+
+        await eventDispatcher.PublishAsync(
+            new StudentJoinedClassEvent(student.Id, cls.Id),
+            cancellationToken);
 
         return Result<bool>.Ok(true);
     }

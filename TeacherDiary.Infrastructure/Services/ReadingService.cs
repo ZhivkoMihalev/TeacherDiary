@@ -1,8 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TeacherDiary.Application.Abstractions.Services;
 using TeacherDiary.Application.Common;
 using TeacherDiary.Application.DTOs.Book;
 using TeacherDiary.Application.DTOs.Reading;
+using TeacherDiary.Application.Events;
 using TeacherDiary.Domain.Entities;
 using TeacherDiary.Domain.Enums;
 using TeacherDiary.Infrastructure.Persistence;
@@ -14,7 +15,8 @@ public sealed class ReadingService(
     ICurrentUser currentUser,
     IActivityService activityService,
     ILearningActivityService learningActivityService,
-    IBadgeService badgeService) : IReadingService
+    IBadgeService badgeService,
+    IEventDispatcher eventDispatcher) : IReadingService
 {
     public async Task<Result<Guid>> CreateBookAsync(BookCreateRequest request, CancellationToken cancellationToken)
     {
@@ -100,6 +102,10 @@ public sealed class ReadingService(
             assigned,
             cancellationToken);
 
+        await eventDispatcher.PublishAsync(
+            new BookAssignedEvent(assigned.Id, currentClass.Id, book.Title),
+            cancellationToken);
+
         return Result<Guid>.Ok(assigned.Id);
     }
 
@@ -177,6 +183,11 @@ public sealed class ReadingService(
             cancellationToken);
 
         await db.SaveChangesAsync(cancellationToken);
+
+        if (bookCompleted)
+            await eventDispatcher.PublishAsync(
+                new BookCompletedEvent(studentId, assignedBookId, progress.AssignedBook.ClassId),
+                cancellationToken);
 
         return Result<bool>.Ok(true);
     }
@@ -323,7 +334,6 @@ public sealed class ReadingService(
                     sp.LastUpdatedAt = DateTime.UtcNow;
                 }
 
-                // Update the completion log entry (highest PointsEarned, then most recent)
                 var log = await db.ActivityLogs
                     .Where(a =>
                         a.StudentProfileId == studentId &&

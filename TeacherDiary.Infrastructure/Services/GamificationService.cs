@@ -1,13 +1,17 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TeacherDiary.Application.Abstractions.Services;
 using TeacherDiary.Application.Common;
 using TeacherDiary.Application.DTOs.Leaderboard;
+using TeacherDiary.Application.Events;
 using TeacherDiary.Domain.Entities;
 using TeacherDiary.Infrastructure.Persistence;
 
 namespace TeacherDiary.Infrastructure.Services;
 
-public sealed class GamificationService(AppDbContext db, ICurrentUser currentUser) : IGamificationService
+public sealed class GamificationService(
+    AppDbContext db,
+    ICurrentUser currentUser,
+    IEventDispatcher eventDispatcher) : IGamificationService
 {
     public async Task AddReadingPointsAsync(Guid studentId, int points, CancellationToken cancellationToken)
     {
@@ -72,9 +76,17 @@ public sealed class GamificationService(AppDbContext db, ICurrentUser currentUse
                 return;
 
             if (streak.LastActiveDate == today.AddDays(-1))
+            {
                 streak.CurrentStreak++;
+            }
             else
+            {
+                var oldStreak = streak.CurrentStreak;
                 streak.CurrentStreak = 1;
+
+                if (oldStreak > 1)
+                    await eventDispatcher.PublishAsync(new StreakBrokenEvent(studentId, oldStreak), cancellationToken);
+            }
 
             if (streak.CurrentStreak > streak.BestStreak)
                 streak.BestStreak = streak.CurrentStreak;

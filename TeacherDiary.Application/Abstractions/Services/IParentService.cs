@@ -12,4 +12,8 @@ public interface IParentService
     Task<Result<StudentDetailsDto>> GetStudentAsync(Guid studentId, CancellationToken cancellationToken);
 
     Task<Result<bool>> DeleteStudentAsync(Guid studentId, CancellationToken cancellationToken);
+
+    Task<Result<bool>> StartChallengeForStudentAsync(Guid studentId, Guid challengeId, CancellationToken cancellationToken);
+
+    Task<Result<bool>> CompleteChallengeForStudentAsync(Guid studentId, Guid challengeId, CancellationToken cancellationToken);
 }

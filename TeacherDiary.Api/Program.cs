@@ -5,7 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using TeacherDiary.Api.Hubs;
 using TeacherDiary.Api.Middlewares;
+using TeacherDiary.Application.Abstractions.Services;
 using TeacherDiary.Infrastructure;
 using TeacherDiary.Infrastructure.Auth;
 using TeacherDiary.Infrastructure.Extensions;
@@ -31,6 +33,9 @@ namespace TeacherDiary.Api
                 Log.Information("Step 2: Builder created");
 
                 builder.Host.UseSerilog();
+
+                builder.Services.AddSignalR();
+                builder.Services.AddScoped<INotificationPusher, HubNotificationPusher>();
 
                 builder.Services.AddControllers()
                     .AddJsonOptions(opt =>
@@ -58,6 +63,18 @@ namespace TeacherDiary.Api
                             ValidAudience = jwt.Audience,
                             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.SigningKey)),
                             ClockSkew = TimeSpan.FromSeconds(30)
+                        };
+                        // Allow SignalR to pass token via query string (WebSocket can't set headers)
+                        opt.Events = new JwtBearerEvents
+                        {
+                            OnMessageReceived = context =>
+                            {
+                                var token = context.Request.Query["access_token"].ToString();
+                                if (!string.IsNullOrEmpty(token) &&
+                                    context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                                    context.Token = token;
+                                return Task.CompletedTask;
+                            }
                         };
                     });
 
@@ -108,7 +125,8 @@ namespace TeacherDiary.Api
                         policy
                             .WithOrigins(allowedCorsOrigins)
                             .AllowAnyHeader()
-                            .AllowAnyMethod();
+                            .AllowAnyMethod()
+                            .AllowCredentials();
                     });
                 });
 
@@ -156,6 +174,8 @@ namespace TeacherDiary.Api
                     c.DefaultModelsExpandDepth(-1); // hide schemas section
                 });
 
+                app.UseStaticFiles();
+
                 app.UseHttpsRedirection();
 
                 app.UseAuthentication();
@@ -164,6 +184,7 @@ namespace TeacherDiary.Api
                 app.UseCors("Frontend");
 
                 app.MapControllers();
+                app.MapHub<NotificationHub>("/hubs/notifications");
 
                 app.Run();
             }

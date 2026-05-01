@@ -1,7 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TeacherDiary.Application.Abstractions.Services;
 using TeacherDiary.Application.Common;
 using TeacherDiary.Application.DTOs.Assignments;
+using TeacherDiary.Application.Events;
 using TeacherDiary.Domain.Entities;
 using TeacherDiary.Domain.Enums;
 using TeacherDiary.Infrastructure.Persistence;
@@ -13,7 +14,8 @@ public sealed class AssignmentService(
     ICurrentUser currentUser,
     IActivityService activityService,
     ILearningActivityService learningActivityService,
-    IBadgeService badgeService) : IAssignmentService
+    IBadgeService badgeService,
+    IEventDispatcher eventDispatcher) : IAssignmentService
 {
     public async Task<Result<Guid>> CreateAssignmentAsync(
         Guid classId,
@@ -60,6 +62,10 @@ public sealed class AssignmentService(
 
         await learningActivityService.CreateForAssignmentAsync(
             assignment,
+            cancellationToken);
+
+        await eventDispatcher.PublishAsync(
+            new AssignmentCreatedEvent(assignment.Id, currentClass.Id, assignment.Title),
             cancellationToken);
 
         return Result<Guid>.Ok(assignment.Id);
@@ -124,6 +130,11 @@ public sealed class AssignmentService(
             cancellationToken);
 
         await db.SaveChangesAsync(cancellationToken);
+
+        if (completed && !wasCompleted)
+            await eventDispatcher.PublishAsync(
+                new AssignmentCompletedEvent(studentId, assignmentId, progress.Assignment.ClassId),
+                cancellationToken);
 
         return Result<bool>.Ok(true);
     }
@@ -214,7 +225,6 @@ public sealed class AssignmentService(
 
         if (pointsDelta != 0)
         {
-            // Retroactively adjust every student who already completed this assignment
             var completedStudentIds = await db.AssignmentProgress
                 .Where(p => p.AssignmentId == assignmentId && p.Status == ProgressStatus.Completed)
                 .Select(p => p.StudentProfileId)
@@ -222,7 +232,6 @@ public sealed class AssignmentService(
 
             foreach (var studentId in completedStudentIds)
             {
-                // Adjust StudentPoints (create record if it didn't exist yet)
                 var sp = await db.StudentPoints
                     .FirstOrDefaultAsync(p => p.StudentProfileId == studentId, cancellationToken);
 
@@ -240,7 +249,6 @@ public sealed class AssignmentService(
                     sp.LastUpdatedAt = DateTime.UtcNow;
                 }
 
-                // Keep the ActivityLog entry in sync with the new points value
                 var log = await db.ActivityLogs
                     .Where(a =>
                         a.StudentProfileId == studentId &&

@@ -1,5 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TeacherDiary.Application.Abstractions.Services;
+using TeacherDiary.Application.Events;
 using TeacherDiary.Domain.Common;
 using TeacherDiary.Domain.Entities;
 using TeacherDiary.Domain.Enums;
@@ -7,7 +8,7 @@ using TeacherDiary.Infrastructure.Persistence;
 
 namespace TeacherDiary.Infrastructure.Services;
 
-public sealed class BadgeService(AppDbContext db) : IBadgeService
+public sealed class BadgeService(AppDbContext db, IEventDispatcher eventDispatcher) : IBadgeService
 {
     public async Task EvaluateAsync(Guid studentId, CancellationToken cancellationToken)
     {
@@ -27,7 +28,6 @@ public sealed class BadgeService(AppDbContext db) : IBadgeService
 
         var badgesToAward = new List<string>();
 
-        // 1. First book completed
         if (!awardedSet.Contains(BadgeCodes.FirstBookCompleted))
         {
             var hasCompletedBook = await db.ReadingProgress
@@ -40,7 +40,6 @@ public sealed class BadgeService(AppDbContext db) : IBadgeService
                 badgesToAward.Add(BadgeCodes.FirstBookCompleted);
         }
 
-        // 2. Read 100 pages
         if (!awardedSet.Contains(BadgeCodes.Read100Pages))
         {
             var totalPagesRead = await db.ActivityLogs
@@ -53,7 +52,6 @@ public sealed class BadgeService(AppDbContext db) : IBadgeService
                 badgesToAward.Add(BadgeCodes.Read100Pages);
         }
 
-        // 3. Complete 5 assignments
         if (!awardedSet.Contains(BadgeCodes.Complete5Assignments))
         {
             var completedAssignments = await db.AssignmentProgress
@@ -66,7 +64,6 @@ public sealed class BadgeService(AppDbContext db) : IBadgeService
                 badgesToAward.Add(BadgeCodes.Complete5Assignments);
         }
 
-        // 4. Streak medals (all tiers based on BestStreak)
         {
             var streak = await db.StudentStreaks
                 .AsNoTracking()
@@ -82,7 +79,6 @@ public sealed class BadgeService(AppDbContext db) : IBadgeService
             }
         }
 
-        // 5. Points milestones
         {
             var totalPoints = await db.ActivityLogs
                 .Where(a => a.StudentProfileId == studentId)
@@ -110,5 +106,8 @@ public sealed class BadgeService(AppDbContext db) : IBadgeService
         });
 
         db.StudentBadges.AddRange(studentBadges);
+
+        foreach (var badge in badgeEntities)
+            await eventDispatcher.PublishAsync(new BadgeEarnedEvent(studentId, badge.Name), cancellationToken);
     }
 }

@@ -54,10 +54,32 @@ public class AuthController(IAuthService auth) : ControllerBase
     }
 
     /// <summary>
+    /// Registers a new student account.
+    /// </summary>
+    /// <remarks>
+    /// Creates a student user linked to an existing student profile.
+    /// After registration, the student can log in and view their own progress.
+    /// Returns a JWT token with role "Student".
+    /// </remarks>
+    /// <param name="request">Student registration data (name, email, password, student profile ID).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>JWT token and basic user information.</returns>
+    /// <response code="200">Registration successful — returns token and user data.</response>
+    /// <response code="400">Email already taken, student profile not found, or validation error.</response>
+    [HttpPost("register-student")]
+    public async Task<IActionResult> RegisterStudent([FromBody] RegisterStudentRequest request, CancellationToken cancellationToken)
+    {
+        var result = await auth.RegisterStudentAsync(request, cancellationToken);
+        return result.Success
+            ? Ok(result.Data)
+            : BadRequest(new { error = result.Error });
+    }
+
+    /// <summary>
     /// Authenticates a user and returns a JWT token.
     /// </summary>
     /// <remarks>
-    /// Works for both teachers and parents. The returned token encodes the user's role,
+    /// Works for teachers, parents, and students. The returned token encodes the user's role,
     /// user ID, and — for teachers — their organization ID. Include the token in the
     /// <c>Authorization: Bearer &lt;token&gt;</c> header on all protected endpoints.
     /// </remarks>

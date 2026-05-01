@@ -4,7 +4,11 @@ using Microsoft.Extensions.DependencyInjection;
 using TeacherDiary.Application.Abstractions.Auth;
 using TeacherDiary.Application.Abstractions.Persistence;
 using TeacherDiary.Application.Abstractions.Services;
+using TeacherDiary.Application.Events;
 using TeacherDiary.Infrastructure.Auth;
+using TeacherDiary.Infrastructure.BackgroundServices;
+using TeacherDiary.Infrastructure.Events;
+using TeacherDiary.Infrastructure.Handlers;
 using TeacherDiary.Infrastructure.Persistence;
 using TeacherDiary.Infrastructure.Services;
 
@@ -50,7 +54,31 @@ public static class DependencyInjection
         services.AddScoped<IActivityService, ActivityService>();
         services.AddScoped<IBadgeService, BadgeService>();
         services.AddScoped<ILearningActivityService, LearningActivityService>();
+        services.AddScoped<IMessageService, MessageService>();
+        services.AddScoped<IStudentSelfService, StudentSelfService>();
+        services.AddScoped<INotificationService, NotificationService>();
+
+        // Domain events
+        services.AddScoped<IEventDispatcher, EventDispatcher>();
+
+        // Notification handlers
+        services.AddScoped<IDomainEventHandler<AssignmentCreatedEvent>, AssignmentCreatedNotificationHandler>();
+        services.AddScoped<IDomainEventHandler<AssignmentCompletedEvent>, AssignmentCompletedNotificationHandler>();
+        services.AddScoped<IDomainEventHandler<AssignmentOverdueEvent>, AssignmentOverdueNotificationHandler>();
+        services.AddScoped<IDomainEventHandler<BookAssignedEvent>, BookAssignedNotificationHandler>();
+        services.AddScoped<IDomainEventHandler<BookCompletedEvent>, BookCompletedNotificationHandler>();
+        services.AddScoped<IDomainEventHandler<BookOverdueEvent>, BookOverdueNotificationHandler>();
+        services.AddScoped<IDomainEventHandler<ChallengeCreatedEvent>, ChallengeCreatedNotificationHandler>();
+        services.AddScoped<IDomainEventHandler<ChallengeCompletedEvent>, ChallengeCompletedNotificationHandler>();
+        services.AddScoped<IDomainEventHandler<BadgeEarnedEvent>, BadgeEarnedNotificationHandler>();
+        services.AddScoped<IDomainEventHandler<StreakBrokenEvent>, StreakBrokenNotificationHandler>();
+        services.AddScoped<IDomainEventHandler<StreakReminderEvent>, StreakReminderNotificationHandler>();
+        services.AddScoped<IDomainEventHandler<StudentJoinedClassEvent>, StudentJoinedClassNotificationHandler>();
+
+        // Background services
+        services.AddHostedService<OverdueAndReminderService>();
 
         return services;
     }
 }   
+

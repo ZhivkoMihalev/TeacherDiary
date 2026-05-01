@@ -1,7 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TeacherDiary.Application.Abstractions.Services;
 using TeacherDiary.Application.Common;
 using TeacherDiary.Application.DTOs.Challenges;
+using TeacherDiary.Application.Events;
 using TeacherDiary.Domain.Entities;
 using TeacherDiary.Infrastructure.Persistence;
 
@@ -10,7 +11,8 @@ namespace TeacherDiary.Infrastructure.Services;
 public sealed class ChallengeService(
     AppDbContext db,
     ICurrentUser currentUser,
-    ILearningActivityService learningActivityService) : IChallengeService
+    ILearningActivityService learningActivityService,
+    IEventDispatcher eventDispatcher) : IChallengeService
 {
     public async Task<Result<Guid>> CreateChallengeAsync(
         Guid classId,
@@ -31,6 +33,7 @@ public sealed class ChallengeService(
             ClassId = currentClass.Id,
             Title = request.Title,
             Description = request.Description,
+            TargetDescription = request.TargetDescription,
             TargetType = request.TargetType,
             TargetValue = request.TargetValue,
             StartDate = request.StartDate,
@@ -62,6 +65,10 @@ public sealed class ChallengeService(
             challenge,
             cancellationToken);
 
+        await eventDispatcher.PublishAsync(
+            new ChallengeCreatedEvent(challenge.Id, currentClass.Id, challenge.Title),
+            cancellationToken);
+
         return Result<Guid>.Ok(challenge.Id);
     }
 
@@ -85,6 +92,7 @@ public sealed class ChallengeService(
                 Id = c.Id,
                 Title = c.Title,
                 Description = c.Description,
+                TargetDescription = c.TargetDescription,
                 TargetType = c.TargetType,
                 TargetValue = c.TargetValue,
                 StartDate = c.StartDate,
@@ -119,5 +127,36 @@ public sealed class ChallengeService(
         challenge.EndDate = request.EndDate;
         await db.SaveChangesAsync(cancellationToken);
         return Result<bool>.Ok(true);
+    }
+
+    public async Task<Result<List<ChallengeStudentProgressDto>>> GetStudentProgressAsync(
+        Guid classId,
+        Guid challengeId,
+        CancellationToken cancellationToken)
+    {
+        var classExists = await db.Classes.AnyAsync(c =>
+                c.Id == classId &&
+                c.TeacherId == currentUser.UserId &&
+                c.OrganizationId == currentUser.OrganizationId,
+            cancellationToken);
+
+        if (!classExists)
+            return Result<List<ChallengeStudentProgressDto>>.Fail("Class not found.");
+
+        var progress = await db.ChallengeProgress
+            .AsNoTracking()
+            .Where(cp => cp.ChallengeId == challengeId && cp.Challenge.ClassId == classId)
+            .Select(cp => new ChallengeStudentProgressDto
+            {
+                StudentId = cp.StudentProfileId,
+                StudentName = cp.StudentProfile.FirstName + " " + cp.StudentProfile.LastName,
+                Started = cp.StartedAt != null,
+                Completed = cp.Completed,
+                CurrentValue = cp.CurrentValue
+            })
+            .OrderBy(p => p.StudentName)
+            .ToListAsync(cancellationToken);
+
+        return Result<List<ChallengeStudentProgressDto>>.Ok(progress);
     }
 }

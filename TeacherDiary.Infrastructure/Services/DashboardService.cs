@@ -322,23 +322,26 @@ public sealed class DashboardService(AppDbContext db, ICurrentUser currentUser) 
                 a.StudentProfileId == studentId &&
                 a.Date >= from &&
                 a.Date <= today)
+            .OrderBy(a => a.Date).ThenBy(a => a.CreatedAt)
             .ToListAsync(cancellationToken);
 
         var activityByDay = activityLast7
-            .GroupBy(a => a.Date)
-            .Select(g => new StudentActivityDayDto
+            .Select(a => new StudentActivityEntryDto
             {
-                Date = g.Key,
-                PagesRead = g
-                    .Where(a => a.ActivityType == ActivityType.ReadingProgress)
-                    .Sum(a => a.PagesRead ?? 0),
-
-                AssignmentsCompleted = g
-                    .Count(a => a.ActivityType == ActivityType.AssignmentCompleted),
-
-                PointsEarned = g.Sum(a => a.PointsEarned ?? 0)
+                Date = a.Date,
+                Description = a.ActivityType switch
+                {
+                    ActivityType.ReadingProgress => $"Прочел {a.PagesRead ?? 0} стр.",
+                    ActivityType.AssignmentCompleted => "Завърши задача",
+                    ActivityType.AssignmentStarted => "Стартира задача",
+                    ActivityType.ChallengeCompleted => "Завърши предизвикателство",
+                    ActivityType.ChallengeProgressUpdated => "Актуализира предизвикателство",
+                    ActivityType.LearningActivityCompleted => "Завърши учебна дейност",
+                    ActivityType.LearningActivityStarted => "Стартира учебна дейност",
+                    _ => "Активност"
+                },
+                PointsEarned = a.PointsEarned ?? 0
             })
-            .OrderBy(x => x.Date)
             .ToList();
 
         // last activity
@@ -382,6 +385,26 @@ public sealed class DashboardService(AppDbContext db, ICurrentUser currentUser) 
             })
             .ToListAsync(cancellationToken);
 
+        var challenges = await db.ChallengeProgress
+            .AsNoTracking()
+            .Where(cp => cp.StudentProfileId == studentId)
+            .Select(cp => new StudentChallengeDto
+            {
+                ChallengeId = cp.ChallengeId,
+                Title = cp.Challenge.Title,
+                Description = cp.Challenge.Description,
+                TargetDescription = cp.Challenge.TargetDescription,
+                TargetValue = cp.Challenge.TargetValue,
+                CurrentValue = cp.CurrentValue,
+                Started = cp.StartedAt != null,
+                Completed = cp.Completed,
+                EndDate = cp.Challenge.EndDate,
+                IsExpired = cp.Challenge.EndDate < DateTime.UtcNow
+            })
+            .OrderBy(c => c.Completed)
+            .ThenBy(c => c.EndDate)
+            .ToListAsync(cancellationToken);
+
         var studentBestStreak = await db.StudentStreaks
             .AsNoTracking()
             .Where(s => s.StudentProfileId == studentId)
@@ -402,7 +425,8 @@ public sealed class DashboardService(AppDbContext db, ICurrentUser currentUser) 
             Reading = reading,
             Assignments = assignments,
             ActivityLast7Days = activityByDay,
-            LearningActivities = learningActivities
+            LearningActivities = learningActivities,
+            Challenges = challenges
         });
     }
 

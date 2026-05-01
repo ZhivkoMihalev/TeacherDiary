@@ -1,4 +1,4 @@
-﻿namespace TeacherDiary.Domain.Entities;
+namespace TeacherDiary.Domain.Entities;
 
 public class StudentProfile : BaseEntity
 {
@@ -8,7 +8,9 @@ public class StudentProfile : BaseEntity
 
     public string LastName { get; set; } = default!;
 
-    public Guid ParentId { get; set; }
+    public Guid? ParentId { get; set; }
+
+    public Guid? UserId { get; set; }
 
     public string AvatarUrl { get; set; }
 

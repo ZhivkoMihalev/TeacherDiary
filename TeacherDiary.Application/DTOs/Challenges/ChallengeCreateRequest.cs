@@ -8,7 +8,9 @@ public sealed class ChallengeCreateRequest
 
     public string Description { get; set; }
 
-    public TargetType TargetType { get; set; }
+    public string? TargetDescription { get; set; }
+
+    public TargetType TargetType { get; set; } = Domain.Enums.TargetType.None;
 
     public int TargetValue { get; set; }
 

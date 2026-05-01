@@ -21,9 +21,12 @@ public sealed class AuthService(
 
     public const string RoleTeacher = "Teacher";
     public const string RoleParent = "Parent";
+    public const string RoleStudent = "Student";
     public const string RoleAdmin = "Admin";
 
-    public async Task<Result<AuthResponse>> RegisterTeacherAsync(RegisterRequest request, CancellationToken cancellationToken)
+    public async Task<Result<AuthResponse>> RegisterTeacherAsync(
+        RegisterRequest request, 
+        CancellationToken cancellationToken)
     {
         await EnsureRolesAsync(cancellationToken);
 
@@ -109,6 +112,55 @@ public sealed class AuthService(
         });
     }
 
+    public async Task<Result<AuthResponse>> RegisterStudentAsync(
+        RegisterStudentRequest request,
+        CancellationToken cancellationToken)
+    {
+        await EnsureRolesAsync(cancellationToken);
+
+        if (await users.Users.AnyAsync(u => u.Email == request.Email, cancellationToken))
+            return Result<AuthResponse>.Fail($"Email: {request.Email} already exists.");
+
+        var appUser = new AppUser
+        {
+            Email = request.Email,
+            UserName = request.Email,
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            OrganizationId = null
+        };
+
+        var created = await users.CreateAsync(appUser, request.Password);
+        if (!created.Succeeded)
+            return Result<AuthResponse>.Fail(string.Join("; ", created.Errors.Select(e => e.Description)));
+
+        await users.AddToRoleAsync(appUser, RoleStudent);
+
+        var profile = new Domain.Entities.StudentProfile
+        {
+            UserId = appUser.Id,
+            ParentId = null,
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            ClassId = null
+        };
+
+        db.Students.Add(profile);
+        await db.SaveChangesAsync(cancellationToken);
+
+        var userRoles = await users.GetRolesAsync(appUser);
+        var (token, _) = JwtTokenGenerator.CreateToken(appUser, userRoles, _jwt);
+
+        return Result<AuthResponse>.Ok(new AuthResponse
+        {
+            Token = token,
+            UserId = appUser.Id.ToString(),
+            Email = appUser.Email!,
+            FullName = $"{appUser.FirstName} {appUser.LastName}",
+            Role = userRoles.FirstOrDefault() ?? string.Empty
+        });
+    }
+
     public async Task<Result<AuthResponse>> LoginAsync(LoginRequest request, CancellationToken cancellationToken)
     {
         var user = await users.Users.FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
@@ -132,7 +184,7 @@ public sealed class AuthService(
 
     private async Task EnsureRolesAsync(CancellationToken cancellationToken)
     {
-        foreach (var role in new[] { RoleTeacher, RoleParent, RoleAdmin })
+        foreach (var role in new[] { RoleTeacher, RoleParent, RoleStudent, RoleAdmin })
         {
             if (!await roles.RoleExistsAsync(role))
                 await roles.CreateAsync(new AppRole { Name = role });

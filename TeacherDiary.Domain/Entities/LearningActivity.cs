@@ -22,15 +22,12 @@ public class LearningActivity : BaseEntity
 
     public LearningActivityStatus Status { get; set; }
 
-    // reference към source entity
     public Guid? AssignedBookId { get; set; }
 
     public Guid? AssignmentId { get; set; }
 
     public Guid? ChallengeId { get; set; }
 
-    // допълнителни обобщени полета за analytics/UI
-    // напр. pages / points / task count
     public int? TargetValue { get; set; }
 
     public int? MaxScore { get; set; }

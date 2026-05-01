@@ -88,6 +88,19 @@ public class ParentsController(
             : BadRequest(result.Error);
     }
 
+    /// <summary>
+    /// Deletes a student profile owned by the authenticated parent.
+    /// </summary>
+    /// <remarks>
+    /// Permanently removes the student profile and all associated reading progress,
+    /// assignment progress, and activity records.
+    /// Only the parent who owns the student can delete the profile.
+    /// </remarks>
+    /// <param name="studentId">ID of the student profile to delete.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Empty response on success.</returns>
+    /// <response code="200">Student deleted successfully.</response>
+    /// <response code="400">Student not found or does not belong to the authenticated parent.</response>
     [HttpDelete("students/{studentId:guid}")]
     public async Task<IActionResult> DeleteStudent(Guid studentId, CancellationToken cancellationToken)
     {
@@ -166,6 +179,55 @@ public class ParentsController(
             request.MarkCompleted,
             cancellationToken);
 
-        return result.Success ? Ok() : BadRequest(result.Error);
+        return result.Success
+            ? Ok()
+            : BadRequest(result.Error);
+    }
+
+    /// <summary>
+    /// Marks a challenge as in progress for a student.
+    /// </summary>
+    /// <remarks>
+    /// Transitions the student's challenge progress from <c>NotStarted</c> to <c>InProgress</c>.
+    /// The student must be enrolled in the class the challenge belongs to.
+    /// </remarks>
+    /// <param name="studentId">ID of the student.</param>
+    /// <param name="challengeId">ID of the challenge to start.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Empty response on success.</returns>
+    /// <response code="200">Challenge marked as in progress.</response>
+    /// <response code="400">Student or challenge not found, or the student is not enrolled in the challenge's class.</response>
+    [HttpPatch("students/{studentId:guid}/challenges/{challengeId:guid}/start")]
+    public async Task<IActionResult> StartChallenge(
+        Guid studentId,
+        Guid challengeId,
+        CancellationToken cancellationToken)
+    {
+        var result = await parentService.StartChallengeForStudentAsync(studentId, challengeId, cancellationToken);
+        return result.Success ? Ok() : BadRequest(new { error = result.Error });
+    }
+
+    /// <summary>
+    /// Marks a challenge as completed for a student.
+    /// </summary>
+    /// <remarks>
+    /// Transitions the student's challenge progress from <c>InProgress</c> to <c>Completed</c>.
+    /// On success, this also awards gamification points and checks for newly unlocked badges.
+    /// The student must be enrolled in the class the challenge belongs to.
+    /// </remarks>
+    /// <param name="studentId">ID of the student.</param>
+    /// <param name="challengeId">ID of the challenge to complete.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Empty response on success.</returns>
+    /// <response code="200">Challenge marked as completed.</response>
+    /// <response code="400">Student or challenge not found, or the student is not enrolled in the challenge's class.</response>
+    [HttpPatch("students/{studentId:guid}/challenges/{challengeId:guid}/complete")]
+    public async Task<IActionResult> CompleteChallenge(
+        Guid studentId,
+        Guid challengeId,
+        CancellationToken cancellationToken)
+    {
+        var result = await parentService.CompleteChallengeForStudentAsync(studentId, challengeId, cancellationToken);
+        return result.Success ? Ok() : BadRequest(new { error = result.Error });
     }
 }

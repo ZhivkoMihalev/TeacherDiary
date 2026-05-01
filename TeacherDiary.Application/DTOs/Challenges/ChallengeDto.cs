@@ -10,6 +10,8 @@ public sealed class ChallengeDto
 
     public string Description { get; set; }
 
+    public string? TargetDescription { get; set; }
+
     public TargetType TargetType { get; set; }
 
     public int TargetValue { get; set; }

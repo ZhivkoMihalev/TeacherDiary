@@ -36,19 +36,19 @@ public class AssignmentsController(IAssignmentService assignments) : ControllerB
     }
 
     /// <summary>
-    /// Returns all assignments for a class.
+    /// Updates an existing assignment.
     /// </summary>
     /// <remarks>
-    /// Returns a list of assignments created for the class, each with:
-    /// - title, subject, description
-    /// - due date
-    /// - completion statistics (how many students have submitted)
+    /// Allows editing the title, description, subject, or due date of an assignment.
+    /// Student progress rows are not affected by this update.
     /// </remarks>
-    /// <param name="classId">ID of the class.</param>
+    /// <param name="classId">ID of the class the assignment belongs to.</param>
+    /// <param name="assignmentId">ID of the assignment to update.</param>
+    /// <param name="request">Updated assignment data.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>List of assignments with per-student completion statistics.</returns>
-    /// <response code="200">Returns the list of assignments.</response>
-    /// <response code="404">Class not found or does not belong to the current teacher.</response>
+    /// <returns>Empty response on success.</returns>
+    /// <response code="200">Assignment updated successfully.</response>
+    /// <response code="400">Class or assignment not found, or validation error.</response>
     [HttpPatch("api/classes/{classId:guid}/assignments/{assignmentId:guid}")]
     public async Task<IActionResult> Update(
         Guid classId,
@@ -62,6 +62,20 @@ public class AssignmentsController(IAssignmentService assignments) : ControllerB
             : BadRequest(new { error = result.Error });
     }
 
+    /// <summary>
+    /// Returns all assignments for a class.
+    /// </summary>
+    /// <remarks>
+    /// Returns a list of assignments created for the class, each with:
+    /// - title, subject, description
+    /// - due date
+    /// - completion statistics (how many students have submitted)
+    /// </remarks>
+    /// <param name="classId">ID of the class.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>List of assignments with per-class completion statistics.</returns>
+    /// <response code="200">Returns the list of assignments.</response>
+    /// <response code="404">Class not found or does not belong to the current teacher.</response>
     [HttpGet("api/classes/{classId:guid}/assignments")]
     public async Task<IActionResult> GetAssignments(
         Guid classId,
@@ -73,6 +87,21 @@ public class AssignmentsController(IAssignmentService assignments) : ControllerB
             : NotFound(result.Error);
     }
 
+    /// <summary>
+    /// Returns per-student progress for a specific assignment.
+    /// </summary>
+    /// <remarks>
+    /// For each active student in the class, returns:
+    /// - student name
+    /// - assignment status (NotStarted, InProgress, Completed)
+    /// - last updated timestamp
+    /// </remarks>
+    /// <param name="classId">ID of the class.</param>
+    /// <param name="assignmentId">ID of the assignment.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>List of per-student assignment progress entries.</returns>
+    /// <response code="200">Returns the student progress list.</response>
+    /// <response code="404">Class or assignment not found.</response>
     [HttpGet("api/classes/{classId:guid}/assignments/{assignmentId:guid}/students")]
     public async Task<IActionResult> GetStudentProgress(
         Guid classId,

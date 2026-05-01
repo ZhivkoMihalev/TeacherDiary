@@ -24,7 +24,9 @@ public sealed class StudentDetailsDto
 
     public List<StudentAssignmentDto> Assignments { get; set; } = new();
 
-    public List<StudentActivityDayDto> ActivityLast7Days { get; set; } = new();
+    public List<StudentActivityEntryDto> ActivityLast7Days { get; set; } = new();
 
     public List<StudentLearningActivityDto> LearningActivities { get; set; } = new();
+
+    public List<StudentChallengeDto> Challenges { get; set; } = new();
 }

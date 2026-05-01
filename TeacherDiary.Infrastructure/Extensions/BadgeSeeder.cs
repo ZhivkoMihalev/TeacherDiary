@@ -30,16 +30,16 @@ public static class BadgeSeeder
         new(BadgeCodes.Streak360,     "360 дни подред", "Беше активен 360 дни подред.", "🏆"),
 
         // Points medals
-        new(BadgeCodes.Points100,   "100 точки",    "Събра 100 точки.",    "🎯"),
-        new(BadgeCodes.Points250,   "250 точки",    "Събра 250 точки.",    "🌈"),
-        new(BadgeCodes.Points500,   "500 точки",    "Събра 500 точки.",    "🚀"),
-        new(BadgeCodes.Points1000,  "1000 точки",   "Събра 1000 точки.",   "💫"),
-        new(BadgeCodes.Points1500,  "1500 точки",   "Събра 1500 точки.",   "🦋"),
-        new(BadgeCodes.Points2000,  "2000 точки",   "Събра 2000 точки.",   "🔮"),
-        new(BadgeCodes.Points3000,  "3000 точки",   "Събра 3000 точки.",   "🌀"),
-        new(BadgeCodes.Points5000,  "5000 точки",   "Събра 5000 точки.",   "⚜️"),
-        new(BadgeCodes.Points7500,  "7500 точки",   "Събра 7500 точки.",   "🦅"),
-        new(BadgeCodes.Points10000, "10 000 точки", "Събра 10 000 точки.", "🏛️"),
+        new(BadgeCodes.Points100,   "100 точки",    "Събра общо 100 точки от четене, задачи и предизвикателства.",    "🎯"),
+        new(BadgeCodes.Points250,   "250 точки",    "Събра общо 250 точки от четене, задачи и предизвикателства.",    "🌈"),
+        new(BadgeCodes.Points500,   "500 точки",    "Събра общо 500 точки от четене, задачи и предизвикателства.",    "🚀"),
+        new(BadgeCodes.Points1000,  "1000 точки",   "Събра общо 1000 точки от четене, задачи и предизвикателства.",   "💫"),
+        new(BadgeCodes.Points1500,  "1500 точки",   "Събра общо 1500 точки от четене, задачи и предизвикателства.",   "🦋"),
+        new(BadgeCodes.Points2000,  "2000 точки",   "Събра общо 2000 точки от четене, задачи и предизвикателства.",   "🔮"),
+        new(BadgeCodes.Points3000,  "3000 точки",   "Събра общо 3000 точки от четене, задачи и предизвикателства.",   "🌀"),
+        new(BadgeCodes.Points5000,  "5000 точки",   "Събра общо 5000 точки от четене, задачи и предизвикателства.",   "⚜️"),
+        new(BadgeCodes.Points7500,  "7500 точки",   "Събра общо 7500 точки от четене, задачи и предизвикателства.",   "🦅"),
+        new(BadgeCodes.Points10000, "10 000 точки", "Събра общо 10 000 точки от четене, задачи и предизвикателства.", "🏛️"),
     ];
 
     public static async Task SeedBadgesAsync(IServiceProvider serviceProvider)
@@ -72,9 +72,14 @@ public static class BadgeSeeder
             }
         }
 
-        if (toAdd.Count > 0)
-            db.Badges.AddRange(toAdd);
-
+        // Commit updates to existing badges first so renamed Names are freed
+        // before inserting new badges that may reuse those Names.
         await db.SaveChangesAsync();
+
+        if (toAdd.Count > 0)
+        {
+            db.Badges.AddRange(toAdd);
+            await db.SaveChangesAsync();
+        }
     }
 }

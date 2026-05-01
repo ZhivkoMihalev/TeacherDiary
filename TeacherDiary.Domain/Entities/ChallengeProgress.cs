@@ -14,5 +14,7 @@ public class ChallengeProgress : BaseEntity
 
     public bool Completed { get; set; } = false;
 
+    public DateTime? StartedAt { get; set; }
+
     public DateTime? CompletedAt { get; set; }
 }

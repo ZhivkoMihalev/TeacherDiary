@@ -1,5 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TeacherDiary.Application.Abstractions.Services;
+using TeacherDiary.Application.Events;
 using TeacherDiary.Domain.Entities;
 using TeacherDiary.Domain.Enums;
 using TeacherDiary.Infrastructure.Persistence;
@@ -10,7 +11,8 @@ public sealed class ActivityService(
     AppDbContext db,
     IGamificationService gamificationService,
     IBadgeService badgeService,
-    ILearningActivityService learningActivityService) : IActivityService
+    ILearningActivityService learningActivityService,
+    IEventDispatcher eventDispatcher) : IActivityService
 {
     public async Task LogReadingAsync(
         Guid studentId,
@@ -67,6 +69,29 @@ public sealed class ActivityService(
         await badgeService.EvaluateAsync(studentId, cancellationToken);
     }
 
+    public async Task LogChallengeCompletedAsync(
+        Guid studentId,
+        Guid challengeId,
+        int points,
+        CancellationToken cancellationToken)
+    {
+        if (points > 0)
+        {
+            db.ActivityLogs.Add(new ActivityLog
+            {
+                StudentProfileId = studentId,
+                ActivityType = ActivityType.ChallengeCompleted,
+                ReferenceType = ActivityReferenceType.Challenge,
+                ReferenceId = challengeId,
+                PointsEarned = points
+            });
+            await gamificationService.AddChallengePointsAsync(studentId, points, cancellationToken);
+        }
+
+        await gamificationService.UpdateStreakAsync(studentId, cancellationToken);
+        await badgeService.EvaluateAsync(studentId, cancellationToken);
+    }
+
     private async Task UpdateChallengeProgressAsync(
         Guid studentId,
         TargetType targetType,
@@ -106,6 +131,10 @@ public sealed class ActivityService(
                         PointsEarned = row.Challenge.Points
                     });
                 }
+
+                await eventDispatcher.PublishAsync(
+                    new ChallengeCompletedEvent(studentId, row.ChallengeId, row.Challenge.ClassId),
+                    cancellationToken);
             }
 
             await learningActivityService.UpdateChallengeProgressAsync(

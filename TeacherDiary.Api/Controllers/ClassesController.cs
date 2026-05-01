@@ -52,16 +52,17 @@ public class ClassesController(IClassService classes, IReadingService readingSer
     }
 
     /// <summary>
-    /// Deletes a class.
+    /// Updates a class.
     /// </summary>
     /// <remarks>
-    /// Only the teacher who owns the class can delete it. Students enrolled in the class
-    /// are not deleted — their <c>ClassId</c> is set to <c>null</c>.
+    /// Allows editing the name or grade level of an existing class.
+    /// Only the teacher who owns the class can update it.
     /// </remarks>
-    /// <param name="classId">ID of the class to delete.</param>
+    /// <param name="classId">ID of the class to update.</param>
+    /// <param name="request">Updated class data (name, grade level).</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Empty response on success.</returns>
-    /// <response code="200">Class deleted successfully.</response>
+    /// <response code="200">Class updated successfully.</response>
     /// <response code="404">Class not found or does not belong to the current teacher.</response>
     [HttpPatch("{classId:guid}")]
     public async Task<IActionResult> Update(
@@ -75,6 +76,18 @@ public class ClassesController(IClassService classes, IReadingService readingSer
             : NotFound(new { error = result.Error });
     }
 
+    /// <summary>
+    /// Deletes a class.
+    /// </summary>
+    /// <remarks>
+    /// Only the teacher who owns the class can delete it. Students enrolled in the class
+    /// are not deleted — their <c>ClassId</c> is set to <c>null</c>.
+    /// </remarks>
+    /// <param name="classId">ID of the class to delete.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Empty response on success.</returns>
+    /// <response code="200">Class deleted successfully.</response>
+    /// <response code="404">Class not found or does not belong to the current teacher.</response>
     [HttpDelete("{classId:guid}")]
     public async Task<IActionResult> Delete(Guid classId, CancellationToken cancellationToken)
     {

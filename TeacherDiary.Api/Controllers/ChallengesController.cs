@@ -68,6 +68,47 @@ public class ChallengesController(IChallengeService challenges) : ControllerBase
             : BadRequest(result.Error);
     }
 
+    /// <summary>
+    /// Returns per-student progress for a specific challenge.
+    /// </summary>
+    /// <remarks>
+    /// For each active student in the class, returns:
+    /// - student name
+    /// - current progress value and target value
+    /// - status (NotStarted, InProgress, Completed)
+    /// - last updated timestamp
+    /// </remarks>
+    /// <param name="classId">ID of the class.</param>
+    /// <param name="challengeId">ID of the challenge.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>List of per-student challenge progress entries.</returns>
+    /// <response code="200">Returns the student progress list.</response>
+    /// <response code="400">Class or challenge not found.</response>
+    [HttpGet("api/classes/{classId:guid}/challenges/{challengeId:guid}/student-progress")]
+    public async Task<IActionResult> GetStudentProgress(
+        Guid classId,
+        Guid challengeId,
+        CancellationToken cancellationToken)
+    {
+        var result = await challenges.GetStudentProgressAsync(classId, challengeId, cancellationToken);
+        return result.Success ? Ok(result.Data) : BadRequest(new { error = result.Error });
+    }
+
+    /// <summary>
+    /// Extends the end date of a challenge.
+    /// </summary>
+    /// <remarks>
+    /// Allows the teacher to push back the challenge deadline.
+    /// The new end date must be later than the current end date.
+    /// Student progress is not affected by this update.
+    /// </remarks>
+    /// <param name="classId">ID of the class.</param>
+    /// <param name="challengeId">ID of the challenge to update.</param>
+    /// <param name="request">Updated deadline data (new end date).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Empty response on success.</returns>
+    /// <response code="200">Deadline extended successfully.</response>
+    /// <response code="400">Class or challenge not found, or new date is not later than the current end date.</response>
     [HttpPatch("api/classes/{classId:guid}/challenges/{challengeId:guid}")]
     public async Task<IActionResult> ExtendDeadline(
         Guid classId,
