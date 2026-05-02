@@ -9,14 +9,14 @@ namespace TeacherDiary.Infrastructure.Services;
 
 public sealed class MessageService(AppDbContext db, ICurrentUser currentUser) : IMessageService
 {
-    public async Task<Result<List<ConversationDto>>> GetConversationsAsync(CancellationToken ct)
+    public async Task<Result<List<ConversationDto>>> GetConversationsAsync(CancellationToken cancellationToken)
     {
         var myId = currentUser.UserId;
 
         var messages = await db.Messages
             .Where(m => m.SenderId == myId || m.ReceiverId == myId)
             .OrderByDescending(m => m.CreatedAt)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         var otherUserIds = messages
             .Select(m => m.SenderId == myId ? m.ReceiverId : m.SenderId)
@@ -26,7 +26,7 @@ public sealed class MessageService(AppDbContext db, ICurrentUser currentUser) : 
         var users = await db.Users
             .Where(u => otherUserIds.Contains(u.Id))
             .Select(u => new { u.Id, u.FirstName, u.LastName })
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         var userMap = users.ToDictionary(u => u.Id, u => $"{u.FirstName} {u.LastName}");
 
@@ -35,14 +35,14 @@ public sealed class MessageService(AppDbContext db, ICurrentUser currentUser) : 
         var teacherClassIds = await db.Classes
             .Where(c => c.TeacherId == myId)
             .Select(c => c.Id)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         if (teacherClassIds.Count > 0)
         {
             var parentStudents = await db.Students
                 .Where(s => s.ClassId.HasValue && teacherClassIds.Contains(s.ClassId.Value))
                 .Select(s => new { s.ParentId, StudentName = s.FirstName + " " + s.LastName })
-                .ToListAsync(ct);
+                .ToListAsync(cancellationToken);
 
             foreach (var ps in parentStudents.Where(ps => ps.ParentId.HasValue))
                 studentNameMap.TryAdd(ps.ParentId!.Value, ps.StudentName);
@@ -71,14 +71,14 @@ public sealed class MessageService(AppDbContext db, ICurrentUser currentUser) : 
         return Result<List<ConversationDto>>.Ok(conversations);
     }
 
-    public async Task<Result<List<MessageDto>>> GetConversationAsync(Guid otherUserId, CancellationToken ct)
+    public async Task<Result<List<MessageDto>>> GetConversationAsync(Guid otherUserId, CancellationToken cancellationToken)
     {
         var myId = currentUser.UserId;
 
         // Mark incoming messages as read
         await db.Messages
             .Where(m => m.SenderId == otherUserId && m.ReceiverId == myId && !m.IsRead)
-            .ExecuteUpdateAsync(s => s.SetProperty(m => m.IsRead, true), ct);
+            .ExecuteUpdateAsync(s => s.SetProperty(m => m.IsRead, true), cancellationToken);
 
         var messages = await db.Messages
             .Where(m =>
@@ -94,12 +94,12 @@ public sealed class MessageService(AppDbContext db, ICurrentUser currentUser) : 
                 IsRead = m.IsRead,
                 SentAt = m.CreatedAt
             })
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         return Result<List<MessageDto>>.Ok(messages);
     }
 
-    public async Task<Result<Guid>> SendMessageAsync(SendMessageRequest request, CancellationToken ct)
+    public async Task<Result<Guid>> SendMessageAsync(SendMessageRequest request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.Content) && string.IsNullOrWhiteSpace(request.ImageUrl))
             return Result<Guid>.Fail("Съобщението не може да е празно.");
@@ -114,20 +114,20 @@ public sealed class MessageService(AppDbContext db, ICurrentUser currentUser) : 
         };
 
         db.Messages.Add(message);
-        await db.SaveChangesAsync(ct);
+        await db.SaveChangesAsync(cancellationToken);
 
         return Result<Guid>.Ok(message.Id);
     }
 
-    public async Task<Result<int>> GetUnreadCountAsync(CancellationToken ct)
+    public async Task<Result<int>> GetUnreadCountAsync(CancellationToken cancellationToken)
     {
         var count = await db.Messages
-            .CountAsync(m => m.ReceiverId == currentUser.UserId && !m.IsRead, ct);
+            .CountAsync(m => m.ReceiverId == currentUser.UserId && !m.IsRead, cancellationToken);
 
         return Result<int>.Ok(count);
     }
 
-    public async Task<Result<List<MessageContactDto>>> GetContactsAsync(CancellationToken ct)
+    public async Task<Result<List<MessageContactDto>>> GetContactsAsync(CancellationToken cancellationToken)
     {
         var myId = currentUser.UserId;
 
@@ -135,14 +135,14 @@ public sealed class MessageService(AppDbContext db, ICurrentUser currentUser) : 
         var teacherClassIds = await db.Classes
             .Where(c => c.TeacherId == myId)
             .Select(c => c.Id)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         if (teacherClassIds.Count > 0)
         {
             var studentData = await db.Students
                 .Where(s => s.ClassId.HasValue && teacherClassIds.Contains(s.ClassId.Value))
                 .Select(s => new { s.ParentId, s.UserId, StudentName = s.FirstName + " " + s.LastName })
-                .ToListAsync(ct);
+                .ToListAsync(cancellationToken);
 
             // Parents of students with a parent account
             var parentMap = studentData
@@ -153,7 +153,7 @@ public sealed class MessageService(AppDbContext db, ICurrentUser currentUser) : 
             var parentUsers = await db.Users
                 .Where(u => parentMap.Keys.Contains(u.Id))
                 .Select(u => new { u.Id, u.FirstName, u.LastName })
-                .ToListAsync(ct);
+                .ToListAsync(cancellationToken);
 
             var parentContacts = parentUsers.Select(u => new MessageContactDto
             {
@@ -171,7 +171,7 @@ public sealed class MessageService(AppDbContext db, ICurrentUser currentUser) : 
             var selfStudentUsers = await db.Users
                 .Where(u => selfStudentUserIds.Contains(u.Id))
                 .Select(u => new { u.Id, u.FirstName, u.LastName })
-                .ToListAsync(ct);
+                .ToListAsync(cancellationToken);
 
             var selfStudentData = studentData
                 .Where(s => s.UserId.HasValue && !s.ParentId.HasValue)
@@ -194,21 +194,21 @@ public sealed class MessageService(AppDbContext db, ICurrentUser currentUser) : 
 
         // Student mode: return teacher of the class the student is in
         var studentProfile = await db.Students
-            .FirstOrDefaultAsync(s => s.UserId == myId && s.ClassId.HasValue, ct);
+            .FirstOrDefaultAsync(s => s.UserId == myId && s.ClassId.HasValue, cancellationToken);
 
         if (studentProfile != null)
         {
             var studentClass = await db.Classes
                 .Where(c => c.Id == studentProfile.ClassId!.Value)
                 .Select(c => new { c.TeacherId })
-                .FirstOrDefaultAsync(ct);
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (studentClass != null)
             {
                 var teacher = await db.Users
                     .Where(u => u.Id == studentClass.TeacherId)
                     .Select(u => new { u.Id, u.FirstName, u.LastName })
-                    .FirstOrDefaultAsync(ct);
+                    .FirstOrDefaultAsync(cancellationToken);
 
                 if (teacher != null)
                 {
@@ -231,18 +231,18 @@ public sealed class MessageService(AppDbContext db, ICurrentUser currentUser) : 
             .Where(s => s.ParentId == myId && s.ClassId.HasValue)
             .Select(s => s.ClassId!.Value)
             .Distinct()
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         var teacherIds = await db.Classes
             .Where(c => classIds.Contains(c.Id))
             .Select(c => c.TeacherId)
             .Distinct()
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         var teacherUsers = await db.Users
             .Where(u => teacherIds.Contains(u.Id))
             .Select(u => new { u.Id, u.FirstName, u.LastName })
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         var teacherContacts = teacherUsers
             .Select(u => new MessageContactDto

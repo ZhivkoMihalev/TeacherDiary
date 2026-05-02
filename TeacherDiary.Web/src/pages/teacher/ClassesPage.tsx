@@ -249,7 +249,9 @@ export function ClassesPage() {
       ) : classes.length === 0 ? (
         <Card>
           <CardBody className="text-center py-16">
-            <p className="text-gray-400 text-sm">Няма добавени класове. Създайте първия клас.</p>
+            <div className="text-5xl mb-3">🏫</div>
+            <p className="font-semibold text-gray-700">Нямате добавени класове</p>
+            <p className="text-sm text-gray-400 mt-1">Създайте първия клас, за да започнете.</p>
           </CardBody>
         </Card>
       ) : (
@@ -259,17 +261,22 @@ export function ClassesPage() {
               key={cls.id}
               className={`hover:shadow-md transition-shadow ${editing?.id === cls.id ? 'ring-2 ring-indigo-300' : ''}`}
             >
-              <CardBody className="flex items-center justify-between">
-                <div>
-                  <Link
-                    to={`/teacher/classes/${cls.id}/dashboard`}
-                    className="font-semibold text-gray-900 hover:text-indigo-600 transition-colors"
-                  >
-                    {cls.name}
-                  </Link>
-                  <p className="text-sm text-gray-400 mt-0.5">{cls.grade}. клас · {cls.schoolYear}</p>
+              <CardBody className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
+                    <span className="text-xl font-extrabold text-indigo-600">{cls.grade}</span>
+                  </div>
+                  <div>
+                    <Link
+                      to={`/teacher/classes/${cls.id}/dashboard`}
+                      className="font-semibold text-gray-900 hover:text-indigo-600 transition-colors"
+                    >
+                      {cls.name}
+                    </Link>
+                    <p className="text-sm text-gray-400 mt-0.5">{cls.grade}. клас · {cls.schoolYear}</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <Link to={`/teacher/classes/${cls.id}/dashboard`}>
                     <Button size="sm" variant="secondary">Отвори</Button>
                   </Link>

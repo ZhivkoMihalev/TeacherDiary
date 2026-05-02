@@ -8,6 +8,7 @@ import { messagesApi } from '../api/messages'
 import type { ClassDto } from '../types'
 import { AdSidebar } from '../components/AdSidebar'
 import { NotificationBell } from '../components/NotificationBell'
+import { Footer } from '../components/Footer'
 
 function ChevronIcon({ open }: { open: boolean }) {
   return (
@@ -198,8 +199,11 @@ export function TeacherLayout() {
       </aside>
 
       {/* Main */}
-      <main className="flex-1 overflow-y-auto">
-        <Outlet />
+      <main className="flex-1 overflow-y-auto flex flex-col">
+        <div className="flex-1">
+          <Outlet />
+        </div>
+        <Footer />
       </main>
 
       {/* Ad sidebar */}

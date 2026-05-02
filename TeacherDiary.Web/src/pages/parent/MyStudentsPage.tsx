@@ -6,7 +6,6 @@ import { Card, CardBody } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Spinner } from '../../components/ui/Spinner'
-import { Badge } from '../../components/ui/Badge'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { MedalIcon } from '../../components/ui/MedalIcon'
 
@@ -98,7 +97,9 @@ export function MyStudentsPage() {
       ) : students.length === 0 ? (
         <Card>
           <CardBody className="text-center py-16">
-            <p className="text-gray-400 text-sm">Няма добавени деца. Добавете първото дете.</p>
+            <div className="text-5xl mb-3">👶</div>
+            <p className="font-semibold text-gray-700">Нямате добавени деца</p>
+            <p className="text-sm text-gray-400 mt-1">Добавете първото дете, за да следите напредъка им.</p>
           </CardBody>
         </Card>
       ) : (
@@ -106,19 +107,26 @@ export function MyStudentsPage() {
           {students.map((s) => (
             <Card key={s.id} className="hover:shadow-md transition-shadow">
               <CardBody>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-gray-900 flex items-center gap-1">
-                      {s.firstName} {s.lastName}
-                      {s.topMedalCode && <MedalIcon code={s.topMedalCode} size="sm" />}
-                      {s.topPointsMedalCode && <MedalIcon code={s.topPointsMedalCode} size="sm" />}
-                    </p>
-                    <p className="text-sm text-gray-400 mt-0.5">
-                      {s.classId ? 'Записано в клас' : 'Не е записано в клас'}
-                    </p>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-11 h-11 rounded-full flex items-center justify-center text-lg font-bold shrink-0 ${s.classId ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                      {s.firstName.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900 flex items-center gap-1">
+                        {s.firstName} {s.lastName}
+                        {s.topMedalCode && <MedalIcon code={s.topMedalCode} size="sm" />}
+                        {s.topPointsMedalCode && <MedalIcon code={s.topPointsMedalCode} size="sm" />}
+                      </p>
+                      <p className="text-sm mt-0.5">
+                        {s.classId
+                          ? <span className="text-emerald-600">✓ Записано в клас</span>
+                          : <span className="text-amber-500">⏳ Очаква записване в клас</span>
+                        }
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {!s.classId && <Badge variant="yellow">Очаква записване</Badge>}
+                  <div className="flex items-center gap-2 shrink-0">
                     <Link to={`/parent/students/${s.id}`}>
                       <Button size="sm" variant="secondary">Виж напредъка</Button>
                     </Link>

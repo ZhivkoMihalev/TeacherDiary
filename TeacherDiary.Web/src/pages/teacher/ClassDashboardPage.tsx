@@ -77,33 +77,35 @@ export function ClassOverview() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard label="Активни днес" value={data.activeTodayCount} total={data.studentsCount} />
-        <StatCard label="Прочетени страници (7 дни)" value={data.totalPagesReadLast7Days} />
-        <StatCard label="Изпълнени задачи (7 дни)" value={data.completedAssignmentsLast7Days} />
-        <StatCard label="Активни задания към класа" value={data.activeLearningActivitiesCount} />
+        <StatCard label="Активни днес" value={data.activeTodayCount} total={data.studentsCount} icon="👥" color="indigo" />
+        <StatCard label="Прочетени страници (7 дни)" value={data.totalPagesReadLast7Days} icon="📖" color="emerald" />
+        <StatCard label="Изпълнени задачи (7 дни)" value={data.completedAssignmentsLast7Days} icon="✅" color="sky" />
+        <StatCard label="Активни задания" value={data.activeLearningActivitiesCount} icon="🎯" color="amber" />
       </div>
 
       <div className="grid sm:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-800">Топ 5 — Точки</h2>
+            <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+              <span className="text-base">🏆</span> Топ 5 — Точки
+            </h2>
           </CardHeader>
           <CardBody className="p-0">
             {data.leaderboard.length === 0 ? (
-              <p className="text-sm text-gray-400 px-6 py-4">Няма данни.</p>
+              <p className="text-sm text-gray-400 px-6 py-6 text-center">Няма данни.</p>
             ) : (
               <ol className="divide-y divide-gray-100">
                 {data.leaderboard.map((item, i) => (
-                  <li key={item.studentId} className="flex items-center justify-between px-6 py-3">
+                  <li key={item.studentId} className="flex items-center justify-between px-6 py-3 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-bold text-gray-400 w-4">{i + 1}</span>
+                      <RankBadge rank={i + 1} />
                       <span className="text-sm font-medium text-gray-800 flex items-center gap-1">
                         {item.studentName}
                         {item.topMedalCode && <MedalIcon code={item.topMedalCode} size="sm" />}
                         {item.topPointsMedalCode && <MedalIcon code={item.topPointsMedalCode} size="sm" />}
                       </span>
                     </div>
-                    <span className="text-sm font-semibold text-indigo-600">{item.points} т.</span>
+                    <span className="text-sm font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg">{item.points} т.</span>
                   </li>
                 ))}
               </ol>
@@ -113,20 +115,22 @@ export function ClassOverview() {
 
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-800">Топ читатели (7 дни)</h2>
+            <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+              <span className="text-base">📚</span> Топ читатели (7 дни)
+            </h2>
           </CardHeader>
           <CardBody className="p-0">
             {data.topReaders.length === 0 ? (
-              <p className="text-sm text-gray-400 px-6 py-4">Няма активност по четене.</p>
+              <p className="text-sm text-gray-400 px-6 py-6 text-center">Няма активност по четене.</p>
             ) : (
               <ol className="divide-y divide-gray-100">
                 {data.topReaders.map((item, i) => (
-                  <li key={item.studentId} className="flex items-center justify-between px-6 py-3">
+                  <li key={item.studentId} className="flex items-center justify-between px-6 py-3 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-bold text-gray-400 w-4">{i + 1}</span>
+                      <RankBadge rank={i + 1} />
                       <span className="text-sm font-medium text-gray-800">{item.studentName}</span>
                     </div>
-                    <span className="text-sm text-gray-500">{item.pagesReadLast7Days} стр.</span>
+                    <span className="text-sm font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg">{item.pagesReadLast7Days} стр.</span>
                   </li>
                 ))}
               </ol>
@@ -136,17 +140,19 @@ export function ClassOverview() {
 
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-800">Най-добри серии</h2>
+            <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+              <span className="text-base">🔥</span> Най-добри серии
+            </h2>
           </CardHeader>
           <CardBody className="p-0">
             {data.bestStreaks.length === 0 ? (
-              <p className="text-sm text-gray-400 px-6 py-4">Няма данни за серии.</p>
+              <p className="text-sm text-gray-400 px-6 py-6 text-center">Няма данни за серии.</p>
             ) : (
               <ol className="divide-y divide-gray-100">
                 {data.bestStreaks.map((item, i) => (
-                  <li key={item.studentId} className="flex items-center justify-between px-6 py-3">
+                  <li key={item.studentId} className="flex items-center justify-between px-6 py-3 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-bold text-gray-400 w-4">{i + 1}</span>
+                      <RankBadge rank={i + 1} />
                       <span className="text-sm font-medium text-gray-800">{item.studentName}</span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -162,15 +168,17 @@ export function ClassOverview() {
 
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-800">Нови медали (7 дни)</h2>
+            <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+              <span className="text-base">🎖️</span> Нови медали (7 дни)
+            </h2>
           </CardHeader>
           <CardBody className="p-0">
             {data.recentBadges.length === 0 ? (
-              <p className="text-sm text-gray-400 px-6 py-4">Няма присъдени медали наскоро.</p>
+              <p className="text-sm text-gray-400 px-6 py-6 text-center">Няма присъдени медали наскоро.</p>
             ) : (
               <ul className="divide-y divide-gray-100">
                 {data.recentBadges.map((b, i) => (
-                  <li key={i} className="flex items-center gap-3 px-6 py-3">
+                  <li key={i} className="flex items-center gap-3 px-6 py-3 hover:bg-gray-50 transition-colors">
                     <MedalIcon code={b.badgeCode} size="md" />
                     <div>
                       <p className="text-sm font-medium text-gray-800">{b.studentName}</p>
@@ -187,18 +195,42 @@ export function ClassOverview() {
   )
 }
 
-function StatCard({ label, value, total }: { label: string; value: number; total?: number }) {
+const RANK_STYLES = [
+  'text-amber-500 bg-amber-50 border-amber-200',
+  'text-gray-500 bg-gray-100 border-gray-200',
+  'text-orange-500 bg-orange-50 border-orange-200',
+]
+
+function RankBadge({ rank }: { rank: number }) {
+  const style = rank <= 3 ? RANK_STYLES[rank - 1] : 'text-gray-400 bg-transparent border-transparent'
   return (
-    <Card>
-      <CardBody>
-        <p className="text-xs text-gray-500 mb-1">{label}</p>
-        <p className="text-2xl font-bold text-gray-900">
-          {value}
-          {total !== undefined && (
-            <span className="text-sm font-normal text-gray-400"> / {total}</span>
-          )}
-        </p>
-      </CardBody>
-    </Card>
+    <span className={`text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full border ${style}`}>
+      {rank}
+    </span>
+  )
+}
+
+type StatColor = 'indigo' | 'emerald' | 'sky' | 'amber'
+
+const COLOR_MAP: Record<StatColor, { bg: string; text: string; icon: string }> = {
+  indigo: { bg: 'bg-indigo-50', text: 'text-indigo-700', icon: 'bg-indigo-100' },
+  emerald: { bg: 'bg-emerald-50', text: 'text-emerald-700', icon: 'bg-emerald-100' },
+  sky: { bg: 'bg-sky-50', text: 'text-sky-700', icon: 'bg-sky-100' },
+  amber: { bg: 'bg-amber-50', text: 'text-amber-700', icon: 'bg-amber-100' },
+}
+
+function StatCard({ label, value, total, icon, color }: { label: string; value: number; total?: number; icon: string; color: StatColor }) {
+  const c = COLOR_MAP[color]
+  return (
+    <div className={`${c.bg} rounded-2xl p-4 flex flex-col gap-2`}>
+      <div className={`${c.icon} w-8 h-8 rounded-xl flex items-center justify-center text-base`}>{icon}</div>
+      <p className={`text-2xl font-bold ${c.text}`}>
+        {value}
+        {total !== undefined && (
+          <span className="text-sm font-normal text-gray-400"> / {total}</span>
+        )}
+      </p>
+      <p className="text-xs text-gray-500 leading-tight">{label}</p>
+    </div>
   )
 }

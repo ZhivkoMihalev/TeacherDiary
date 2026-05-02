@@ -71,7 +71,7 @@ interface AssignedBookRowProps {
   ab: AssignedBookDto
   classId: string
   onRemove: (id: string) => void
-  onPreview: (ab: AssignedBookDto) => void
+  onPreview?: (ab: AssignedBookDto) => void
 }
 
 function AssignedBookRow({ ab, classId, onRemove, onPreview }: AssignedBookRowProps) {
@@ -146,7 +146,7 @@ function AssignedBookRow({ ab, classId, onRemove, onPreview }: AssignedBookRowPr
 
             <div className="relative group">
               <button
-                onClick={() => onPreview(ab)}
+                onClick={() => onPreview?.(ab)}
                 className="p-1 rounded text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
               >
                 <EyeIcon />

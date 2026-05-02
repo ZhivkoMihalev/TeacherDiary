@@ -30,21 +30,21 @@ export function AdSidebar() {
   const banner = BANNERS[index]
 
   return (
-    <aside className="w-52 shrink-0 border-l border-gray-200 bg-white flex flex-col overflow-y-auto">
+    <aside className="w-64 shrink-0 border-l border-gray-200 bg-white flex flex-col">
       <div className="px-3 py-3 border-b border-gray-100">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Реклами</p>
       </div>
-      <div className="flex-1 px-3 py-3">
+      <div className="flex-1 relative">
         <a
           href={banner.linkUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="block rounded-lg overflow-hidden hover:opacity-90 transition-opacity"
+          className="absolute inset-0 hover:opacity-90 transition-opacity"
         >
           <img
             src={banner.imageUrl}
             alt="Реклама"
-            className="w-full object-cover"
+            className="w-full h-full object-cover object-top"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
           />
         </a>

@@ -107,23 +107,25 @@ export function StudentDashboardPage() {
   return (
     <div className="p-6 space-y-6 max-w-4xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{data.studentName}</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Моят напредък</p>
-        </div>
-        <div className="flex gap-4 text-center">
-          <div className="bg-white border border-gray-200 rounded-xl px-4 py-2">
-            <p className="text-xl font-bold text-indigo-600">{data.totalPoints}</p>
-            <p className="text-xs text-gray-500">точки</p>
+      <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-2xl p-5 text-white">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-2xl font-bold">{data.studentName}</h1>
+            <p className="text-indigo-200 text-sm mt-0.5">Моят напредък</p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-xl px-4 py-2">
-            <p className="text-xl font-bold text-emerald-600">{data.totalPagesRead}</p>
-            <p className="text-xs text-gray-500">стр. прочетени</p>
-          </div>
-          <div className="bg-white border border-gray-200 rounded-xl px-4 py-2">
-            <p className="text-xl font-bold text-amber-600">{data.completedAssignments}</p>
-            <p className="text-xs text-gray-500">задачи</p>
+          <div className="flex gap-3 text-center">
+            <div className="bg-white/15 rounded-xl px-4 py-2.5 min-w-[72px]">
+              <p className="text-lg font-bold">🏆 {data.totalPoints}</p>
+              <p className="text-xs text-indigo-200 mt-0.5">точки</p>
+            </div>
+            <div className="bg-white/15 rounded-xl px-4 py-2.5 min-w-[72px]">
+              <p className="text-lg font-bold">📖 {data.totalPagesRead}</p>
+              <p className="text-xs text-indigo-200 mt-0.5">стр.</p>
+            </div>
+            <div className="bg-white/15 rounded-xl px-4 py-2.5 min-w-[72px]">
+              <p className="text-lg font-bold">✅ {data.completedAssignments}</p>
+              <p className="text-xs text-indigo-200 mt-0.5">задачи</p>
+            </div>
           </div>
         </div>
       </div>
@@ -131,23 +133,28 @@ export function StudentDashboardPage() {
       {/* Активност последните 7 дни */}
       {data.activityLast7Days.length > 0 && (
         <Card>
-          <CardHeader>Активност — последните 7 дни</CardHeader>
+          <CardHeader>
+            <span className="flex items-center gap-2">📅 Активност — последните 7 дни</span>
+          </CardHeader>
           <CardBody className="p-0">
             <table className="w-full text-sm">
-              <thead className="text-xs text-gray-400 border-b border-gray-100">
+              <thead className="text-xs text-gray-400 border-b border-gray-100 bg-gray-50">
                 <tr>
-                  <th className="text-left px-6 py-2">Дата</th>
-                  <th className="text-left px-6 py-2">Активност</th>
-                  <th className="text-right px-6 py-2">Точки</th>
+                  <th className="text-left px-6 py-2.5">Дата</th>
+                  <th className="text-left px-6 py-2.5">Активност</th>
+                  <th className="text-right px-6 py-2.5">Точки</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody>
                 {data.activityLast7Days.map((entry, i) => (
-                  <tr key={i}>
+                  <tr key={i} className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${i % 2 === 0 ? '' : 'bg-gray-50/40'}`}>
                     <td className="px-6 py-2.5 text-gray-500 whitespace-nowrap">{formatDate(entry.date)}</td>
                     <td className="px-6 py-2.5 text-gray-700">{entry.description}</td>
-                    <td className="px-6 py-2.5 text-right font-medium text-indigo-600">
-                      {entry.pointsEarned > 0 ? `+${entry.pointsEarned}` : '—'}
+                    <td className="px-6 py-2.5 text-right">
+                      {entry.pointsEarned > 0
+                        ? <span className="font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg">+{entry.pointsEarned}</span>
+                        : <span className="text-gray-400">—</span>
+                      }
                     </td>
                   </tr>
                 ))}
@@ -160,7 +167,7 @@ export function StudentDashboardPage() {
       {/* Reading */}
       {data.reading.length > 0 && (
         <Card>
-          <CardHeader>Четене</CardHeader>
+          <CardHeader><span className="flex items-center gap-2">📖 Четене</span></CardHeader>
           <CardBody className="space-y-4">
             {activeReading.map((r) => {
               const pagesInput = readingPages[r.assignedBookId] ?? ''
@@ -179,11 +186,14 @@ export function StudentDashboardPage() {
                     </Badge>
                   </div>
                   {r.totalPages && (
-                    <div className="w-full bg-gray-100 rounded-full h-1.5">
-                      <div
-                        className="bg-indigo-500 h-1.5 rounded-full transition-all"
-                        style={{ width: `${Math.min(100, (r.currentPage / r.totalPages) * 100)}%` }}
-                      />
+                    <div className="space-y-1">
+                      <div className="w-full bg-gray-100 rounded-full h-2.5">
+                        <div
+                          className="bg-indigo-500 h-2.5 rounded-full transition-all"
+                          style={{ width: `${Math.min(100, (r.currentPage / r.totalPages) * 100)}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-400 text-right">{Math.round((r.currentPage / r.totalPages) * 100)}%</p>
                     </div>
                   )}
                   {!isExpired && (
@@ -230,7 +240,7 @@ export function StudentDashboardPage() {
       {/* Assignments */}
       {data.assignments.length > 0 && (
         <Card>
-          <CardHeader>Задачи</CardHeader>
+          <CardHeader><span className="flex items-center gap-2">📝 Задачи</span></CardHeader>
           <CardBody className="space-y-3">
             {activeAssignments.map((a) => {
               const isExpired = a.isExpired && a.status !== 'Completed'
@@ -281,7 +291,7 @@ export function StudentDashboardPage() {
       {/* Предизвикателства */}
       {data.challenges.length > 0 && (
         <Card>
-          <CardHeader>Предизвикателства</CardHeader>
+          <CardHeader><span className="flex items-center gap-2">⚡ Предизвикателства</span></CardHeader>
           <CardBody className="space-y-3">
             {activeChallenges.map((c) => (
               <div key={c.challengeId} className="border border-gray-100 rounded-xl p-4 flex items-center justify-between gap-3">
@@ -346,9 +356,11 @@ export function StudentDashboardPage() {
       {data.reading.length === 0 && data.assignments.length === 0 && data.challenges.length === 0 && (
         <Card>
           <CardBody>
-            <p className="text-center text-gray-500 py-8">
-              Все още не си записан в клас. Свържи се с учителя си, за да те добави.
-            </p>
+            <div className="text-center py-10">
+              <div className="text-5xl mb-3">🎒</div>
+              <p className="font-semibold text-gray-700">Все още нямаш задания</p>
+              <p className="text-sm text-gray-400 mt-1">Свържи се с учителя си, за да те добави в клас.</p>
+            </div>
           </CardBody>
         </Card>
       )}

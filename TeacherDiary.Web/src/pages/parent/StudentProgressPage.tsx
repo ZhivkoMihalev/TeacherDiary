@@ -82,7 +82,6 @@ export function StudentProgressPage() {
   const archivedReading = data.reading.filter((r) => r.isExpired)
   const activeAssignments = data.assignments.filter((a) => !a.isExpired)
   const archivedAssignments = data.assignments.filter((a) => a.isExpired)
-  const activeActivities = data.learningActivities.filter((la) => !la.isExpired)
   const archivedActivities = data.learningActivities.filter((la) => la.isExpired)
   const activeChallenges = data.challenges.filter((c) => !c.completed && !c.isExpired)
   const completedChallenges = data.challenges.filter((c) => c.completed)

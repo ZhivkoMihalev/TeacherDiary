@@ -1,4 +1,4 @@
-﻿import { useParams, Link, useNavigate } from 'react-router-dom'
+﻿import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { dashboardApi } from '../../api/dashboard'
 import { Card, CardBody, CardHeader } from '../../components/ui/Card'
@@ -48,7 +48,6 @@ export function TeacherStudentPage() {
   const archivedReading = data.reading.filter((r) => r.isExpired)
   const activeAssignments = data.assignments.filter((a) => !a.isExpired)
   const archivedAssignments = data.assignments.filter((a) => a.isExpired)
-  const activeActivities = data.learningActivities.filter((la) => !la.isExpired)
   const archivedActivities = data.learningActivities.filter((la) => la.isExpired)
   const activeChallenges = data.challenges.filter((c) => !c.completed)
   const completedChallenges = data.challenges.filter((c) => c.completed)

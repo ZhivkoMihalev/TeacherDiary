@@ -63,6 +63,7 @@ function AssignmentRow({ a, classId, onEdit, onPreview }: AssignmentRowProps) {
       subject: a.subject,
       description: a.description,
       dueDate: new Date(extendDate).toISOString(),
+      points: a.points,
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['assignments', classId] })

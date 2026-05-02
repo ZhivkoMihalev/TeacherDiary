@@ -1,5 +1,6 @@
 import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom'
 import { AdSidebar } from '../components/AdSidebar'
+import { Footer } from '../components/Footer'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../context/AuthContext'
 import { messagesApi } from '../api/messages'
@@ -73,8 +74,11 @@ export function ParentLayout() {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto">
-        <Outlet />
+      <main className="flex-1 overflow-y-auto flex flex-col">
+        <div className="flex-1">
+          <Outlet />
+        </div>
+        <Footer />
       </main>
 
       <AdSidebar />

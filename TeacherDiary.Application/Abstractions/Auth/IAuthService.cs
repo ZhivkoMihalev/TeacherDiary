@@ -7,9 +7,9 @@ public interface IAuthService
 {
     Task<Result<AuthResponse>> RegisterTeacherAsync(RegisterRequest request, CancellationToken cancellationToken);
 
-    Task<Result<AuthResponse>> RegisterParentAsync(RegisterParentRequest request, CancellationToken ct);
+    Task<Result<AuthResponse>> RegisterParentAsync(RegisterParentRequest request, CancellationToken cancellationToken);
 
-    Task<Result<AuthResponse>> RegisterStudentAsync(RegisterStudentRequest request, CancellationToken ct);
+    Task<Result<AuthResponse>> RegisterStudentAsync(RegisterStudentRequest request, CancellationToken cancellationToken);
 
     Task<Result<AuthResponse>> LoginAsync(LoginRequest request, CancellationToken cancellationToken);
 }
