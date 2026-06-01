@@ -62,7 +62,7 @@ public class ParentsController(
         var result = await parentService.GetStudentAsync(studentId, cancellationToken);
         return result.Success
             ? Ok(result.Data)
-            : NotFound(result.Error);
+            : NotFound(new { error = result.Error });
     }
 
     /// <summary>
@@ -144,7 +144,7 @@ public class ParentsController(
             request.CurrentPage,
             cancellationToken);
 
-        return result.Success ? Ok() : BadRequest(result.Error);
+        return result.Success ? Ok() : BadRequest(new { error = result.Error });
     }
 
     /// <summary>
@@ -181,7 +181,7 @@ public class ParentsController(
 
         return result.Success
             ? Ok()
-            : BadRequest(result.Error);
+            : BadRequest(new { error = result.Error });
     }
 
     /// <summary>

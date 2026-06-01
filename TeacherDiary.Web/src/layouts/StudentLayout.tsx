@@ -6,6 +6,10 @@ import { useAuth } from '../context/AuthContext'
 import { messagesApi } from '../api/messages'
 import { NotificationBell } from '../components/NotificationBell'
 
+function SidebarDivider() {
+  return <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(124,58,237,0.15), transparent)', margin: '8px 16px' }} />
+}
+
 export function StudentLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -21,77 +25,85 @@ export function StudentLayout() {
     navigate('/login')
   }
 
+  const initials = user?.fullName
+    ? user.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : '?'
+
   return (
-    <div className="flex h-screen bg-gray-50">
-      <aside className="w-56 bg-[#1e2640] flex flex-col">
-        <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
-          <Link to="/student/dashboard" className="text-lg font-semibold text-white hover:opacity-80 transition-opacity">
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+
+      {/* ── Floating Glass Sidebar (sky tint for student) ── */}
+      <aside style={{
+        width: '230px',
+        flexShrink: 0,
+        margin: '12px 6px 12px 12px',
+        display: 'flex',
+        flexDirection: 'column',
+        background: 'rgba(255,255,255,0.78)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderRadius: '18px',
+        border: '1px solid rgba(255,255,255,0.92)',
+        boxShadow: '0 8px 32px rgba(3,105,161,0.1), 0 2px 8px rgba(0,0,0,0.04)',
+        position: 'relative',
+        zIndex: 20,
+      }}>
+
+        <div style={{ padding: '20px 16px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(124,58,237,0.1)' }}>
+          <Link to="/student/dashboard" className="aurora-brand">
             TeacherDiary
           </Link>
           <NotificationBell />
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1">
-          <NavLink
-            to="/student/dashboard"
-            className={({ isActive }) =>
-              `flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-white/15 text-white'
-                  : 'text-slate-300 hover:bg-white/10 hover:text-white'
-              }`
-            }
-          >
-            Моят напредък
+        <nav style={{ flex: 1, paddingTop: '10px', paddingBottom: '8px', overflowY: 'auto' }}>
+          <NavLink to="/student/dashboard" className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`}>
+            <span>⭐</span> Моят напредък
           </NavLink>
 
-          <NavLink
-            to="/student/badges"
-            className={({ isActive }) =>
-              `flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-white/15 text-white'
-                  : 'text-slate-300 hover:bg-white/10 hover:text-white'
-              }`
-            }
-          >
-            Значки
+          <NavLink to="/student/badges" className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`}>
+            <span>🏅</span> Значки
           </NavLink>
 
-          <NavLink
-            to="/student/messages"
-            className={({ isActive }) =>
-              `flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-white/15 text-white'
-                  : 'text-slate-300 hover:bg-white/10 hover:text-white'
-              }`
-            }
-          >
-            <span>Съобщения</span>
+          <SidebarDivider />
+
+          <NavLink to="/student/messages" className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`} style={{ justifyContent: 'space-between' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+              <span>💬</span> Съобщения
+            </span>
             {unreadCount > 0 && (
-              <span className="ml-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+              <span style={{ background: 'linear-gradient(135deg, #7c3aed, #db2777)', color: 'white', fontSize: '0.68rem', fontWeight: 700, borderRadius: '99px', minWidth: '19px', height: '19px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>
                 {unreadCount}
               </span>
             )}
           </NavLink>
         </nav>
 
-        <div className="px-4 py-4 border-t border-white/10">
-          <p className="text-xs text-slate-400 mb-2 truncate">{user?.fullName}</p>
-          <button
-            onClick={handleLogout}
-            className="w-full text-left text-sm text-slate-400 hover:text-red-400 transition-colors"
-          >
-            Изход
+        <SidebarDivider />
+
+        <div style={{ padding: '12px 16px 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+            <div style={{ width: '34px', height: '34px', borderRadius: '10px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem', fontWeight: 700, fontFamily: "'Plus Jakarta Sans', sans-serif", background: 'linear-gradient(135deg, #0369a1, #7c3aed)', color: 'white' }}>
+              {initials}
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 600, fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#1e1b4b', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {user?.fullName}
+              </p>
+              <p style={{ margin: 0, fontSize: '0.72rem', color: '#a78bfa', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Ученик</p>
+            </div>
+          </div>
+          <button onClick={handleLogout}
+            style={{ fontSize: '0.75rem', fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 500, color: '#a78bfa', background: 'none', border: 'none', padding: 0, cursor: 'pointer', transition: 'color 0.15s' }}
+            onMouseEnter={e => (e.currentTarget.style.color = '#dc2626')}
+            onMouseLeave={e => (e.currentTarget.style.color = '#a78bfa')}>
+            ← Изход
           </button>
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto flex flex-col">
-        <div className="flex-1">
-          <Outlet />
-        </div>
+      <main style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', minWidth: 0, paddingTop: '12px' }}>
+        <div style={{ flex: 1 }}><Outlet /></div>
         <Footer />
       </main>
 

@@ -1,4 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 @import "tailwindcss";
+
+/* ── Aurora Float — Design Tokens ── */
+:root {
+  /* Aurora gradient reference */
+  --aurora-violet:  #c4b5fd;
+  --aurora-pink:    #f9a8d4;
+  --aurora-sky:     #7dd3fc;
+  --aurora-mint:    #6ee7b7;
+  --aurora-warm:    #fde68a;
+
+  /* Surfaces */
+  --glass-sidebar:  rgba(255,255,255,0.78);
+  --glass-card:     rgba(255,255,255,0.88);
+  --glass-border:   rgba(255,255,255,0.95);
+  --glass-border-soft: rgba(109,40,217,0.08);
+
+  /* Brand accent */
+  --accent:         #7c3aed;
+  --accent-2:       #db2777;
+  --accent-light:   rgba(124,58,237,0.08);
+  --accent-mid:     rgba(124,58,237,0.15);
+
+  /* Text */
+  --text:           #1e1b4b;
+  --text-muted:     #5b21b6;
+  --text-soft:      #7c3aed;
+  --text-dim:       #a78bfa;
+
+  /* Status */
+  --success:        #059669;
+  --danger:         #dc2626;
+}
+
+/* ── Aurora gradient background fixed on html ── */
+html {
+  height: 100%;
+  background-color: #ede9fe;
+  background-image:
+    radial-gradient(at 5%   5%,  rgba(196,181,253,0.85) 0px, transparent 45%),
+    radial-gradient(at 95%  5%,  rgba(249,168,212,0.75) 0px, transparent 45%),
+    radial-gradient(at 5%  95%,  rgba(125,211,252,0.75) 0px, transparent 45%),
+    radial-gradient(at 95% 95%,  rgba(110,231,183,0.65) 0px, transparent 45%),
+    radial-gradient(at 60%  30%, rgba(253,230,138,0.45) 0px, transparent 55%),
+    radial-gradient(at 30%  70%, rgba(196,181,253,0.5)  0px, transparent 50%);
+  background-attachment: fixed;
+  background-size: cover;
+}
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -6,14 +54,114 @@
 
 body {
   margin: 0;
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  min-height: 100%;
+  background: transparent;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  background-color: #f9fafb;
-  color: #111827;
+  color: var(--text);
 }
 
 #root {
   min-height: 100vh;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.2); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(124,58,237,0.4); }
+
+/* ── Brand (gradient text) ── */
+.aurora-brand {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-decoration: none;
+  transition: opacity 0.2s;
+  line-height: 1;
+}
+.aurora-brand:hover { opacity: 0.8; }
+
+/* ── Sidebar navigation items ── */
+.aurora-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px;
+  margin: 2px 8px;
+  border-radius: 10px;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4c1d95;
+  text-decoration: none;
+  cursor: pointer;
+  background: none;
+  border: none;
+  width: calc(100% - 16px);
+  text-align: left;
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+}
+.aurora-nav-item:hover {
+  background: rgba(124,58,237,0.07);
+  color: #3b0764;
+}
+.aurora-nav-item.active {
+  background: rgba(124,58,237,0.1);
+  color: #5b21b6;
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 #7c3aed;
+}
+
+/* Sub-nav (student list) */
+.aurora-nav-sub {
+  display: block;
+  padding: 5px 12px 5px 22px;
+  margin: 1px 8px;
+  border-radius: 8px;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: #7c3aed;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.aurora-nav-sub:hover {
+  background: rgba(124,58,237,0.06);
+  color: #4c1d95;
+}
+.aurora-nav-sub.active {
+  background: rgba(124,58,237,0.09);
+  color: #5b21b6;
+  font-weight: 500;
+}
+
+/* ── Legacy compat (no-op) ── */
+.sidebar-link { display: none; }
+
+/* ── Heading helpers ── */
+.bricolage {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* ── Stat card animation ── */
+@keyframes popIn {
+  0%   { opacity: 0; transform: translateY(10px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.stat-card {
+  animation: popIn 0.4s ease forwards;
 }
 
 /* ── Login page character animations ── */

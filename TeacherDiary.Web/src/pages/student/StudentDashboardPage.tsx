@@ -106,25 +106,40 @@ export function StudentDashboardPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-2xl p-5 text-white">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h1 className="text-2xl font-bold">{data.studentName}</h1>
-            <p className="text-indigo-200 text-sm mt-0.5">Моят напредък</p>
+      {/* ── Hero greeting ── */}
+      <div className="rounded-3xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #0C1445 0%, #1E3A5F 60%, #0C4A6E 100%)' }}>
+        <div className="px-7 py-6">
+          <div className="flex items-start justify-between flex-wrap gap-4">
+            <div>
+              <p className="text-sky-300 text-sm font-bold mb-0.5">Добре дошъл 👋</p>
+              <h1 className="text-3xl font-black text-white tracking-tight">{data.studentName}</h1>
+            </div>
+            {/* Star decoration */}
+            <div className="text-4xl opacity-60 hidden sm:block">🌟</div>
           </div>
-          <div className="flex gap-3 text-center">
-            <div className="bg-white/15 rounded-xl px-4 py-2.5 min-w-[72px]">
-              <p className="text-lg font-bold">🏆 {data.totalPoints}</p>
-              <p className="text-xs text-indigo-200 mt-0.5">точки</p>
+
+          {/* Stat chips */}
+          <div className="flex gap-3 mt-5 flex-wrap">
+            <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3 border border-white/10">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl" style={{ background: '#FDE047' }}>🏆</div>
+              <div>
+                <p className="text-2xl font-black text-white leading-none">{data.totalPoints}</p>
+                <p className="text-sky-300 text-xs font-bold mt-0.5">точки</p>
+              </div>
             </div>
-            <div className="bg-white/15 rounded-xl px-4 py-2.5 min-w-[72px]">
-              <p className="text-lg font-bold">📖 {data.totalPagesRead}</p>
-              <p className="text-xs text-indigo-200 mt-0.5">стр.</p>
+            <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3 border border-white/10">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl" style={{ background: '#34D399' }}>📖</div>
+              <div>
+                <p className="text-2xl font-black text-white leading-none">{data.totalPagesRead}</p>
+                <p className="text-sky-300 text-xs font-bold mt-0.5">стр. прочетени</p>
+              </div>
             </div>
-            <div className="bg-white/15 rounded-xl px-4 py-2.5 min-w-[72px]">
-              <p className="text-lg font-bold">✅ {data.completedAssignments}</p>
-              <p className="text-xs text-indigo-200 mt-0.5">задачи</p>
+            <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3 border border-white/10">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl" style={{ background: '#A78BFA' }}>✅</div>
+              <div>
+                <p className="text-2xl font-black text-white leading-none">{data.completedAssignments}</p>
+                <p className="text-sky-300 text-xs font-bold mt-0.5">задачи</p>
+              </div>
             </div>
           </div>
         </div>

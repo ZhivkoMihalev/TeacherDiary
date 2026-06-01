@@ -40,7 +40,7 @@ export function NotificationBell() {
       {/* Bell button */}
       <button
         onClick={() => setOpen(v => !v)}
-        className="relative p-1.5 rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+        className="relative p-1.5 rounded-lg text-violet-400 hover:bg-violet-100 hover:text-violet-600 transition-colors"
         title="Известия"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -56,14 +56,40 @@ export function NotificationBell() {
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute left-0 top-10 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 flex flex-col max-h-[480px]">
+        <div
+          className="absolute left-0 top-11 w-80 flex flex-col max-h-[480px] overflow-hidden"
+          style={{
+            background: 'rgba(255,255,255,0.97)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(124,58,237,0.15)',
+            borderRadius: '14px',
+            boxShadow: '0 8px 40px rgba(124,58,237,0.18), 0 2px 12px rgba(0,0,0,0.08)',
+            zIndex: 9999,
+          }}
+        >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-            <span className="text-sm font-semibold text-gray-700">Известия</span>
+          <div
+            className="flex items-center justify-between px-4 py-3 flex-shrink-0"
+            style={{ borderBottom: '1px solid rgba(124,58,237,0.1)' }}
+          >
+            <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#1e1b4b', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              Известия
+            </span>
             {unreadCount > 0 && (
               <button
                 onClick={() => markAllAsRead()}
-                className="text-xs text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
+                style={{
+                  fontSize: '0.75rem',
+                  color: '#7c3aed',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  fontWeight: 500,
+                }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#4c1d95')}
+                onMouseLeave={e => (e.currentTarget.style.color = '#7c3aed')}
               >
                 Маркирай всички
               </button>
@@ -73,7 +99,7 @@ export function NotificationBell() {
           {/* List */}
           <div className="overflow-y-auto flex-1">
             {notifications.length === 0 ? (
-              <div className="px-4 py-8 text-center text-sm text-gray-400">
+              <div className="px-4 py-8 text-center" style={{ fontSize: '0.875rem', color: '#a78bfa', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                 Няма известия
               </div>
             ) : (
@@ -81,13 +107,27 @@ export function NotificationBell() {
                 <button
                   key={n.id}
                   onClick={() => handleNotificationClick(n.id, n.navigationUrl)}
-                  className={`w-full text-left px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors flex gap-3 ${!n.isRead ? 'bg-indigo-50/60' : ''}`}
+                  className="w-full text-left flex gap-3 transition-colors"
+                  style={{
+                    padding: '12px 16px',
+                    borderBottom: '1px solid rgba(124,58,237,0.06)',
+                    background: !n.isRead ? 'rgba(124,58,237,0.04)' : 'transparent',
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(124,58,237,0.07)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = !n.isRead ? 'rgba(124,58,237,0.04)' : 'transparent')}
                 >
-                  {/* Unread dot */}
-                  <span className={`mt-1.5 flex-shrink-0 w-2 h-2 rounded-full ${!n.isRead ? 'bg-indigo-500' : 'bg-transparent'}`} />
+                  <span
+                    className="mt-1.5 flex-shrink-0 w-2 h-2 rounded-full"
+                    style={{ background: !n.isRead ? '#7c3aed' : 'transparent', flexShrink: 0, marginTop: '6px' }}
+                  />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm text-gray-800 leading-snug">{n.message}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{formatRelativeTime(n.createdAt)}</p>
+                    <p style={{ margin: 0, fontSize: '0.8125rem', color: '#1e1b4b', lineHeight: 1.4, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                      {n.message}
+                    </p>
+                    <p style={{ margin: '2px 0 0', fontSize: '0.72rem', color: '#a78bfa', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                      {formatRelativeTime(n.createdAt)}
+                    </p>
                   </div>
                 </button>
               ))

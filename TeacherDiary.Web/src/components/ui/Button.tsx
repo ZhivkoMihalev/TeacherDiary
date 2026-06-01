@@ -1,14 +1,22 @@
-import { type ButtonHTMLAttributes } from 'react'
+import { type ButtonHTMLAttributes, type CSSProperties } from 'react'
 import { Spinner } from './Spinner'
 
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'success'
 
-const variants: Record<Variant, string> = {
-  primary: 'bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500',
-  secondary: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-indigo-500',
-  danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-  ghost: 'text-gray-600 hover:bg-gray-100 focus:ring-gray-400',
-  success: 'bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500',
+const variantStyles: Record<Variant, CSSProperties> = {
+  primary:   { background: 'linear-gradient(135deg, #7c3aed 0%, #db2777 100%)', color: '#ffffff', border: 'none' },
+  secondary: { background: 'rgba(255,255,255,0.8)', color: '#3730a3', border: '1px solid rgba(124,58,237,0.2)' },
+  danger:    { background: '#dc2626', color: '#ffffff', border: 'none' },
+  ghost:     { background: 'transparent', color: '#7c3aed', border: '1px solid transparent' },
+  success:   { background: '#059669', color: '#ffffff', border: 'none' },
+}
+
+const hoverBg: Record<Variant, string> = {
+  primary:   'linear-gradient(135deg, #6d28d9 0%, #be185d 100%)',
+  secondary: 'rgba(255,255,255,0.95)',
+  danger:    '#b91c1c',
+  ghost:     'rgba(124,58,237,0.06)',
+  success:   '#047857',
 }
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -17,13 +25,46 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: 'sm' | 'md'
 }
 
-export function Button({ variant = 'primary', loading = false, size = 'md', className = '', children, disabled, ...props }: Props) {
-  const sizeClass = size === 'sm' ? 'px-3 py-1.5 text-sm' : 'px-4 py-2 text-sm'
+export function Button({
+  variant = 'primary',
+  loading = false,
+  size = 'md',
+  className = '',
+  children,
+  disabled,
+  style: externalStyle,
+  onMouseEnter,
+  onMouseLeave,
+  ...props
+}: Props) {
+  const sizeClass = size === 'sm' ? 'px-3 py-1.5' : 'px-4 py-2'
+
+  const baseStyle: CSSProperties = {
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+    fontSize: size === 'sm' ? '0.8125rem' : '0.875rem',
+    fontWeight: 600,
+    letterSpacing: '0.005em',
+    borderRadius: '9px',
+    lineHeight: 1.4,
+    cursor: 'pointer',
+    ...variantStyles[variant],
+    ...externalStyle,
+  }
 
   return (
     <button
       disabled={disabled || loading}
-      className={`inline-flex items-center gap-2 justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed ${sizeClass} ${variants[variant]} ${className}`}
+      className={`inline-flex items-center gap-2 justify-center transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-violet-400 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97] ${sizeClass} ${className}`}
+      style={baseStyle}
+      onMouseEnter={e => {
+        if (!disabled && !loading) e.currentTarget.style.background = hoverBg[variant]
+        onMouseEnter?.(e)
+      }}
+      onMouseLeave={e => {
+        const s = variantStyles[variant]
+        e.currentTarget.style.background = (s.background as string) ?? ''
+        onMouseLeave?.(e)
+      }}
       {...props}
     >
       {loading && <Spinner className="h-4 w-4" />}

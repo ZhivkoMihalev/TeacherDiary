@@ -46,7 +46,7 @@ public sealed class AssignmentService(
         await db.SaveChangesAsync(cancellationToken);
 
         var studentIds = await db.Students
-            .Where(s => s.ClassId == currentClass.Id)
+            .Where(s => s.ClassId == currentClass.Id && s.IsActive)
             .Select(s => s.Id)
             .ToListAsync(cancellationToken);
 

@@ -1,9 +1,9 @@
+import React from 'react'
 import { useParams, NavLink, Outlet } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { dashboardApi } from '../../api/dashboard'
 import { Card, CardBody, CardHeader } from '../../components/ui/Card'
 import { Spinner } from '../../components/ui/Spinner'
-import { Badge } from '../../components/ui/Badge'
 import { MedalIcon } from '../../components/ui/MedalIcon'
 
 const tabs = [
@@ -31,22 +31,22 @@ export function ClassDashboardPage() {
   }
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="p-6 max-w-6xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">{data?.className}</h1>
-        <p className="text-gray-500 text-sm mt-0.5">{data?.studentsCount} записани ученика</p>
+        <h1 className="text-3xl font-black text-[#1C1917]">{data?.className}</h1>
+        <p className="text-[#78716C] text-sm font-semibold mt-0.5">{data?.studentsCount} записани ученика</p>
       </div>
 
-      <div className="flex gap-1 mb-8 border-b border-gray-200">
+      <div className="flex gap-1 mb-6 bg-white rounded-2xl p-1.5 border border-[#EAE8E0] shadow-sm w-fit">
         {tabs.map(({ to, label }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              `px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              `px-4 py-2 text-sm font-bold rounded-xl transition-all ${
                 isActive
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-800'
+                  ? 'bg-[#14532D] text-white shadow-sm'
+                  : 'text-[#78716C] hover:text-[#1C1917] hover:bg-[#F7F5EF]'
               }`
             }
           >
@@ -77,35 +77,34 @@ export function ClassOverview() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard label="Активни днес" value={data.activeTodayCount} total={data.studentsCount} icon="👥" color="indigo" />
-        <StatCard label="Прочетени страници (7 дни)" value={data.totalPagesReadLast7Days} icon="📖" color="emerald" />
-        <StatCard label="Изпълнени задачи (7 дни)" value={data.completedAssignmentsLast7Days} icon="✅" color="sky" />
-        <StatCard label="Активни задания" value={data.activeLearningActivitiesCount} icon="🎯" color="amber" />
+        <StatCard label="Активни днес" value={data.activeTodayCount} total={data.studentsCount} icon="people" accent="#4F46E5" />
+        <StatCard label="Прочетени страници (7 дни)" value={data.totalPagesReadLast7Days} icon="book" accent="#059669" />
+        <StatCard label="Изпълнени задачи (7 дни)" value={data.completedAssignmentsLast7Days} icon="check" accent="#0284C7" />
+        <StatCard label="Активни задания" value={data.activeLearningActivitiesCount} icon="zap" accent="#D97706" />
       </div>
 
       <div className="grid sm:grid-cols-2 gap-6">
+        {/* Топ 5 — Точки */}
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-800 flex items-center gap-2">
-              <span className="text-base">🏆</span> Топ 5 — Точки
-            </h2>
+            <SectionTitle icon="trophy" color="#4F46E5" label="Топ 5 — Точки" />
           </CardHeader>
           <CardBody className="p-0">
             {data.leaderboard.length === 0 ? (
-              <p className="text-sm text-gray-400 px-6 py-6 text-center">Няма данни.</p>
+              <p className="text-base text-gray-400 px-6 py-6 text-center">Няма данни.</p>
             ) : (
               <ol className="divide-y divide-gray-100">
                 {data.leaderboard.map((item, i) => (
                   <li key={item.studentId} className="flex items-center justify-between px-6 py-3 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3">
                       <RankBadge rank={i + 1} />
-                      <span className="text-sm font-medium text-gray-800 flex items-center gap-1">
+                      <span className="text-base font-semibold text-gray-800 flex items-center gap-1.5">
                         {item.studentName}
                         {item.topMedalCode && <MedalIcon code={item.topMedalCode} size="sm" />}
                         {item.topPointsMedalCode && <MedalIcon code={item.topPointsMedalCode} size="sm" />}
                       </span>
                     </div>
-                    <span className="text-sm font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg">{item.points} т.</span>
+                    <span className="text-base font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">{item.points} т.</span>
                   </li>
                 ))}
               </ol>
@@ -113,24 +112,23 @@ export function ClassOverview() {
           </CardBody>
         </Card>
 
+        {/* Топ читатели */}
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-800 flex items-center gap-2">
-              <span className="text-base">📚</span> Топ читатели (7 дни)
-            </h2>
+            <SectionTitle icon="book" color="#059669" label="Топ читатели (7 дни)" />
           </CardHeader>
           <CardBody className="p-0">
             {data.topReaders.length === 0 ? (
-              <p className="text-sm text-gray-400 px-6 py-6 text-center">Няма активност по четене.</p>
+              <p className="text-base text-gray-400 px-6 py-6 text-center">Няма активност по четене.</p>
             ) : (
               <ol className="divide-y divide-gray-100">
                 {data.topReaders.map((item, i) => (
                   <li key={item.studentId} className="flex items-center justify-between px-6 py-3 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3">
                       <RankBadge rank={i + 1} />
-                      <span className="text-sm font-medium text-gray-800">{item.studentName}</span>
+                      <span className="text-base font-semibold text-gray-800">{item.studentName}</span>
                     </div>
-                    <span className="text-sm font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg">{item.pagesReadLast7Days} стр.</span>
+                    <span className="text-base font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg">{item.pagesReadLast7Days} стр.</span>
                   </li>
                 ))}
               </ol>
@@ -138,26 +136,38 @@ export function ClassOverview() {
           </CardBody>
         </Card>
 
+        {/* Най-добри серии */}
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-800 flex items-center gap-2">
-              <span className="text-base">🔥</span> Най-добри серии
-            </h2>
+            <SectionTitle icon="flame" color="#EA580C" label="Най-добри серии" />
           </CardHeader>
           <CardBody className="p-0">
             {data.bestStreaks.length === 0 ? (
-              <p className="text-sm text-gray-400 px-6 py-6 text-center">Няма данни за серии.</p>
+              <p className="text-base text-gray-400 px-6 py-6 text-center">Няма данни за серии.</p>
             ) : (
               <ol className="divide-y divide-gray-100">
                 {data.bestStreaks.map((item, i) => (
                   <li key={item.studentId} className="flex items-center justify-between px-6 py-3 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3">
                       <RankBadge rank={i + 1} />
-                      <span className="text-sm font-medium text-gray-800">{item.studentName}</span>
+                      <span className="text-base font-semibold text-gray-800">{item.studentName}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="yellow">🔥 {item.currentStreak}д</Badge>
-                      <span className="text-xs text-gray-400">рекорд {item.bestStreak}д</span>
+                    <div className="flex items-center gap-4">
+                      <div className="text-center">
+                        <p className="text-xs text-gray-400 font-medium mb-0.5">Серия</p>
+                        <div className="flex items-center gap-1 bg-orange-50 border border-orange-200 rounded-lg px-2.5 py-1">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="#EA580C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 shrink-0">
+                            <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                          </svg>
+                          <span className="text-sm font-black text-orange-600">{item.currentStreak} дни</span>
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-gray-400 font-medium mb-0.5">Рекорд</p>
+                        <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1">
+                          <span className="text-sm font-bold text-gray-600">🏆 {item.bestStreak} дни</span>
+                        </div>
+                      </div>
                     </div>
                   </li>
                 ))}
@@ -166,23 +176,22 @@ export function ClassOverview() {
           </CardBody>
         </Card>
 
+        {/* Нови медали */}
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-800 flex items-center gap-2">
-              <span className="text-base">🎖️</span> Нови медали (7 дни)
-            </h2>
+            <SectionTitle icon="award" color="#B45309" label="Нови медали (7 дни)" />
           </CardHeader>
           <CardBody className="p-0">
             {data.recentBadges.length === 0 ? (
-              <p className="text-sm text-gray-400 px-6 py-6 text-center">Няма присъдени медали наскоро.</p>
+              <p className="text-base text-gray-400 px-6 py-6 text-center">Няма присъдени медали наскоро.</p>
             ) : (
               <ul className="divide-y divide-gray-100">
                 {data.recentBadges.map((b, i) => (
                   <li key={i} className="flex items-center gap-3 px-6 py-3 hover:bg-gray-50 transition-colors">
                     <MedalIcon code={b.badgeCode} size="md" />
                     <div>
-                      <p className="text-sm font-medium text-gray-800">{b.studentName}</p>
-                      <p className="text-xs text-gray-400">{b.badgeName}</p>
+                      <p className="text-base font-semibold text-gray-800">{b.studentName}</p>
+                      <p className="text-sm text-gray-500">{b.badgeName}</p>
                     </div>
                   </li>
                 ))}
@@ -210,27 +219,130 @@ function RankBadge({ rank }: { rank: number }) {
   )
 }
 
-type StatColor = 'indigo' | 'emerald' | 'sky' | 'amber'
+// ── Section title with SVG icon ──────────────────────────────────
+type SectionIconType = 'trophy' | 'book' | 'flame' | 'award'
 
-const COLOR_MAP: Record<StatColor, { bg: string; text: string; icon: string }> = {
-  indigo: { bg: 'bg-indigo-50', text: 'text-indigo-700', icon: 'bg-indigo-100' },
-  emerald: { bg: 'bg-emerald-50', text: 'text-emerald-700', icon: 'bg-emerald-100' },
-  sky: { bg: 'bg-sky-50', text: 'text-sky-700', icon: 'bg-sky-100' },
-  amber: { bg: 'bg-amber-50', text: 'text-amber-700', icon: 'bg-amber-100' },
+function SectionSvg({ type, className, style }: { type: SectionIconType; className?: string; style?: React.CSSProperties }) {
+  const base = { className, style, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+  if (type === 'trophy') return (
+    <svg {...base} strokeWidth="2">
+      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+      <path d="M4 22h16"/>
+      <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+      <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+      <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+    </svg>
+  )
+  if (type === 'book') return (
+    <svg {...base} strokeWidth="2">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+      <line x1="12" y1="6" x2="16" y2="6"/>
+      <line x1="12" y1="10" x2="16" y2="10"/>
+    </svg>
+  )
+  if (type === 'flame') return (
+    <svg {...base} strokeWidth="2">
+      <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+    </svg>
+  )
+  // award
+  return (
+    <svg {...base} strokeWidth="2">
+      <circle cx="12" cy="8" r="6"/>
+      <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+    </svg>
+  )
 }
 
-function StatCard({ label, value, total, icon, color }: { label: string; value: number; total?: number; icon: string; color: StatColor }) {
-  const c = COLOR_MAP[color]
+function SectionTitle({ icon, color, label }: { icon: SectionIconType; color: string; label: string }) {
   return (
-    <div className={`${c.bg} rounded-2xl p-4 flex flex-col gap-2`}>
-      <div className={`${c.icon} w-8 h-8 rounded-xl flex items-center justify-center text-base`}>{icon}</div>
-      <p className={`text-2xl font-bold ${c.text}`}>
-        {value}
-        {total !== undefined && (
-          <span className="text-sm font-normal text-gray-400"> / {total}</span>
-        )}
-      </p>
-      <p className="text-xs text-gray-500 leading-tight">{label}</p>
+    <div className="flex items-center gap-3">
+      <div
+        className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+        style={{ background: `${color}18` }}
+      >
+        <SectionSvg type={icon} className="w-4 h-4" style={{ color }} />
+      </div>
+      <h2 className="font-bold text-[#1C1917]">{label}</h2>
+    </div>
+  )
+}
+
+
+type IconType = 'people' | 'book' | 'check' | 'zap'
+
+function StatIcon({ type, className, style }: { type: IconType; className?: string; style?: React.CSSProperties }) {
+  const props = { className, style, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+  if (type === 'people') return (
+    <svg {...props} strokeWidth="2">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+  )
+  if (type === 'book') return (
+    <svg {...props} strokeWidth="2">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+      <line x1="12" y1="6" x2="16" y2="6"/>
+      <line x1="12" y1="10" x2="16" y2="10"/>
+    </svg>
+  )
+  if (type === 'check') return (
+    <svg {...props} strokeWidth="2.5">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+      <polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+  )
+  return (
+    <svg {...props} strokeWidth="2">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+    </svg>
+  )
+}
+
+function StatCard({ label, value, total, icon, accent }: {
+  label: string
+  value: number
+  total?: number
+  icon: IconType
+  accent: string
+}) {
+  const pct = total ? Math.min(100, Math.round((value / total) * 100)) : null
+  // Derive a light tint from accent — use opacity trick via inline style
+  return (
+    <div className="bg-white rounded-2xl p-5 shadow-sm border border-white/80 flex flex-col gap-3 stat-card hover:shadow-md transition-shadow">
+      {/* Icon container */}
+      <div
+        className="w-12 h-12 rounded-2xl flex items-center justify-center"
+        style={{ background: `${accent}18` }}
+      >
+        <StatIcon type={icon} className="w-6 h-6" style={{ color: accent }} />
+      </div>
+
+      {/* Number */}
+      <div>
+        <p className="text-4xl font-black leading-none" style={{ color: accent }}>
+          {value}
+          {total !== undefined && (
+            <span className="text-lg font-semibold text-gray-300 ml-0.5">/{total}</span>
+          )}
+        </p>
+        <p className="text-sm text-gray-500 font-semibold mt-2 leading-tight">{label}</p>
+      </div>
+
+      {/* Progress bar (only if total provided) */}
+      {pct !== null && (
+        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{ width: `${pct}%`, background: accent }}
+          />
+        </div>
+      )}
     </div>
   )
 }

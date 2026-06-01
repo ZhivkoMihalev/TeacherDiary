@@ -16,7 +16,11 @@ function ChevronIcon({ open }: { open: boolean }) {
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 20 20"
       fill="currentColor"
-      className={`w-4 h-4 shrink-0 transition-transform duration-200 ${open ? 'rotate-90' : ''}`}
+      style={{
+        width: '13px', height: '13px', flexShrink: 0,
+        transition: 'transform 0.2s ease',
+        transform: open ? 'rotate(90deg)' : 'none',
+      }}
     >
       <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
     </svg>
@@ -38,44 +42,46 @@ function ClassNavItem({ cls }: { cls: ClassDto }) {
 
   return (
     <div>
-      <div className="flex items-center gap-0.5">
+      <div style={{ display: 'flex', alignItems: 'center' }}>
         <NavLink
           to={`/teacher/classes/${cls.id}`}
-          className={({ isActive }) =>
-            `flex-1 min-w-0 px-2 py-1.5 rounded-md text-sm transition-colors truncate ${
-              isActive
-                ? 'bg-white/15 text-white font-medium'
-                : 'text-slate-300 hover:bg-white/10 hover:text-white'
-            }`
-          }
+          className={({ isActive }) => `aurora-nav-sub ${isActive ? 'active' : ''}`}
+          style={{ flexGrow: 1, marginRight: 0 }}
         >
           {cls.name}
         </NavLink>
         <button
-          onClick={() => setStudentsOpen((v) => !v)}
-          title={studentsOpen ? 'Скрий ученици' : 'Покажи ученици'}
-          className="p-1 rounded text-slate-400 hover:bg-white/10 hover:text-white transition-colors shrink-0"
+          onClick={() => setStudentsOpen(v => !v)}
+          style={{
+            padding: '4px 8px',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: '#a78bfa',
+            flexShrink: 0,
+            borderRadius: '6px',
+            transition: 'color 0.15s, background 0.15s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.color = '#7c3aed'; e.currentTarget.style.background = 'rgba(124,58,237,0.06)' }}
+          onMouseLeave={e => { e.currentTarget.style.color = '#a78bfa'; e.currentTarget.style.background = 'none' }}
         >
           <ChevronIcon open={studentsOpen} />
         </button>
       </div>
 
       {studentsOpen && (
-        <div className="ml-3 mt-0.5 space-y-0.5 border-l border-white/10 pl-2">
+        <div style={{ marginLeft: '12px', borderLeft: '1.5px solid rgba(167,139,250,0.3)', paddingLeft: '4px' }}>
           {sorted.length === 0 ? (
-            <p className="px-2 py-1 text-xs text-slate-400">Няма ученици</p>
+            <p style={{ margin: 0, padding: '5px 10px', fontSize: '0.75rem', color: '#a78bfa', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              Няма ученици
+            </p>
           ) : (
-            sorted.map((s) => (
+            sorted.map(s => (
               <NavLink
                 key={s.id}
                 to={`/teacher/students/${s.id}`}
-                className={({ isActive }) =>
-                  `block px-2 py-1 rounded text-xs truncate transition-colors ${
-                    isActive
-                      ? 'bg-white/15 text-white font-medium'
-                      : 'text-slate-400 hover:bg-white/10 hover:text-white'
-                  }`
-                }
+                className={({ isActive }) => `aurora-nav-sub ${isActive ? 'active' : ''}`}
+                style={{ paddingLeft: '10px', fontSize: '0.77rem' }}
               >
                 {s.lastName} {s.firstName}
               </NavLink>
@@ -85,6 +91,10 @@ function ClassNavItem({ cls }: { cls: ClassDto }) {
       )}
     </div>
   )
+}
+
+function SidebarDivider() {
+  return <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(124,58,237,0.15), transparent)', margin: '8px 16px' }} />
 }
 
 export function TeacherLayout() {
@@ -115,98 +125,177 @@ export function TeacherLayout() {
     navigate('/login')
   }
 
+  const initials = user?.fullName
+    ? user.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : '?'
+
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside className="w-56 bg-[#1e2640] flex flex-col">
-        <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
-          <Link to="/teacher/classes" className="text-lg font-semibold text-white hover:opacity-80 transition-opacity">
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+
+      {/* ── Floating Glass Sidebar ── */}
+      <aside style={{
+        width: '230px',
+        flexShrink: 0,
+        margin: '12px 6px 12px 12px',
+        display: 'flex',
+        flexDirection: 'column',
+        background: 'rgba(255,255,255,0.78)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderRadius: '18px',
+        border: '1px solid rgba(255,255,255,0.92)',
+        boxShadow: '0 8px 32px rgba(124,58,237,0.1), 0 2px 8px rgba(0,0,0,0.04)',
+        position: 'relative',
+        zIndex: 20,
+      }}>
+
+        {/* Brand */}
+        <div style={{
+          padding: '20px 16px 14px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid rgba(124,58,237,0.1)',
+        }}>
+          <Link to="/teacher/classes" className="aurora-brand">
             TeacherDiary
           </Link>
           <NotificationBell />
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {/* Класове — expandable */}
+        {/* Nav */}
+        <nav style={{ flex: 1, paddingTop: '10px', paddingBottom: '8px', overflowY: 'auto' }}>
+          {/* Класове */}
           <div>
             <button
-              onClick={() => {
-                navigate('/teacher/classes')
-                setClassesOpen((v) => !v)
-              }}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                onClassesRoute
-                  ? 'bg-white/15 text-white'
-                  : 'text-slate-300 hover:bg-white/10 hover:text-white'
-              }`}
+              onClick={() => { navigate('/teacher/classes'); setClassesOpen(v => !v) }}
+              className={`aurora-nav-item ${onClassesRoute ? 'active' : ''}`}
+              style={{ justifyContent: 'space-between' }}
             >
-              <span>Класове</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+                <span style={{ fontSize: '1em' }}>🏫</span>
+                Класове
+              </span>
               <ChevronIcon open={classesOpen} />
             </button>
 
             {classesOpen && classes.length > 0 && (
-              <div className="mt-1 ml-2 space-y-0.5 border-l border-white/10 pl-2">
-                {classes.map((c) => (
-                  <ClassNavItem key={c.id} cls={c} />
-                ))}
+              <div style={{ marginLeft: '10px', borderLeft: '1.5px solid rgba(167,139,250,0.3)', paddingLeft: '4px', marginBottom: '4px' }}>
+                {classes.map(c => <ClassNavItem key={c.id} cls={c} />)}
               </div>
             )}
           </div>
 
-          {/* Книги */}
+          <SidebarDivider />
+
           <NavLink
             to="/teacher/books"
-            className={({ isActive }) =>
-              `flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-white/15 text-white'
-                  : 'text-slate-300 hover:bg-white/10 hover:text-white'
-              }`
-            }
+            className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`}
           >
+            <span style={{ fontSize: '1em' }}>📚</span>
             Книги
           </NavLink>
 
-          {/* Съобщения */}
           <NavLink
             to="/teacher/messages"
-            className={({ isActive }) =>
-              `flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-white/15 text-white'
-                  : 'text-slate-300 hover:bg-white/10 hover:text-white'
-              }`
-            }
+            className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`}
+            style={{ justifyContent: 'space-between' }}
           >
-            <span>Съобщения</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+              <span style={{ fontSize: '1em' }}>💬</span>
+              Съобщения
+            </span>
             {unreadCount > 0 && (
-              <span className="ml-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+              <span style={{
+                background: 'linear-gradient(135deg, #7c3aed, #db2777)',
+                color: 'white',
+                fontSize: '0.68rem',
+                fontWeight: 700,
+                borderRadius: '99px',
+                minWidth: '19px',
+                height: '19px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0 5px',
+              }}>
                 {unreadCount}
               </span>
             )}
           </NavLink>
         </nav>
 
-        <div className="px-4 py-4 border-t border-white/10">
-          <p className="text-xs text-slate-400 mb-2 truncate">{user?.fullName}</p>
+        <SidebarDivider />
+
+        {/* User */}
+        <div style={{ padding: '12px 16px 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+            <div style={{
+              width: '34px',
+              height: '34px',
+              borderRadius: '10px',
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '0.72rem',
+              fontWeight: 700,
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              letterSpacing: '0.04em',
+              background: 'linear-gradient(135deg, #7c3aed, #059669)',
+              color: 'white',
+            }}>
+              {initials}
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <p style={{
+                margin: 0,
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                color: '#1e1b4b',
+                lineHeight: 1.25,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}>
+                {user?.fullName}
+              </p>
+              <p style={{ margin: 0, fontSize: '0.72rem', color: '#a78bfa', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                Учител
+              </p>
+            </div>
+          </div>
+
           <button
             onClick={handleLogout}
-            className="w-full text-left text-sm text-slate-400 hover:text-red-400 transition-colors"
+            style={{
+              fontSize: '0.75rem',
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              fontWeight: 500,
+              color: '#a78bfa',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              transition: 'color 0.15s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.color = '#dc2626')}
+            onMouseLeave={e => (e.currentTarget.style.color = '#a78bfa')}
           >
-            Изход
+            ← Изход
           </button>
         </div>
       </aside>
 
-      {/* Main */}
-      <main className="flex-1 overflow-y-auto flex flex-col">
-        <div className="flex-1">
+      {/* ── Main (transparent — aurora shows through) ── */}
+      <main style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', minWidth: 0, padding: '12px 0 0 0' }}>
+        <div style={{ flex: 1 }}>
           <Outlet />
         </div>
         <Footer />
       </main>
 
-      {/* Ad sidebar */}
       <AdSidebar />
     </div>
   )

@@ -136,11 +136,11 @@ export function ClassesPage() {
   }
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
+    <div className="p-6 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Моите класове</h1>
-          <p className="text-gray-500 text-sm mt-0.5">Управлявайте класовете и учениците</p>
+          <h1 className="text-3xl font-black text-[#1C1917]">Моите класове</h1>
+          <p className="text-[#78716C] text-sm font-semibold mt-0.5">Управлявайте класовете и учениците</p>
         </div>
         <Button onClick={() => { setShowForm(true); setEditing(null) }}>+ Нов клас</Button>
       </div>
@@ -259,31 +259,34 @@ export function ClassesPage() {
           {classes.map((cls) => (
             <Card
               key={cls.id}
-              className={`hover:shadow-md transition-shadow ${editing?.id === cls.id ? 'ring-2 ring-indigo-300' : ''}`}
+              className={editing?.id === cls.id ? 'ring-2 ring-emerald-400' : ''}
             >
-              <CardBody className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
-                    <span className="text-xl font-extrabold text-indigo-600">{cls.grade}</span>
+              <CardBody className="flex flex-col gap-3">
+                {/* Top row: grade badge + name */}
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ background: '#DCFCE7' }}>
+                    <span className="text-lg font-black" style={{ color: '#14532D' }}>{cls.grade}</span>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <Link
                       to={`/teacher/classes/${cls.id}/dashboard`}
-                      className="font-semibold text-gray-900 hover:text-indigo-600 transition-colors"
+                      className="font-black text-[#1C1917] hover:text-[#14532D] transition-colors text-base leading-tight block truncate"
                     >
                       {cls.name}
                     </Link>
-                    <p className="text-sm text-gray-400 mt-0.5">{cls.grade}. клас · {cls.schoolYear}</p>
+                    <p className="text-sm text-[#A8A29E] font-semibold mt-0.5">{cls.grade}. клас · {cls.schoolYear}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <Link to={`/teacher/classes/${cls.id}/dashboard`}>
-                    <Button size="sm" variant="secondary">Отвори</Button>
+                {/* Bottom row: action buttons */}
+                <div className="flex items-center gap-2 pt-1 border-t border-[#F5F3EE]">
+                  <Link to={`/teacher/classes/${cls.id}/dashboard`} className="flex-1">
+                    <Button size="sm" variant="primary" className="w-full">Отвори</Button>
                   </Link>
                   <Button size="sm" variant="secondary" onClick={() => openEdit(cls)}>
                     Промени
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setConfirmDelete({ id: cls.id, name: cls.name })}>
+                  <Button size="sm" variant="danger" onClick={() => setConfirmDelete({ id: cls.id, name: cls.name })}>
                     Изтрий
                   </Button>
                 </div>
