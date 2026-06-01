@@ -102,12 +102,19 @@ export function TeacherLayout() {
   const navigate = useNavigate()
   const location = useLocation()
 
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
   const onClassesRoute = location.pathname.startsWith('/teacher/classes')
   const [classesOpen, setClassesOpen] = useState(onClassesRoute)
 
   useEffect(() => {
     if (onClassesRoute) setClassesOpen(true)
   }, [onClassesRoute])
+
+  // Close mobile sidebar on navigation
+  useEffect(() => {
+    setSidebarOpen(false)
+  }, [location.pathname])
 
   const { data: classes = [] } = useQuery({
     queryKey: ['classes'],
@@ -132,22 +139,54 @@ export function TeacherLayout() {
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
 
+      {/* Mobile top bar */}
+      <div
+        className="lg:hidden fixed top-0 left-0 right-0 flex items-center justify-between px-4 z-30"
+        style={{
+          height: '52px',
+          background: 'rgba(255,255,255,0.92)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderBottom: '1px solid rgba(124,58,237,0.1)',
+        }}
+      >
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="p-2 rounded-lg text-violet-500 hover:bg-violet-50 transition-colors"
+          aria-label="Отвори меню"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+        <Link to="/teacher/classes" className="aurora-brand">TeacherDiary</Link>
+        <NotificationBell />
+      </div>
+
+      {/* Backdrop */}
+      {sidebarOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/30"
+          style={{ backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)' }}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* ── Floating Glass Sidebar ── */}
-      <aside style={{
-        width: '230px',
-        flexShrink: 0,
-        margin: '12px 6px 12px 12px',
-        display: 'flex',
-        flexDirection: 'column',
-        background: 'rgba(255,255,255,0.78)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderRadius: '18px',
-        border: '1px solid rgba(255,255,255,0.92)',
-        boxShadow: '0 8px 32px rgba(124,58,237,0.1), 0 2px 8px rgba(0,0,0,0.04)',
-        position: 'relative',
-        zIndex: 20,
-      }}>
+      <aside
+        className={`aurora-sidebar fixed inset-y-0 left-0 lg:relative lg:inset-auto flex flex-col z-50 lg:z-20 transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
+        style={{
+          width: '230px',
+          flexShrink: 0,
+          background: 'rgba(255,255,255,0.78)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255,255,255,0.92)',
+          boxShadow: '0 8px 32px rgba(124,58,237,0.1), 0 2px 8px rgba(0,0,0,0.04)',
+        }}
+      >
 
         {/* Brand */}
         <div style={{
@@ -160,7 +199,20 @@ export function TeacherLayout() {
           <Link to="/teacher/classes" className="aurora-brand">
             TeacherDiary
           </Link>
-          <NotificationBell />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <div className="hidden lg:block">
+              <NotificationBell />
+            </div>
+            <button
+              className="lg:hidden p-1.5 rounded-lg text-violet-400 hover:bg-violet-100 hover:text-violet-600 transition-colors"
+              onClick={() => setSidebarOpen(false)}
+              aria-label="Затвори меню"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Nav */}
@@ -288,8 +340,8 @@ export function TeacherLayout() {
         </div>
       </aside>
 
-      {/* ── Main (transparent — aurora shows through) ── */}
-      <main style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', minWidth: 0, padding: '12px 0 0 0' }}>
+      {/* ── Main ── */}
+      <main className="flex-1 overflow-y-auto flex flex-col min-w-0 pt-[52px] lg:pt-3">
         <div style={{ flex: 1 }}>
           <Outlet />
         </div>

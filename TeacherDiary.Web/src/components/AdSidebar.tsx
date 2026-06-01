@@ -30,7 +30,7 @@ export function AdSidebar() {
   const banner = BANNERS[index]
 
   return (
-    <aside className="w-64 shrink-0 border-l border-gray-200 bg-white flex flex-col">
+    <aside className="hidden lg:flex w-64 shrink-0 border-l border-gray-200 bg-white flex-col">
       <div className="px-3 py-3 border-b border-gray-100">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Реклами</p>
       </div>

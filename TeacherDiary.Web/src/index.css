@@ -164,6 +164,17 @@ body {
   animation: popIn 0.4s ease forwards;
 }
 
+/* ── Responsive sidebar: floating on desktop, drawer on mobile ── */
+.aurora-sidebar {
+  border-radius: 0 18px 18px 0;
+}
+@media (min-width: 1024px) {
+  .aurora-sidebar {
+    border-radius: 18px;
+    margin: 12px 6px 12px 12px;
+  }
+}
+
 /* ── Login page character animations ── */
 @keyframes chalkDraw1 {
   to { stroke-dashoffset: 0; }
