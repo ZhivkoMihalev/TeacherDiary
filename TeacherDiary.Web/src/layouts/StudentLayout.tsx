@@ -119,6 +119,10 @@ export function StudentLayout() {
             <span>🏅</span> Значки
           </NavLink>
 
+          <NavLink to="/student/notifications" className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`}>
+            <span>🔔</span> Известия
+          </NavLink>
+
           <SidebarDivider />
 
           <NavLink to="/student/messages" className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`} style={{ justifyContent: 'space-between' }}>

@@ -1,58 +1,33 @@
-import { useState, useEffect, useCallback } from 'react'
-import * as signalR from '@microsoft/signalr'
+import { useCallback } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { notificationsApi } from '../api/notifications'
 import type { NotificationDto } from '../types'
 
+export const NOTIFICATIONS_QUERY_KEY = ['notifications']
+
 export function useNotifications() {
-  const [notifications, setNotifications] = useState<NotificationDto[]>([])
-  const [unreadCount, setUnreadCount] = useState(0)
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
 
-  // Initial load
-  useEffect(() => {
-    notificationsApi.getAll().then(data => {
-      setNotifications(data)
-      setUnreadCount(data.filter(n => !n.isRead).length)
-      setLoading(false)
-    }).catch(() => setLoading(false))
-  }, [])
+  const { data: notifications = [], isLoading: loading } = useQuery({
+    queryKey: NOTIFICATIONS_QUERY_KEY,
+    queryFn: () => notificationsApi.getAll(1, 50),
+  })
 
-  // SignalR real-time connection
-  useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) return
-
-    const connection = new signalR.HubConnectionBuilder()
-      .withUrl('/hubs/notifications', {
-        accessTokenFactory: () => token,
-      })
-      .withAutomaticReconnect()
-      .configureLogging(signalR.LogLevel.Warning)
-      .build()
-
-    connection.on('ReceiveNotification', (notification: NotificationDto) => {
-      setNotifications(prev => [notification, ...prev])
-      setUnreadCount(prev => prev + 1)
-    })
-
-    connection.start().catch(() => {})
-
-    return () => { connection.stop() }
-  }, [])
+  const unreadCount = notifications.filter(n => !n.isRead).length
 
   const markAsRead = useCallback(async (id: string) => {
     await notificationsApi.markAsRead(id)
-    setNotifications(prev =>
-      prev.map(n => n.id === id ? { ...n, isRead: true } : n)
+    queryClient.setQueryData(NOTIFICATIONS_QUERY_KEY, (old: NotificationDto[] = []) =>
+      old.map(n => n.id === id ? { ...n, isRead: true } : n)
     )
-    setUnreadCount(prev => Math.max(0, prev - 1))
-  }, [])
+  }, [queryClient])
 
   const markAllAsRead = useCallback(async () => {
     await notificationsApi.markAllAsRead()
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })))
-    setUnreadCount(0)
-  }, [])
+    queryClient.setQueryData(NOTIFICATIONS_QUERY_KEY, (old: NotificationDto[] = []) =>
+      old.map(n => ({ ...n, isRead: true }))
+    )
+  }, [queryClient])
 
   return { notifications, unreadCount, loading, markAsRead, markAllAsRead }
 }

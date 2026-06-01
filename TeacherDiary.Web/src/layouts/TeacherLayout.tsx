@@ -249,6 +249,14 @@ export function TeacherLayout() {
           </NavLink>
 
           <NavLink
+            to="/teacher/notifications"
+            className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`}
+          >
+            <span style={{ fontSize: '1em' }}>🔔</span>
+            Известия
+          </NavLink>
+
+          <NavLink
             to="/teacher/messages"
             className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`}
             style={{ justifyContent: 'space-between' }}

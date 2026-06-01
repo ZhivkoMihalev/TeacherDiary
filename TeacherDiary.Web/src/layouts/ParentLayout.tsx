@@ -115,6 +115,10 @@ export function ParentLayout() {
             <span>👨‍👩‍👧</span> Моите деца
           </NavLink>
 
+          <NavLink to="/parent/notifications" className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`}>
+            <span>🔔</span> Известия
+          </NavLink>
+
           <SidebarDivider />
 
           <NavLink to="/parent/messages" className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`} style={{ justifyContent: 'space-between' }}>

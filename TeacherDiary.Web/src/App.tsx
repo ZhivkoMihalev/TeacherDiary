@@ -27,6 +27,7 @@ import { TeacherStudentPage } from './pages/teacher/TeacherStudentPage'
 import { MyStudentsPage } from './pages/parent/MyStudentsPage'
 import { StudentProgressPage } from './pages/parent/StudentProgressPage'
 import { MessagesPage } from './pages/shared/MessagesPage'
+import { NotificationsPage } from './pages/shared/NotificationsPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,6 +63,7 @@ export default function App() {
               <Route path="classes" element={<ClassesPage />} />
               <Route path="books" element={<BooksPage />} />
               <Route path="messages" element={<MessagesPage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
               <Route path="students/:studentId" element={<TeacherStudentPage />} />
               <Route path="classes/:classId" element={<ClassDashboardPage />}>
                 <Route index element={<Navigate to="dashboard" replace />} />
@@ -86,6 +88,7 @@ export default function App() {
               <Route path="students" element={<MyStudentsPage />} />
               <Route path="students/:studentId" element={<StudentProgressPage />} />
               <Route path="messages" element={<MessagesPage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
             </Route>
 
             {/* Student */}
@@ -101,6 +104,7 @@ export default function App() {
               <Route path="dashboard" element={<StudentDashboardPage />} />
               <Route path="badges" element={<StudentBadgesPage />} />
               <Route path="messages" element={<MessagesPage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
             </Route>
 
             {/* Root redirect */}

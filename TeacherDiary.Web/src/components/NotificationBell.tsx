@@ -1,6 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useNotifications } from '../hooks/useNotifications'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
+import * as signalR from '@microsoft/signalr'
+import { useNotifications, NOTIFICATIONS_QUERY_KEY } from '../hooks/useNotifications'
+import { useAuth } from '../context/AuthContext'
+import type { NotificationDto } from '../types'
 
 function formatRelativeTime(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -17,7 +21,35 @@ export function NotificationBell() {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const { user } = useAuth()
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications()
+
+  const notificationsUrl =
+    user?.role === 'Teacher' ? '/teacher/notifications' :
+    user?.role === 'Parent'  ? '/parent/notifications'  :
+                               '/student/notifications'
+
+  // SignalR connection — lives here so there's exactly one per mounted layout
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (!token) return
+
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl('/hubs/notifications', { accessTokenFactory: () => token })
+      .withAutomaticReconnect()
+      .configureLogging(signalR.LogLevel.Warning)
+      .build()
+
+    connection.on('ReceiveNotification', (notification: NotificationDto) => {
+      queryClient.setQueryData(NOTIFICATIONS_QUERY_KEY, (old: NotificationDto[] = []) =>
+        [notification, ...old]
+      )
+    })
+
+    connection.start().catch(() => {})
+    return () => { connection.stop() }
+  }, [queryClient])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -103,16 +135,19 @@ export function NotificationBell() {
                 Няма известия
               </div>
             ) : (
-              notifications.map(n => (
+              notifications.slice(0, 20).map(n => (
                 <button
                   key={n.id}
                   onClick={() => handleNotificationClick(n.id, n.navigationUrl)}
                   className="w-full text-left flex gap-3 transition-colors"
                   style={{
                     padding: '12px 16px',
-                    borderBottom: '1px solid rgba(124,58,237,0.06)',
                     background: !n.isRead ? 'rgba(124,58,237,0.04)' : 'transparent',
                     cursor: 'pointer',
+                    borderTop: 'none',
+                    borderRight: 'none',
+                    borderLeft: 'none',
+                    borderBottom: '1px solid rgba(124,58,237,0.06)',
                   }}
                   onMouseEnter={e => (e.currentTarget.style.background = 'rgba(124,58,237,0.07)')}
                   onMouseLeave={e => (e.currentTarget.style.background = !n.isRead ? 'rgba(124,58,237,0.04)' : 'transparent')}
@@ -132,6 +167,30 @@ export function NotificationBell() {
                 </button>
               ))
             )}
+          </div>
+
+          {/* Footer — link to full page */}
+          <div style={{ borderTop: '1px solid rgba(124,58,237,0.1)', padding: '8px 10px', flexShrink: 0 }}>
+            <NavLink
+              to={notificationsUrl}
+              onClick={() => setOpen(false)}
+              style={{
+                display: 'block',
+                textAlign: 'center',
+                fontSize: '0.8rem',
+                color: '#7c3aed',
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontWeight: 500,
+                textDecoration: 'none',
+                padding: '5px',
+                borderRadius: '7px',
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(124,58,237,0.08)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+            >
+              Виж всички известия →
+            </NavLink>
           </div>
         </div>
       )}
