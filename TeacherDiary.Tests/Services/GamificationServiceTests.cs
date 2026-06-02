@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Moq;
 using TeacherDiary.Application.Abstractions.Services;
 using TeacherDiary.Application.Events;
@@ -31,11 +31,7 @@ public class GamificationServiceTests
     private GamificationService CreateService(AppDbContext db) =>
         new(db, _currentUserMock.Object, _eventDispatcherMock.Object);
 
-    // -----------------------------------------------------------------------
-    // AddReadingPointsAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task AddReadingPointsAsync_WhenPointsAreZero_DoesNothing()
     {
         await using var db = CreateDbContext();
@@ -74,11 +70,7 @@ public class GamificationServiceTests
         Assert.Equal(125, db.StudentPoints.Local.Single().TotalPoints);
     }
 
-    // -----------------------------------------------------------------------
-    // AddAssignmentPointsAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task AddAssignmentPointsAsync_WhenPointsAreZero_DoesNothing()
     {
         await using var db = CreateDbContext();
@@ -101,11 +93,7 @@ public class GamificationServiceTests
         Assert.Equal(30, db.StudentPoints.Local.Single().TotalPoints);
     }
 
-    // -----------------------------------------------------------------------
-    // AddChallengePointsAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task AddChallengePointsAsync_WhenPointsAreZero_DoesNothing()
     {
         await using var db = CreateDbContext();
@@ -130,11 +118,7 @@ public class GamificationServiceTests
         Assert.Equal(250, db.StudentPoints.Local.Single().TotalPoints);
     }
 
-    // -----------------------------------------------------------------------
-    // UpdateStreakAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task UpdateStreakAsync_WhenNoStreak_CreatesNewStreak()
     {
         await using var db = CreateDbContext();
@@ -270,11 +254,7 @@ public class GamificationServiceTests
             Times.Never);
     }
 
-    // -----------------------------------------------------------------------
-    // GetLeaderboardAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task GetLeaderboardAsync_WhenClassNotFound_ReturnsFail()
     {
         await using var db = CreateDbContext();

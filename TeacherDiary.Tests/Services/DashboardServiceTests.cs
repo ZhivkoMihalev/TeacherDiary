@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Moq;
 using TeacherDiary.Application.Abstractions.Services;
 using TeacherDiary.Domain.Entities;
@@ -30,11 +30,7 @@ public class DashboardServiceTests
     private DashboardService CreateService(AppDbContext db) =>
         new(db, _currentUserMock.Object);
 
-    // -----------------------------------------------------------------------
-    // Seed helpers
-    // -----------------------------------------------------------------------
-
-    private static Class SeedClass(AppDbContext db)
+private static Class SeedClass(AppDbContext db)
     {
         var cls = new Class
         {
@@ -248,11 +244,7 @@ public class DashboardServiceTests
         return cp;
     }
 
-    // -----------------------------------------------------------------------
-    // GetClassDashboardAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task GetClassDashboardAsync_WhenClassNotFound_ReturnsFail()
     {
         await using var db = CreateDbContext();
@@ -269,7 +261,6 @@ public class DashboardServiceTests
     {
         await using var db = CreateDbContext();
         var cls = SeedClass(db);
-        // Two active students + one inactive
         var student1 = SeedStudent(db, cls.Id, "Alice", "Smith");
         var student2 = SeedStudent(db, cls.Id, "Bob", "Jones");
         SeedStudent(db, cls.Id, "Inactive", "User", isActive: false);
@@ -277,21 +268,15 @@ public class DashboardServiceTests
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var recent = today.AddDays(-3);
 
-        // student1 active today + has points
         SeedLog(db, student1, ActivityType.ReadingProgress, today, pagesRead: 20, pointsEarned: 10);
         SeedLog(db, student1, ActivityType.AssignmentCompleted, recent, pointsEarned: 5);
-        // student2 has pages last 7 days + points (no today activity)
         SeedLog(db, student2, ActivityType.ReadingProgress, recent, pagesRead: 30, pointsEarned: 15);
 
-        // Streak for student1 only (covers TryGetValue true + false branches on leaderboard)
         SeedStreak(db, student1, best: 7, current: 3);
 
-        // Active learning activity
         var la = SeedLearningActivity(db, cls.Id, isActive: true);
-        // Completed learning activity within last 7 days
         SeedLearningActivityProgress(db, student1, la, ProgressStatus.Completed, DateTime.UtcNow.AddDays(-1));
 
-        // Recent badge (within last 7 days)
         SeedStudentBadge(db, student1, DateTime.UtcNow.AddDays(-1));
 
         await db.SaveChangesAsync();
@@ -316,11 +301,7 @@ public class DashboardServiceTests
         Assert.NotEmpty(dto.TopReaders);
     }
 
-    // -----------------------------------------------------------------------
-    // GetClassStudentActivityAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task GetClassStudentActivityAsync_WhenClassNotFound_ReturnsFail()
     {
         await using var db = CreateDbContext();
@@ -343,12 +324,9 @@ public class DashboardServiceTests
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var createdNow = DateTime.UtcNow;
 
-        // student1 active today: reading + assignment completed
         SeedLog(db, student1, ActivityType.ReadingProgress, today, pagesRead: 15, createdAt: createdNow);
         SeedLog(db, student1, ActivityType.AssignmentCompleted, today, createdAt: createdNow);
-        // student1 older activity (drives LastActivityAt)
         SeedLog(db, student1, ActivityType.ReadingProgress, today.AddDays(-5), createdAt: createdNow.AddDays(-5));
-        // student2 has NO today activity
 
         await db.SaveChangesAsync();
         var service = CreateService(db);
@@ -358,7 +336,6 @@ public class DashboardServiceTests
         Assert.True(result.Success);
         Assert.Equal(2, result.Data.Count);
 
-        // Ordered by PagesReadToday descending → Alice first
         var alice = result.Data[0];
         Assert.Equal("Alice Smith", alice.StudentName);
         Assert.Equal(15, alice.PagesReadToday);
@@ -373,11 +350,7 @@ public class DashboardServiceTests
         Assert.Null(bob.LastActivityAt);
     }
 
-    // -----------------------------------------------------------------------
-    // GetStudentDetailsAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task GetStudentDetailsAsync_WhenStudentNotFound_ReturnsFail()
     {
         await using var db = CreateDbContext();
@@ -445,32 +418,27 @@ public class DashboardServiceTests
 
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-        // One log per ActivityType — all within last 7 days
-        SeedLog(db, student, ActivityType.ReadingProgress,          today, pagesRead: 10, pointsEarned: 5);
-        SeedLog(db, student, ActivityType.AssignmentCompleted,      today, pointsEarned: 10);
-        SeedLog(db, student, ActivityType.AssignmentStarted,        today, pointsEarned: 0);
-        SeedLog(db, student, ActivityType.ChallengeCompleted,       today, pointsEarned: 20);
+        SeedLog(db, student, ActivityType.ReadingProgress, today, pagesRead: 10, pointsEarned: 5);
+        SeedLog(db, student, ActivityType.AssignmentCompleted, today, pointsEarned: 10);
+        SeedLog(db, student, ActivityType.AssignmentStarted, today, pointsEarned: 0);
+        SeedLog(db, student, ActivityType.ChallengeCompleted, today, pointsEarned: 20);
         SeedLog(db, student, ActivityType.ChallengeProgressUpdated, today, pointsEarned: 0);
         SeedLog(db, student, ActivityType.LearningActivityCompleted,today, pointsEarned: 15);
-        SeedLog(db, student, ActivityType.LearningActivityStarted,  today, pointsEarned: 0);
+        SeedLog(db, student, ActivityType.LearningActivityStarted, today, pointsEarned: 0);
 
-        // Two reading progress entries: one with null EndDateUtc, one with past EndDateUtc
         var (_, ab1) = SeedAssignedBook(db, cls.Id, endDateUtc: null);
         var (_, ab2) = SeedAssignedBook(db, cls.Id, endDateUtc: DateTime.UtcNow.AddDays(-1));
         SeedReadingProgress(db, student, ab1);
         SeedReadingProgress(db, student, ab2);
 
-        // Two assignment progress entries: one with null DueDate, one with past DueDate
         var asgn1 = SeedAssignment(db, cls.Id, dueDate: null);
         var asgn2 = SeedAssignment(db, cls.Id, dueDate: DateTime.UtcNow.AddDays(-1));
         SeedAssignmentProgress(db, student, asgn1);
         SeedAssignmentProgress(db, student, asgn2);
 
-        // Learning activity progress (with future DueDate → IsExpired = false)
         var la = SeedLearningActivity(db, cls.Id, dueDate: DateTime.UtcNow.AddDays(5));
         SeedLearningActivityProgress(db, student, la, ProgressStatus.InProgress);
 
-        // Challenge progress (EndDate in past → IsExpired = true; StartedAt set → Started = true)
         var challenge = SeedChallenge(db, cls, endDate: DateTime.UtcNow.AddDays(-1));
         SeedChallengeProgress(db, student, challenge, completed: false, startedAt: DateTime.UtcNow);
 
@@ -482,7 +450,6 @@ public class DashboardServiceTests
         Assert.True(result.Success);
         var dto = result.Data;
 
-        // All 7 activity type descriptions present
         Assert.Equal(7, dto.ActivityLast7Days.Count);
         var descs = dto.ActivityLast7Days.Select(a => a.Description).ToList();
         Assert.Contains(descs, d => d.StartsWith("Прочел"));
@@ -493,26 +460,21 @@ public class DashboardServiceTests
         Assert.Contains(descs, d => d == "Завърши учебна дейност");
         Assert.Contains(descs, d => d == "Стартира учебна дейност");
 
-        // Stats (non-null stats path)
         Assert.Equal(50, dto.TotalPoints);
         Assert.Equal(10, dto.TotalPagesRead);
         Assert.Equal(1, dto.CompletedAssignments);
 
-        // Reading: one expired (ab2), one not (ab1)
         Assert.Equal(2, dto.Reading.Count);
         Assert.Contains(dto.Reading, r => r.IsExpired);
         Assert.Contains(dto.Reading, r => !r.IsExpired);
 
-        // Assignments: one expired (asgn2), one not (asgn1)
         Assert.Equal(2, dto.Assignments.Count);
         Assert.Contains(dto.Assignments, a => a.IsExpired);
         Assert.Contains(dto.Assignments, a => !a.IsExpired);
 
-        // Learning activity: not expired
         Assert.Single(dto.LearningActivities);
         Assert.False(dto.LearningActivities[0].IsExpired);
 
-        // Challenge: expired and started
         Assert.Single(dto.Challenges);
         Assert.True(dto.Challenges[0].IsExpired);
         Assert.True(dto.Challenges[0].Started);
@@ -525,7 +487,6 @@ public class DashboardServiceTests
         var cls = SeedClass(db);
         var student = SeedStudent(db, cls.Id, "Alice", "Smith");
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        // Cast an out-of-range int to ActivityType to trigger the _ => "Активност" arm
         SeedLog(db, student, (ActivityType)99, today, pointsEarned: 0);
         await db.SaveChangesAsync();
         var service = CreateService(db);
@@ -537,11 +498,7 @@ public class DashboardServiceTests
         Assert.Equal("Активност", result.Data.ActivityLast7Days[0].Description);
     }
 
-    // -----------------------------------------------------------------------
-    // GetStudentBadgesAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task GetStudentBadgesAsync_WhenStudentNotFound_ReturnsFail()
     {
         await using var db = CreateDbContext();
@@ -610,7 +567,6 @@ public class DashboardServiceTests
 
         Assert.True(result.Success);
         Assert.Equal(2, result.Data.Count);
-        // OrderByDescending(AwardedAt) → newer first
         Assert.Equal("BADGE_B", result.Data[0].Code);
         Assert.Equal("BADGE_A", result.Data[1].Code);
     }

@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Moq;
 using TeacherDiary.Application.Abstractions.Services;
 using TeacherDiary.Application.Events;
@@ -28,11 +28,7 @@ public class ActivityServiceTests
     private ActivityService CreateService(AppDbContext db)
         => new(db, _gamificationMock.Object, _badgeMock.Object, _learningActivityMock.Object, _eventDispatcherMock.Object);
 
-    // -----------------------------------------------------------------------
-    // LogReadingAsync — early return when pagesRead <= 0
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task LogReadingAsync_WhenPagesReadIsZero_DoesNothing()
     {
         await using var db = CreateDbContext();
@@ -60,11 +56,7 @@ public class ActivityServiceTests
         _learningActivityMock.VerifyNoOtherCalls();
     }
 
-    // -----------------------------------------------------------------------
-    // LogReadingAsync — book not yet completed
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task LogReadingAsync_WhenBookNotCompleted_AddsActivityLogWithZeroPoints()
     {
         await using var db = CreateDbContext();
@@ -109,11 +101,7 @@ public class ActivityServiceTests
         _badgeMock.Verify(b => b.EvaluateAsync(studentId, CancellationToken.None), Times.Once);
     }
 
-    // -----------------------------------------------------------------------
-    // LogReadingAsync — book completed
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task LogReadingAsync_WhenBookCompleted_AddsActivityLogWithBookPoints()
     {
         await using var db = CreateDbContext();
@@ -150,11 +138,7 @@ public class ActivityServiceTests
         _badgeMock.Verify(b => b.EvaluateAsync(studentId, CancellationToken.None), Times.Once);
     }
 
-    // -----------------------------------------------------------------------
-    // UpdateChallengeProgressAsync — Pages target (via LogReadingAsync)
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task LogReadingAsync_WhenNoPagesChallenge_DoesNotCallLearningActivityUpdate()
     {
         await using var db = CreateDbContext();
@@ -308,11 +292,7 @@ public class ActivityServiceTests
             Times.Never);
     }
 
-    // -----------------------------------------------------------------------
-    // UpdateChallengeProgressAsync — Books target (via bookCompleted = true)
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task LogReadingAsync_WhenBookCompleted_UpdatesBooksChallenge()
     {
         await using var db = CreateDbContext();
@@ -327,11 +307,7 @@ public class ActivityServiceTests
         Assert.Equal(3, progress.CurrentValue);
     }
 
-    // -----------------------------------------------------------------------
-    // LogAssignmentCompletedAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task LogAssignmentCompletedAsync_AddsActivityLogWithCorrectProperties()
     {
         await using var db = CreateDbContext();
@@ -378,11 +354,7 @@ public class ActivityServiceTests
         Assert.Equal(2, progress.CurrentValue);
     }
 
-    // -----------------------------------------------------------------------
-    // LogChallengeCompletedAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task LogChallengeCompletedAsync_WhenPointsIsZero_DoesNotAddActivityLog()
     {
         await using var db = CreateDbContext();
@@ -451,11 +423,7 @@ public class ActivityServiceTests
         _badgeMock.Verify(b => b.EvaluateAsync(studentId, CancellationToken.None), Times.Once);
     }
 
-    // -----------------------------------------------------------------------
-    // Helpers
-    // -----------------------------------------------------------------------
-
-    private static Challenge SeedChallenge(
+private static Challenge SeedChallenge(
         AppDbContext db,
         TargetType targetType,
         int targetValue,

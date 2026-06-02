@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Moq;
 using TeacherDiary.Application.Abstractions.Services;
 using TeacherDiary.Application.Events;
@@ -7,19 +7,20 @@ using TeacherDiary.Domain.Enums;
 using TeacherDiary.Infrastructure.Persistence;
 using TeacherDiary.Infrastructure.Services;
 using Xunit;
+using TeacherDiary.Domain.Common;
 
 namespace TeacherDiary.Tests.Services;
 
 public class StudentSelfServiceTests
 {
-    private static readonly Guid MyId    = new("11111111-1111-1111-1111-111111111111");
+    private static readonly Guid MyId = new("11111111-1111-1111-1111-111111111111");
     private static readonly Guid OtherId = new("22222222-2222-2222-2222-222222222222");
 
-    private readonly Mock<ICurrentUser>             _currentUserMock             = new();
-    private readonly Mock<IActivityService>         _activityServiceMock         = new();
-    private readonly Mock<ILearningActivityService> _learningActivityServiceMock  = new();
-    private readonly Mock<IBadgeService>            _badgeServiceMock            = new();
-    private readonly Mock<IEventDispatcher>         _eventDispatcherMock         = new();
+    private readonly Mock<ICurrentUser> _currentUserMock = new();
+    private readonly Mock<IActivityService> _activityServiceMock = new();
+    private readonly Mock<ILearningActivityService> _learningActivityServiceMock = new();
+    private readonly Mock<IBadgeService> _badgeServiceMock = new();
+    private readonly Mock<IEventDispatcher> _eventDispatcherMock = new();
 
     public StudentSelfServiceTests()
     {
@@ -39,10 +40,6 @@ public class StudentSelfServiceTests
             _badgeServiceMock.Object,
             _eventDispatcherMock.Object);
 
-    // -----------------------------------------------------------------------
-    // Seed helpers
-    // -----------------------------------------------------------------------
-
     private static StudentProfile SeedProfile(AppDbContext db)
     {
         var p = new StudentProfile { UserId = MyId, FirstName = "Alice", LastName = "Smith" };
@@ -56,11 +53,11 @@ public class StudentSelfServiceTests
         db.Books.Add(book);
         var ab = new AssignedBook
         {
-            ClassId    = OtherId,
-            BookId     = book.Id,
-            Book       = book,
+            ClassId = OtherId,
+            BookId = book.Id,
+            Book = book,
             EndDateUtc = endDateUtc,
-            Points     = points
+            Points = points
         };
         db.AssignedBooks.Add(ab);
         return ab;
@@ -75,13 +72,13 @@ public class StudentSelfServiceTests
         var rp = new ReadingProgress
         {
             StudentProfileId = studentId,
-            AssignedBookId   = ab.Id,
-            AssignedBook     = ab,
-            CurrentPage      = currentPage,
-            TotalPages       = totalPages,
-            Status           = status,
-            StartedAt        = startedAt,
-            CompletedAt      = completedAt
+            AssignedBookId = ab.Id,
+            AssignedBook = ab,
+            CurrentPage = currentPage,
+            TotalPages = totalPages,
+            Status = status,
+            StartedAt = startedAt,
+            CompletedAt = completedAt
         };
         db.ReadingProgress.Add(rp);
         return rp;
@@ -91,12 +88,12 @@ public class StudentSelfServiceTests
     {
         var a = new Assignment
         {
-            ClassId               = OtherId,
-            CreatedByTeacherId    = OtherId,
-            Title                 = "Assignment",
-            Description           = "Desc",
-            Points                = points,
-            DueDate               = dueDate
+            ClassId = OtherId,
+            CreatedByTeacherId = OtherId,
+            Title = "Assignment",
+            Description = "Desc",
+            Points = points,
+            DueDate = dueDate
         };
         db.Assignments.Add(a);
         return a;
@@ -109,9 +106,9 @@ public class StudentSelfServiceTests
         var ap = new AssignmentProgress
         {
             StudentProfileId = studentId,
-            AssignmentId     = assignment.Id,
-            Assignment       = assignment,
-            Status           = status
+            AssignmentId = assignment.Id,
+            Assignment = assignment,
+            Status = status
         };
         db.AssignmentProgress.Add(ap);
         return ap;
@@ -121,12 +118,12 @@ public class StudentSelfServiceTests
     {
         var c = new Challenge
         {
-            ClassId     = OtherId,
-            Title       = "Challenge",
+            ClassId = OtherId,
+            Title = "Challenge",
             Description = "Desc",
             TargetValue = targetValue,
-            Points      = points,
-            EndDate     = DateTime.UtcNow.AddDays(-1)
+            Points = points,
+            EndDate = DateTime.UtcNow.AddDays(-1)
         };
         db.Challenges.Add(c);
         return c;
@@ -139,19 +136,15 @@ public class StudentSelfServiceTests
         var cp = new ChallengeProgress
         {
             StudentProfileId = studentId,
-            ChallengeId      = challenge.Id,
-            Challenge        = challenge,
-            Completed        = completed,
-            StartedAt        = startedAt,
-            CurrentValue     = currentValue
+            ChallengeId = challenge.Id,
+            Challenge = challenge,
+            Completed = completed,
+            StartedAt = startedAt,
+            CurrentValue = currentValue
         };
         db.ChallengeProgress.Add(cp);
         return cp;
     }
-
-    // -----------------------------------------------------------------------
-    // GetMyDetailsAsync
-    // -----------------------------------------------------------------------
 
     [Fact]
     public async Task GetMyDetailsAsync_WhenProfileNotFound_ReturnsFail()
@@ -176,9 +169,9 @@ public class StudentSelfServiceTests
         var result = await service.GetMyDetailsAsync(CancellationToken.None);
 
         Assert.True(result.Success);
-        Assert.Equal(0, result.Data.TotalPagesRead);         // stats = null → ?? 0 null branch
-        Assert.Equal(0, result.Data.CompletedAssignments);   // stats = null → ?? 0 null branch
-        Assert.Equal(0, result.Data.TotalPoints);            // stats = null → ?? 0 null branch
+        Assert.Equal(0, result.Data.TotalPagesRead);
+        Assert.Equal(0, result.Data.CompletedAssignments);
+        Assert.Equal(0, result.Data.TotalPoints);
         Assert.Empty(result.Data.ActivityLast7Days);
     }
 
@@ -192,15 +185,15 @@ public class StudentSelfServiceTests
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var entries = new (ActivityType type, int? pages, int? pts)[]
         {
-            (ActivityType.ReadingProgress,             10, 5),  // PagesRead non-null; PointsEarned non-null
-            (ActivityType.ReadingProgress,           null, null), // PagesRead null → ?? 0; PointsEarned null → ?? 0
-            (ActivityType.AssignmentCompleted,       null, 10),
-            (ActivityType.AssignmentStarted,         null, null),
-            (ActivityType.ChallengeCompleted,        null, null),
-            (ActivityType.ChallengeProgressUpdated,  null, null),
+            (ActivityType.ReadingProgress, 10, 5),
+            (ActivityType.ReadingProgress, null, null),
+            (ActivityType.AssignmentCompleted, null, 10),
+            (ActivityType.AssignmentStarted, null, null),
+            (ActivityType.ChallengeCompleted, null, null),
+            (ActivityType.ChallengeProgressUpdated, null, null),
             (ActivityType.LearningActivityCompleted, null, null),
-            (ActivityType.LearningActivityStarted,   null, null),
-            ((ActivityType)99,                       null, null), // default switch arm
+            (ActivityType.LearningActivityStarted, null, null),
+            ((ActivityType)99, null, null),
         };
 
         foreach (var (type, pages, pts) in entries)
@@ -208,12 +201,12 @@ public class StudentSelfServiceTests
             db.ActivityLogs.Add(new ActivityLog
             {
                 StudentProfileId = profile.Id,
-                ActivityType     = type,
-                ReferenceType    = ActivityReferenceType.AssignedBook,
-                ReferenceId      = Guid.NewGuid(),
-                Date             = today,
-                PagesRead        = pages,
-                PointsEarned     = pts
+                ActivityType = type,
+                ReferenceType = ActivityReferenceType.AssignedBook,
+                ReferenceId = Guid.NewGuid(),
+                Date = today,
+                PagesRead = pages,
+                PointsEarned = pts
             });
         }
         await db.SaveChangesAsync();
@@ -222,22 +215,21 @@ public class StudentSelfServiceTests
         var result = await service.GetMyDetailsAsync(CancellationToken.None);
 
         Assert.True(result.Success);
-        Assert.NotEqual(0, result.Data.TotalPoints);  // stats non-null → ?? 0 non-null branch
+        Assert.NotEqual(0, result.Data.TotalPoints);
 
         var descs = result.Data.ActivityLast7Days.Select(a => a.Description).ToList();
-        Assert.Contains("Прочел 10 стр.",                descs);  // PagesRead=10
-        Assert.Contains("Прочел 0 стр.",                 descs);  // PagesRead=null → ?? 0
-        Assert.Contains("Завърши задача",                descs);
-        Assert.Contains("Стартира задача",               descs);
-        Assert.Contains("Завърши предизвикателство",     descs);
+        Assert.Contains("Прочел 10 стр.", descs);
+        Assert.Contains("Прочел 0 стр.", descs);
+        Assert.Contains("Завърши задача", descs);
+        Assert.Contains("Стартира задача", descs);
+        Assert.Contains("Завърши предизвикателство", descs);
         Assert.Contains("Актуализира предизвикателство", descs);
-        Assert.Contains("Завърши учебна дейност",        descs);
-        Assert.Contains("Стартира учебна дейност",       descs);
-        Assert.Contains("Активност",                     descs);  // default arm
+        Assert.Contains("Завърши учебна дейност", descs);
+        Assert.Contains("Стартира учебна дейност", descs);
+        Assert.Contains("Активност", descs);
 
-        // PointsEarned null → ?? 0 non-zero total still present from other entries
-        Assert.Contains(result.Data.ActivityLast7Days, a => a.PointsEarned == 0); // null → 0
-        Assert.Contains(result.Data.ActivityLast7Days, a => a.PointsEarned > 0);  // non-null → value
+        Assert.Contains(result.Data.ActivityLast7Days, a => a.PointsEarned == 0);
+        Assert.Contains(result.Data.ActivityLast7Days, a => a.PointsEarned > 0);
     }
 
     [Fact]
@@ -247,8 +239,8 @@ public class StudentSelfServiceTests
         var profile = SeedProfile(db);
         await db.SaveChangesAsync();
 
-        var expiredAb = SeedAssignedBook(db, endDateUtc: DateTime.UtcNow.AddDays(-1));  // IsExpired=true
-        var openAb    = SeedAssignedBook(db, endDateUtc: null);                         // IsExpired=false
+        var expiredAb = SeedAssignedBook(db, endDateUtc: DateTime.UtcNow.AddDays(-1));
+        var openAb = SeedAssignedBook(db, endDateUtc: null);
         await db.SaveChangesAsync();
 
         SeedReadingProgress(db, profile.Id, expiredAb);
@@ -259,8 +251,8 @@ public class StudentSelfServiceTests
         var result = await service.GetMyDetailsAsync(CancellationToken.None);
 
         Assert.True(result.Success);
-        Assert.Contains(result.Data.Reading, r => r.IsExpired);    // HasValue=true, past → true
-        Assert.Contains(result.Data.Reading, r => !r.IsExpired);   // HasValue=false → false
+        Assert.Contains(result.Data.Reading, r => r.IsExpired);
+        Assert.Contains(result.Data.Reading, r => !r.IsExpired);
     }
 
     [Fact]
@@ -270,8 +262,8 @@ public class StudentSelfServiceTests
         var profile = SeedProfile(db);
         await db.SaveChangesAsync();
 
-        var pastAssignment = SeedAssignment(db, dueDate: DateTime.UtcNow.AddDays(-1));  // IsExpired=true
-        var openAssignment = SeedAssignment(db, dueDate: null);                          // IsExpired=false
+        var pastAssignment = SeedAssignment(db, dueDate: DateTime.UtcNow.AddDays(-1));
+        var openAssignment = SeedAssignment(db, dueDate: null);
         await db.SaveChangesAsync();
 
         SeedAssignmentProgress(db, profile.Id, pastAssignment);
@@ -282,8 +274,8 @@ public class StudentSelfServiceTests
         var result = await service.GetMyDetailsAsync(CancellationToken.None);
 
         Assert.True(result.Success);
-        Assert.Contains(result.Data.Assignments, a => a.IsExpired);    // DueDate past → true
-        Assert.Contains(result.Data.Assignments, a => !a.IsExpired);   // DueDate null → false
+        Assert.Contains(result.Data.Assignments, a => a.IsExpired);
+        Assert.Contains(result.Data.Assignments, a => !a.IsExpired);
     }
 
     [Fact]
@@ -298,14 +290,14 @@ public class StudentSelfServiceTests
             ClassId = OtherId, CreatedByTeacherId = OtherId,
             Title = "Expired", Type = LearningActivityType.Reading,
             Status = LearningActivityStatus.Active,
-            DueDateUtc = DateTime.UtcNow.AddDays(-1)   // IsExpired=true
+            DueDateUtc = DateTime.UtcNow.AddDays(-1)
         };
         var openLa = new LearningActivity
         {
             ClassId = OtherId, CreatedByTeacherId = OtherId,
             Title = "Open", Type = LearningActivityType.Reading,
             Status = LearningActivityStatus.Active,
-            DueDateUtc = null                           // IsExpired=false
+            DueDateUtc = null
         };
         db.LearningActivities.Add(expiredLa);
         db.LearningActivities.Add(openLa);
@@ -336,11 +328,11 @@ public class StudentSelfServiceTests
         var profile = SeedProfile(db);
         await db.SaveChangesAsync();
 
-        var challenge = SeedChallenge(db);  // EndDate = past → IsExpired=true
+        var challenge = SeedChallenge(db);
         await db.SaveChangesAsync();
 
-        SeedChallengeProgress(db, profile.Id, challenge, startedAt: DateTime.UtcNow);  // Started=true
-        SeedChallengeProgress(db, profile.Id, challenge, startedAt: null);             // Started=false
+        SeedChallengeProgress(db, profile.Id, challenge, startedAt: DateTime.UtcNow);
+        SeedChallengeProgress(db, profile.Id, challenge, startedAt: null);
         await db.SaveChangesAsync();
         var service = CreateService(db);
 
@@ -349,12 +341,8 @@ public class StudentSelfServiceTests
         Assert.True(result.Success);
         Assert.Contains(result.Data.Challenges, c => c.Started);
         Assert.Contains(result.Data.Challenges, c => !c.Started);
-        Assert.All(result.Data.Challenges, c => Assert.True(c.IsExpired));  // all past → IsExpired
+        Assert.All(result.Data.Challenges, c => Assert.True(c.IsExpired));
     }
-
-    // -----------------------------------------------------------------------
-    // UpdateReadingProgressAsync
-    // -----------------------------------------------------------------------
 
     [Fact]
     public async Task UpdateReadingProgressAsync_WhenCurrentPageNegative_ReturnsFail()
@@ -422,7 +410,7 @@ public class StudentSelfServiceTests
         await db.SaveChangesAsync();
         var service = CreateService(db);
 
-        var result = await service.UpdateReadingProgressAsync(ab.Id, 30, CancellationToken.None);  // 30 < 50
+        var result = await service.UpdateReadingProgressAsync(ab.Id, 30, CancellationToken.None);
 
         Assert.False(result.Success);
         Assert.Contains("cannot be less than previous", result.Error);
@@ -435,7 +423,6 @@ public class StudentSelfServiceTests
         var profile = SeedProfile(db);
         await db.SaveChangesAsync();
         var ab = SeedAssignedBook(db, endDateUtc: null);
-        // StartedAt pre-set → false branch of (StartedAt == null)
         SeedReadingProgress(db, profile.Id, ab, totalPages: null,
             startedAt: DateTime.UtcNow.AddDays(-1));
         await db.SaveChangesAsync();
@@ -447,7 +434,6 @@ public class StudentSelfServiceTests
         var rp = db.ReadingProgress.Local.Single();
         Assert.Equal(ProgressStatus.InProgress, rp.Status);
         Assert.Equal(50, rp.CurrentPage);
-        // StartedAt not overwritten (false branch of StartedAt == null check)
         Assert.True(rp.StartedAt < DateTime.UtcNow.AddMinutes(-1));
 
         _eventDispatcherMock.Verify(
@@ -462,7 +448,6 @@ public class StudentSelfServiceTests
         var profile = SeedProfile(db);
         await db.SaveChangesAsync();
         var ab = SeedAssignedBook(db, endDateUtc: null);
-        // StartedAt = null → true branch of (StartedAt == null), will be set
         SeedReadingProgress(db, profile.Id, ab, currentPage: 0, totalPages: 100,
             status: ProgressStatus.NotStarted, startedAt: null);
         await db.SaveChangesAsync();
@@ -473,8 +458,8 @@ public class StudentSelfServiceTests
         Assert.True(result.Success);
         var rp = db.ReadingProgress.Local.Single();
         Assert.Equal(ProgressStatus.Completed, rp.Status);
-        Assert.NotNull(rp.StartedAt);   // null → set (true branch)
-        Assert.NotNull(rp.CompletedAt); // !wasAlreadyCompleted → set
+        Assert.NotNull(rp.StartedAt);
+        Assert.NotNull(rp.CompletedAt);
 
         _eventDispatcherMock.Verify(
             d => d.PublishAsync(It.IsAny<BookCompletedEvent>(), CancellationToken.None),
@@ -487,7 +472,7 @@ public class StudentSelfServiceTests
         await using var db = CreateDbContext();
         var profile = SeedProfile(db);
         await db.SaveChangesAsync();
-        var ab          = SeedAssignedBook(db, endDateUtc: null);
+        var ab = SeedAssignedBook(db, endDateUtc: null);
         var completedAt = DateTime.UtcNow.AddDays(-2);
         var rp = SeedReadingProgress(db, profile.Id, ab, currentPage: 100, totalPages: 100,
             status: ProgressStatus.Completed, startedAt: DateTime.UtcNow.AddDays(-5));
@@ -498,16 +483,12 @@ public class StudentSelfServiceTests
         var result = await service.UpdateReadingProgressAsync(ab.Id, 100, CancellationToken.None);
 
         Assert.True(result.Success);
-        Assert.Equal(completedAt, db.ReadingProgress.Local.Single().CompletedAt); // !wasAlreadyCompleted=false → unchanged
+        Assert.Equal(completedAt, db.ReadingProgress.Local.Single().CompletedAt);
 
         _eventDispatcherMock.Verify(
             d => d.PublishAsync(It.IsAny<BookCompletedEvent>(), CancellationToken.None),
             Times.Never);
     }
-
-    // -----------------------------------------------------------------------
-    // StartAssignmentAsync
-    // -----------------------------------------------------------------------
 
     [Fact]
     public async Task StartAssignmentAsync_WhenProfileNotFound_ReturnsFail()
@@ -539,7 +520,7 @@ public class StudentSelfServiceTests
     public async Task StartAssignmentAsync_WhenStatusNotStarted_SetsInProgress()
     {
         await using var db = CreateDbContext();
-        var profile    = SeedProfile(db);
+        var profile = SeedProfile(db);
         var assignment = SeedAssignment(db);
         await db.SaveChangesAsync();
         SeedAssignmentProgress(db, profile.Id, assignment, ProgressStatus.NotStarted);
@@ -558,10 +539,9 @@ public class StudentSelfServiceTests
     public async Task StartAssignmentAsync_WhenStatusAlreadyInProgress_ReturnsOkWithoutSaving()
     {
         await using var db = CreateDbContext();
-        var profile    = SeedProfile(db);
+        var profile = SeedProfile(db);
         var assignment = SeedAssignment(db);
         await db.SaveChangesAsync();
-        // Status != NotStarted → early Ok (true branch of Status != NotStarted)
         SeedAssignmentProgress(db, profile.Id, assignment, ProgressStatus.InProgress);
         await db.SaveChangesAsync();
         var service = CreateService(db);
@@ -569,13 +549,8 @@ public class StudentSelfServiceTests
         var result = await service.StartAssignmentAsync(assignment.Id, CancellationToken.None);
 
         Assert.True(result.Success);
-        // Status unchanged (early return)
         Assert.Equal(ProgressStatus.InProgress, db.AssignmentProgress.Local.Single().Status);
     }
-
-    // -----------------------------------------------------------------------
-    // CompleteAssignmentAsync
-    // -----------------------------------------------------------------------
 
     [Fact]
     public async Task CompleteAssignmentAsync_WhenProfileNotFound_ReturnsFail()
@@ -607,10 +582,9 @@ public class StudentSelfServiceTests
     public async Task CompleteAssignmentAsync_WhenAlreadyCompleted_ReturnsOkWithoutSaving()
     {
         await using var db = CreateDbContext();
-        var profile    = SeedProfile(db);
+        var profile = SeedProfile(db);
         var assignment = SeedAssignment(db);
         await db.SaveChangesAsync();
-        // Status == Completed → early Ok (true branch)
         SeedAssignmentProgress(db, profile.Id, assignment, ProgressStatus.Completed);
         await db.SaveChangesAsync();
         var service = CreateService(db);
@@ -627,7 +601,7 @@ public class StudentSelfServiceTests
     public async Task CompleteAssignmentAsync_WhenNotCompleted_SetsCompletedAndPublishesEvent()
     {
         await using var db = CreateDbContext();
-        var profile    = SeedProfile(db);
+        var profile = SeedProfile(db);
         var assignment = SeedAssignment(db, points: 50);
         await db.SaveChangesAsync();
         SeedAssignmentProgress(db, profile.Id, assignment, ProgressStatus.InProgress);
@@ -648,10 +622,6 @@ public class StudentSelfServiceTests
             d => d.PublishAsync(It.IsAny<AssignmentCompletedEvent>(), CancellationToken.None),
             Times.Once);
     }
-
-    // -----------------------------------------------------------------------
-    // StartChallengeAsync
-    // -----------------------------------------------------------------------
 
     [Fact]
     public async Task StartChallengeAsync_WhenProfileNotFound_ReturnsFail()
@@ -683,10 +653,9 @@ public class StudentSelfServiceTests
     public async Task StartChallengeAsync_WhenAlreadyStarted_ReturnsOkWithoutSaving()
     {
         await using var db = CreateDbContext();
-        var profile   = SeedProfile(db);
+        var profile = SeedProfile(db);
         var challenge = SeedChallenge(db);
         await db.SaveChangesAsync();
-        // StartedAt is not null → early Ok (true branch)
         SeedChallengeProgress(db, profile.Id, challenge, startedAt: DateTime.UtcNow.AddDays(-1));
         await db.SaveChangesAsync();
         var service = CreateService(db);
@@ -701,7 +670,7 @@ public class StudentSelfServiceTests
     public async Task StartChallengeAsync_WhenNotYetStarted_SetsStartedAt()
     {
         await using var db = CreateDbContext();
-        var profile   = SeedProfile(db);
+        var profile = SeedProfile(db);
         var challenge = SeedChallenge(db);
         await db.SaveChangesAsync();
         SeedChallengeProgress(db, profile.Id, challenge, startedAt: null);
@@ -713,10 +682,6 @@ public class StudentSelfServiceTests
         Assert.True(result.Success);
         Assert.NotNull(db.ChallengeProgress.Local.Single().StartedAt);
     }
-
-    // -----------------------------------------------------------------------
-    // CompleteChallengeAsync
-    // -----------------------------------------------------------------------
 
     [Fact]
     public async Task CompleteChallengeAsync_WhenProfileNotFound_ReturnsFail()
@@ -748,10 +713,9 @@ public class StudentSelfServiceTests
     public async Task CompleteChallengeAsync_WhenAlreadyCompleted_ReturnsOkWithoutSaving()
     {
         await using var db = CreateDbContext();
-        var profile   = SeedProfile(db);
+        var profile = SeedProfile(db);
         var challenge = SeedChallenge(db);
         await db.SaveChangesAsync();
-        // Completed=true → early Ok (true branch)
         SeedChallengeProgress(db, profile.Id, challenge, completed: true);
         await db.SaveChangesAsync();
         var service = CreateService(db);
@@ -768,10 +732,9 @@ public class StudentSelfServiceTests
     public async Task CompleteChallengeAsync_WhenNotCompletedAndTargetPositive_UpdatesCurrentValueAndPublishesEvent()
     {
         await using var db = CreateDbContext();
-        var profile   = SeedProfile(db);
+        var profile = SeedProfile(db);
         var challenge = SeedChallenge(db, targetValue: 10, points: 30);
         await db.SaveChangesAsync();
-        // currentValue=3, targetValue=10 → Math.Max(3,10)=10 (TargetValue > 0 branch)
         SeedChallengeProgress(db, profile.Id, challenge, completed: false, currentValue: 3);
         await db.SaveChangesAsync();
         var service = CreateService(db);
@@ -782,7 +745,7 @@ public class StudentSelfServiceTests
         var cp = db.ChallengeProgress.Local.Single();
         Assert.True(cp.Completed);
         Assert.NotNull(cp.CompletedAt);
-        Assert.Equal(10, cp.CurrentValue);  // Math.Max(3, 10) = 10
+        Assert.Equal(10, cp.CurrentValue);
 
         _activityServiceMock.Verify(
             a => a.LogChallengeCompletedAsync(profile.Id, challenge.Id, 30, CancellationToken.None),
@@ -796,8 +759,8 @@ public class StudentSelfServiceTests
     public async Task CompleteChallengeAsync_WhenNotCompletedAndTargetZero_KeepsCurrentValue()
     {
         await using var db = CreateDbContext();
-        var profile   = SeedProfile(db);
-        var challenge = SeedChallenge(db, targetValue: 0);  // TargetValue=0 → if branch not taken
+        var profile = SeedProfile(db);
+        var challenge = SeedChallenge(db, targetValue: 0);
         await db.SaveChangesAsync();
         SeedChallengeProgress(db, profile.Id, challenge, completed: false, currentValue: 5);
         await db.SaveChangesAsync();
@@ -806,12 +769,8 @@ public class StudentSelfServiceTests
         var result = await service.CompleteChallengeAsync(challenge.Id, CancellationToken.None);
 
         Assert.True(result.Success);
-        Assert.Equal(5, db.ChallengeProgress.Local.Single().CurrentValue);  // unchanged
+        Assert.Equal(5, db.ChallengeProgress.Local.Single().CurrentValue);
     }
-
-    // -----------------------------------------------------------------------
-    // GetMyBadgesAsync
-    // -----------------------------------------------------------------------
 
     [Fact]
     public async Task GetMyBadgesAsync_WhenProfileNotFound_ReturnsFail()
@@ -849,7 +808,183 @@ public class StudentSelfServiceTests
 
         Assert.True(result.Success);
         Assert.Equal(2, result.Data.Count);
-        Assert.Equal("CODE2", result.Data[0].Code);  // newest first (OrderByDescending)
+        Assert.Equal("CODE2", result.Data[0].Code);
         Assert.Equal("CODE1", result.Data[1].Code);
+    }
+
+    [Fact]
+    public async Task GetActivityCalendarAsync_WhenProfileNotFound_ReturnsFail()
+    {
+        await using var db = CreateDbContext();
+        var service = CreateService(db);
+
+        var result = await service.GetActivityCalendarAsync(30, CancellationToken.None);
+
+        Assert.False(result.Success);
+        Assert.Equal("Student profile not found.", result.Error);
+    }
+
+    [Fact]
+    public async Task GetActivityCalendarAsync_WhenDaysZeroOrNegative_DefaultsTo30()
+    {
+        await using var db = CreateDbContext();
+        SeedProfile(db);
+        await db.SaveChangesAsync();
+        var service = CreateService(db);
+
+        var result = await service.GetActivityCalendarAsync(0, CancellationToken.None);
+
+        Assert.True(result.Success);
+        Assert.Equal(30, result.Data.Count);
+    }
+
+    [Fact]
+    public async Task GetActivityCalendarAsync_WhenDaysExceed90_CapsAt90()
+    {
+        await using var db = CreateDbContext();
+        SeedProfile(db);
+        await db.SaveChangesAsync();
+        var service = CreateService(db);
+
+        var result = await service.GetActivityCalendarAsync(200, CancellationToken.None);
+
+        Assert.True(result.Success);
+        Assert.Equal(90, result.Data.Count);
+    }
+
+    [Fact]
+    public async Task GetActivityCalendarAsync_WhenNoActivityLogs_AllDaysHaveNoActivity()
+    {
+        await using var db = CreateDbContext();
+        SeedProfile(db);
+        await db.SaveChangesAsync();
+        var service = CreateService(db);
+
+        var result = await service.GetActivityCalendarAsync(7, CancellationToken.None);
+
+        Assert.True(result.Success);
+        Assert.Equal(7, result.Data.Count);
+        Assert.All(result.Data, d =>
+        {
+            Assert.False(d.HasActivity);
+            Assert.Equal(0, d.PointsEarned);
+            Assert.Equal(0, d.PagesRead);
+            Assert.Equal(0, d.ActivityCount);
+        });
+    }
+
+    [Fact]
+    public async Task GetActivityCalendarAsync_WhenActivityLogsExist_MapsCorrectly()
+    {
+        await using var db = CreateDbContext();
+        var profile = SeedProfile(db);
+        await db.SaveChangesAsync();
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        db.ActivityLogs.Add(new ActivityLog
+        {
+            StudentProfileId = profile.Id,
+            ActivityType = ActivityType.ReadingProgress,
+            ReferenceType = ActivityReferenceType.AssignedBook,
+            ReferenceId = Guid.NewGuid(),
+            Date = today,
+            PagesRead = 20,
+            PointsEarned = 10
+        });
+        db.ActivityLogs.Add(new ActivityLog
+        {
+            StudentProfileId = profile.Id,
+            ActivityType = ActivityType.AssignmentCompleted,
+            ReferenceType = ActivityReferenceType.Assignment,
+            ReferenceId = Guid.NewGuid(),
+            Date = today,
+            PagesRead = null,
+            PointsEarned = 50
+        });
+        await db.SaveChangesAsync();
+        var service = CreateService(db);
+
+        var result = await service.GetActivityCalendarAsync(7, CancellationToken.None);
+
+        Assert.True(result.Success);
+        var todayEntry = result.Data.Single(d => d.Date == today);
+        Assert.True(todayEntry.HasActivity);
+        Assert.Equal(60, todayEntry.PointsEarned);
+        Assert.Equal(20, todayEntry.PagesRead);
+        Assert.Equal(2, todayEntry.ActivityCount);
+    }
+
+    [Fact]
+    public async Task GetMyLeaderboardAsync_WhenProfileNotFound_ReturnsFail()
+    {
+        await using var db = CreateDbContext();
+        var service = CreateService(db);
+
+        var result = await service.GetMyLeaderboardAsync(CancellationToken.None);
+
+        Assert.False(result.Success);
+        Assert.Equal("Student profile not found.", result.Error);
+    }
+
+    [Fact]
+    public async Task GetMyLeaderboardAsync_WhenProfileHasNoClassId_ReturnsEmptyList()
+    {
+        await using var db = CreateDbContext();
+        var p = new StudentProfile { UserId = MyId, FirstName = "Alice", LastName = "Smith", ClassId = null };
+        db.Students.Add(p);
+        await db.SaveChangesAsync();
+        var service = CreateService(db);
+
+        var result = await service.GetMyLeaderboardAsync(CancellationToken.None);
+
+        Assert.True(result.Success);
+        Assert.Empty(result.Data);
+    }
+
+    [Fact]
+    public async Task GetMyLeaderboardAsync_WhenClassHasStudents_ReturnsOrderedByPoints()
+    {
+        await using var db = CreateDbContext();
+        var classId = Guid.NewGuid();
+
+        var p1 = new StudentProfile { UserId = MyId, FirstName = "Alice", LastName = "Smith", ClassId = classId };
+        var p2 = new StudentProfile { FirstName = "Bob", LastName = "Jones", ClassId = classId };
+        db.Students.Add(p1);
+        db.Students.Add(p2);
+        await db.SaveChangesAsync();
+
+        db.StudentPoints.Add(new StudentPoints { StudentProfileId = p1.Id, TotalPoints = 100 });
+        db.StudentPoints.Add(new StudentPoints { StudentProfileId = p2.Id, TotalPoints = 200 });
+        db.StudentStreaks.Add(new StudentStreak { StudentProfileId = p1.Id, CurrentStreak = 3, BestStreak = 5, LastActiveDate = DateOnly.FromDateTime(DateTime.UtcNow) });
+        await db.SaveChangesAsync();
+        var service = CreateService(db);
+
+        var result = await service.GetMyLeaderboardAsync(CancellationToken.None);
+
+        Assert.True(result.Success);
+        Assert.Equal(2, result.Data.Count);
+        Assert.Equal(p2.Id, result.Data[0].StudentId);
+        Assert.Equal(200, result.Data[0].Points);
+        Assert.Equal(p1.Id, result.Data[1].StudentId);
+        Assert.Equal(100, result.Data[1].Points);
+        Assert.Null(result.Data[0].TopMedalCode);
+        Assert.Equal(BadgeCodes.Streak5, result.Data[1].TopMedalCode);
+    }
+
+    [Fact]
+    public async Task GetMyLeaderboardAsync_WhenStudentHasNoPointsRecord_ShowsZeroPoints()
+    {
+        await using var db = CreateDbContext();
+        var classId = Guid.NewGuid();
+        var p = new StudentProfile { UserId = MyId, FirstName = "Alice", LastName = "Smith", ClassId = classId };
+        db.Students.Add(p);
+        await db.SaveChangesAsync();
+        var service = CreateService(db);
+
+        var result = await service.GetMyLeaderboardAsync(CancellationToken.None);
+
+        Assert.True(result.Success);
+        Assert.Single(result.Data);
+        Assert.Equal(0, result.Data[0].Points);
     }
 }

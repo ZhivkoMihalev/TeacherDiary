@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Moq;
 using TeacherDiary.Application.Abstractions.Services;
 using TeacherDiary.Application.DTOs.Classes;
@@ -30,11 +30,7 @@ public class ClassServiceTests
     private ClassService CreateService(AppDbContext db) =>
         new(db, _currentUserMock.Object);
 
-    // -----------------------------------------------------------------------
-    // Seed helpers
-    // -----------------------------------------------------------------------
-
-    private static Class SeedClass(AppDbContext db, string name = "3A")
+private static Class SeedClass(AppDbContext db, string name = "3A")
     {
         var cls = new Class
         {
@@ -58,11 +54,7 @@ public class ClassServiceTests
         });
     }
 
-    // -----------------------------------------------------------------------
-    // CreateAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task CreateAsync_WhenUserIdIsEmpty_ReturnsFail()
     {
         _currentUserMock.Setup(x => x.UserId).Returns(Guid.Empty);
@@ -96,11 +88,7 @@ public class ClassServiceTests
         Assert.Equal(1, db.Classes.Count());
     }
 
-    // -----------------------------------------------------------------------
-    // GetMyClassesAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task GetMyClassesAsync_WhenNoClasses_ReturnsEmptyList()
     {
         await using var db = CreateDbContext();
@@ -154,11 +142,7 @@ public class ClassServiceTests
         Assert.Empty(result.Data);
     }
 
-    // -----------------------------------------------------------------------
-    // UpdateAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task UpdateAsync_WhenClassNotFound_ReturnsFail()
     {
         await using var db = CreateDbContext();
@@ -194,11 +178,7 @@ public class ClassServiceTests
         Assert.Equal("2025/2026", updated.SchoolYear);
     }
 
-    // -----------------------------------------------------------------------
-    // DeleteAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task DeleteAsync_WhenClassNotFound_ReturnsFail()
     {
         await using var db = CreateDbContext();

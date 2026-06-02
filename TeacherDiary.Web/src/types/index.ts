@@ -133,11 +133,22 @@ export interface StudentDetailsDto {
   totalPoints: number
   topMedalCode?: string
   topPointsMedalCode?: string
+  currentStreak: number
+  bestStreak: number
+  classId: string | null
   reading: StudentReadingDto[]
   assignments: StudentAssignmentDto[]
   activityLast7Days: StudentActivityEntryDto[]
   learningActivities: StudentLearningActivityDto[]
   challenges: StudentChallengeDto[]
+}
+
+export interface ActivityCalendarDayDto {
+  date: string
+  hasActivity: boolean
+  pointsEarned: number
+  pagesRead: number
+  activityCount: number
 }
 
 export interface StudentBadgeDto {

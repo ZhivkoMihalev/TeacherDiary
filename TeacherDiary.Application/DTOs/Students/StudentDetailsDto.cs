@@ -20,6 +20,12 @@ public sealed class StudentDetailsDto
 
     public string? TopPointsMedalCode { get; set; }
 
+    public int CurrentStreak { get; set; }
+
+    public int BestStreak { get; set; }
+
+    public Guid? ClassId { get; set; }
+
     public List<StudentReadingDto> Reading { get; set; } = new();
 
     public List<StudentAssignmentDto> Assignments { get; set; } = new();

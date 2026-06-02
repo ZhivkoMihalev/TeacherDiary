@@ -170,8 +170,39 @@ public class StudentSelfController(IStudentSelfService studentSelf) : Controller
     public async Task<IActionResult> GetMyBadges(CancellationToken cancellationToken)
     {
         var result = await studentSelf.GetMyBadgesAsync(cancellationToken);
-        return result.Success 
-            ? Ok(result.Data) 
+        return result.Success
+            ? Ok(result.Data)
+            : NotFound(new { error = result.Error });
+    }
+
+    /// <summary>Returns a daily activity calendar for the authenticated student.</summary>
+    /// <param name="days">Number of days to return (1–90, default 30).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>List of calendar day entries, oldest first.</returns>
+    /// <response code="200">Returns the calendar data.</response>
+    /// <response code="404">Student profile not found.</response>
+    [HttpGet("me/activity-calendar")]
+    public async Task<IActionResult> GetActivityCalendar(
+        [FromQuery] int days = 30,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await studentSelf.GetActivityCalendarAsync(days, cancellationToken);
+        return result.Success
+            ? Ok(result.Data)
+            : NotFound(new { error = result.Error });
+    }
+
+    /// <summary>Returns the class leaderboard for the authenticated student's class.</summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Ordered list of students by total points.</returns>
+    /// <response code="200">Returns the leaderboard. Empty array when student is not enrolled.</response>
+    /// <response code="404">Student profile not found.</response>
+    [HttpGet("me/leaderboard")]
+    public async Task<IActionResult> GetMyLeaderboard(CancellationToken cancellationToken)
+    {
+        var result = await studentSelf.GetMyLeaderboardAsync(cancellationToken);
+        return result.Success
+            ? Ok(result.Data)
             : NotFound(new { error = result.Error });
     }
 }

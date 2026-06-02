@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Moq;
 using TeacherDiary.Application.Abstractions.Services;
 using TeacherDiary.Application.DTOs.Challenges;
@@ -37,11 +37,7 @@ public class ChallengeServiceTests
     private ChallengeService CreateService(AppDbContext db) =>
         new(db, _currentUserMock.Object, _learningActivityMock.Object, _eventDispatcherMock.Object);
 
-    // -----------------------------------------------------------------------
-    // Seed helpers
-    // -----------------------------------------------------------------------
-
-    private static Class SeedClass(AppDbContext db)
+private static Class SeedClass(AppDbContext db)
     {
         var cls = new Class
         {
@@ -107,11 +103,7 @@ public class ChallengeServiceTests
         return progress;
     }
 
-    // -----------------------------------------------------------------------
-    // CreateChallengeAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task CreateChallengeAsync_WhenClassNotFound_ReturnsFail()
     {
         await using var db = CreateDbContext();
@@ -182,11 +174,7 @@ public class ChallengeServiceTests
         Assert.All(db.ChallengeProgress, p => Assert.Equal(0, p.CurrentValue));
     }
 
-    // -----------------------------------------------------------------------
-    // GetChallengesAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task GetChallengesAsync_WhenClassNotFound_ReturnsFail()
     {
         await using var db = CreateDbContext();
@@ -257,11 +245,7 @@ public class ChallengeServiceTests
         Assert.True(result.Data[0].IsExpired);
     }
 
-    // -----------------------------------------------------------------------
-    // ExtendChallengeDeadlineAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task ExtendChallengeDeadlineAsync_WhenChallengeNotFound_ReturnsFail()
     {
         await using var db = CreateDbContext();
@@ -301,11 +285,7 @@ public class ChallengeServiceTests
         Assert.Equal(newEndDate, db.Challenges.Find(challenge.Id)!.EndDate);
     }
 
-    // -----------------------------------------------------------------------
-    // GetStudentProgressAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task GetStudentProgressAsync_WhenClassNotFound_ReturnsFail()
     {
         await using var db = CreateDbContext();

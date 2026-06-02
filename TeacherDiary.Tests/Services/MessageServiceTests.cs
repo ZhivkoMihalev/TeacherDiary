@@ -1,4 +1,4 @@
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using TeacherDiary.Application.Abstractions.Services;
@@ -28,7 +28,6 @@ public class MessageServiceTests
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options);
 
-    // SQLite in-memory supports ExecuteUpdateAsync; InMemory provider does not.
     private static (AppDbContext db, SqliteConnection conn) CreateSqliteDbContext()
     {
         var conn = new SqliteConnection("DataSource=:memory:");
@@ -44,11 +43,7 @@ public class MessageServiceTests
     private MessageService CreateService(AppDbContext db) =>
         new(db, _currentUserMock.Object);
 
-    // -----------------------------------------------------------------------
-    // Seed helpers
-    // -----------------------------------------------------------------------
-
-    private static AppUser SeedUser(AppDbContext db, Guid id, string firstName, string lastName)
+private static AppUser SeedUser(AppDbContext db, Guid id, string firstName, string lastName)
     {
         var user = new AppUser
         {
@@ -112,18 +107,14 @@ public class MessageServiceTests
         return s;
     }
 
-    // -----------------------------------------------------------------------
-    // GetConversationsAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task GetConversationsAsync_WhenTeacherHasClassWithParentedStudent_IncludesStudentName()
     {
         await using var db = CreateDbContext();
         SeedUser(db, OtherId, "Jane", "Parent");
         var cls = SeedClass(db, MyId);
-        SeedStudent(db, cls.Id, parentId: OtherId);   // has parent → studentNameMap entry
-        SeedStudent(db, cls.Id, parentId: null);       // no parent → skipped in studentNameMap
+        SeedStudent(db, cls.Id, parentId: OtherId);
+        SeedStudent(db, cls.Id, parentId: null);
         SeedMessage(db, MyId, OtherId, content: "Hi Jane");
         await db.SaveChangesAsync();
         var service = CreateService(db);
@@ -134,8 +125,8 @@ public class MessageServiceTests
         Assert.Single(result.Data);
         var conv = result.Data[0];
         Assert.Equal("Jane Parent", conv.OtherUserName);
-        Assert.NotNull(conv.StudentName);          // studentNameMap hit (GetValueOrDefault found)
-        Assert.Equal("Hi Jane", conv.LastMessage); // Content != null → last.Content ?? "" non-null branch
+        Assert.NotNull(conv.StudentName);
+        Assert.Equal("Hi Jane", conv.LastMessage);
         Assert.False(conv.LastMessageIsImage);
         Assert.True(conv.LastMessageIsFromMe);
     }
@@ -155,7 +146,7 @@ public class MessageServiceTests
         Assert.Single(result.Data);
         var conv = result.Data[0];
         Assert.Equal("Bob Sender", conv.OtherUserName);
-        Assert.Null(conv.StudentName);             // studentNameMap miss (GetValueOrDefault null)
+        Assert.Null(conv.StudentName);
         Assert.Equal(1, conv.UnreadCount);
         Assert.False(conv.LastMessageIsFromMe);
     }
@@ -180,7 +171,6 @@ public class MessageServiceTests
     public async Task GetConversationsAsync_WhenLastMessageHasNeitherContentNorImage_LastMessageIsEmpty()
     {
         await using var db = CreateDbContext();
-        // Unknown sender (not in db.Users) → "Непознат"; Content=null, ImageUrl=null → "" via ??
         var unknownId = Guid.NewGuid();
         SeedMessage(db, unknownId, MyId, content: null, imageUrl: null);
         await db.SaveChangesAsync();
@@ -189,26 +179,21 @@ public class MessageServiceTests
         var result = await service.GetConversationsAsync(CancellationToken.None);
 
         var conv = result.Data[0];
-        Assert.Equal("Непознат", conv.OtherUserName);  // userMap miss → default fallback
-        Assert.Equal("", conv.LastMessage);             // null ?? "" → null branch of ??
+        Assert.Equal("Непознат", conv.OtherUserName);
+        Assert.Equal("", conv.LastMessage);
         Assert.False(conv.LastMessageIsImage);
     }
 
-    // -----------------------------------------------------------------------
-    // GetConversationAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task GetConversationAsync_WhenCalled_MarksUnreadInboundAsReadAndReturnsBothDirections()
     {
-        // SQLite in-memory is required here because ExecuteUpdateAsync is not supported by the InMemory provider.
         var (db, conn) = CreateSqliteDbContext();
         await using (db)
         await using (conn)
         {
             var older = DateTime.UtcNow.AddMinutes(-5);
             var newer = DateTime.UtcNow;
-            SeedMessage(db, MyId, OtherId, content: "Hi",  isRead: false, createdAt: older);
+            SeedMessage(db, MyId, OtherId, content: "Hi", isRead: false, createdAt: older);
             SeedMessage(db, OtherId, MyId, content: "Hey", isRead: false, createdAt: newer);
             await db.SaveChangesAsync();
             var service = CreateService(db);
@@ -217,11 +202,9 @@ public class MessageServiceTests
 
             Assert.True(result.Success);
             Assert.Equal(2, result.Data.Count);
-            // Ordered by CreatedAt ascending
-            Assert.True(result.Data[0].IsFromMe);   // outbound
-            Assert.False(result.Data[1].IsFromMe);  // inbound
+            Assert.True(result.Data[0].IsFromMe);
+            Assert.False(result.Data[1].IsFromMe);
 
-            // ExecuteUpdateAsync marked inbound as read — verify via AsNoTracking to bypass stale change tracker
             var unread = await db.Messages
                 .AsNoTracking()
                 .CountAsync(m => m.SenderId == OtherId && m.ReceiverId == MyId && !m.IsRead);
@@ -229,11 +212,7 @@ public class MessageServiceTests
         }
     }
 
-    // -----------------------------------------------------------------------
-    // SendMessageAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task SendMessageAsync_WhenBothContentAndImageEmpty_ReturnsFail()
     {
         await using var db = CreateDbContext();
@@ -259,7 +238,7 @@ public class MessageServiceTests
 
         Assert.True(result.Success);
         var msg = db.Messages.Local.Single();
-        Assert.Equal("Hello", msg.Content);   // trimmed
+        Assert.Equal("Hello", msg.Content);
         Assert.Null(msg.ImageUrl);
         Assert.Equal(MyId, msg.SenderId);
         Assert.Equal(OtherId, msg.ReceiverId);
@@ -278,22 +257,18 @@ public class MessageServiceTests
 
         Assert.True(result.Success);
         var msg = db.Messages.Local.Single();
-        Assert.Null(msg.Content);              // IsNullOrWhiteSpace(null) → null stored
+        Assert.Null(msg.Content);
         Assert.Equal("http://img.png", msg.ImageUrl);
     }
 
-    // -----------------------------------------------------------------------
-    // GetUnreadCountAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task GetUnreadCountAsync_WhenCalled_ReturnsUnreadInboundCount()
     {
         await using var db = CreateDbContext();
         SeedMessage(db, OtherId, MyId, content: "A", isRead: false);
         SeedMessage(db, OtherId, MyId, content: "B", isRead: false);
-        SeedMessage(db, OtherId, MyId, content: "C", isRead: true);   // already read
-        SeedMessage(db, MyId, OtherId, content: "D", isRead: false);  // I sent it, not counted
+        SeedMessage(db, OtherId, MyId, content: "C", isRead: true);
+        SeedMessage(db, MyId, OtherId, content: "D", isRead: false);
         await db.SaveChangesAsync();
         var service = CreateService(db);
 
@@ -303,11 +278,7 @@ public class MessageServiceTests
         Assert.Equal(2, result.Data);
     }
 
-    // -----------------------------------------------------------------------
-    // GetContactsAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task GetContactsAsync_WhenTeacherMode_ReturnsParentAndSelfStudentContacts()
     {
         await using var db = CreateDbContext();
@@ -316,8 +287,8 @@ public class MessageServiceTests
         SeedUser(db, parentId, "Jane", "Parent");
         SeedUser(db, selfUserId, "Bob", "Student");
         var cls = SeedClass(db, MyId);
-        SeedStudent(db, cls.Id, parentId: parentId);        // has parent account
-        SeedStudent(db, cls.Id, userId: selfUserId);        // self-registered, no parent
+        SeedStudent(db, cls.Id, parentId: parentId);
+        SeedStudent(db, cls.Id, userId: selfUserId);
         await db.SaveChangesAsync();
         var service = CreateService(db);
 
@@ -335,7 +306,7 @@ public class MessageServiceTests
         await using var db = CreateDbContext();
         var teacherId = Guid.NewGuid();
         SeedUser(db, teacherId, "Mr", "Teacher");
-        var cls = SeedClass(db, teacherId);    // class belongs to another teacher, not MyId
+        var cls = SeedClass(db, teacherId);
         db.Students.Add(new StudentProfile
         {
             ClassId = cls.Id,
@@ -358,7 +329,6 @@ public class MessageServiceTests
     public async Task GetContactsAsync_WhenStudentMode_ClassNotFound_ReturnsEmptyList()
     {
         await using var db = CreateDbContext();
-        // Student points to a ClassId that does not exist in db
         var orphanClassId = Guid.NewGuid();
         db.Students.Add(new StudentProfile
         {
@@ -380,7 +350,7 @@ public class MessageServiceTests
     public async Task GetContactsAsync_WhenStudentMode_TeacherUserNotFound_ReturnsEmptyList()
     {
         await using var db = CreateDbContext();
-        var teacherId = Guid.NewGuid();             // class exists but teacher NOT in db.Users
+        var teacherId = Guid.NewGuid();
         var cls = SeedClass(db, teacherId);
         db.Students.Add(new StudentProfile
         {
@@ -405,7 +375,6 @@ public class MessageServiceTests
         var teacherId = Guid.NewGuid();
         SeedUser(db, teacherId, "Mr", "Teacher");
         var cls = SeedClass(db, teacherId);
-        // Student whose parent is MyId — no student profile with UserId == MyId exists
         SeedStudent(db, cls.Id, parentId: MyId);
         await db.SaveChangesAsync();
         var service = CreateService(db);

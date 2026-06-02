@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TeacherDiary.Application.Abstractions.Services;
 using TeacherDiary.Application.Common;
+using TeacherDiary.Application.DTOs.Leaderboard;
 using TeacherDiary.Application.DTOs.Students;
 using TeacherDiary.Application.Events;
 using TeacherDiary.Domain.Common;
@@ -141,10 +142,10 @@ public sealed class StudentSelfService(
             .ThenBy(c => c.EndDate)
             .ToListAsync(cancellationToken);
 
-        var bestStreak = await db.StudentStreaks
+        var streak = await db.StudentStreaks
             .AsNoTracking()
             .Where(s => s.StudentProfileId == studentId)
-            .Select(s => s.BestStreak)
+            .Select(s => new { s.CurrentStreak, s.BestStreak })
             .FirstOrDefaultAsync(cancellationToken);
 
         return Result<StudentDetailsDto>.Ok(new StudentDetailsDto
@@ -156,8 +157,11 @@ public sealed class StudentSelfService(
             TotalPagesRead = stats?.PagesRead ?? 0,
             CompletedAssignments = stats?.AssignmentsCompleted ?? 0,
             TotalPoints = stats?.TotalPoints ?? 0,
-            TopMedalCode = BadgeCodes.GetStreakMedalCode(bestStreak),
+            TopMedalCode = BadgeCodes.GetStreakMedalCode(streak?.BestStreak ?? 0),
             TopPointsMedalCode = BadgeCodes.GetPointsMedalCode(stats?.TotalPoints ?? 0),
+            CurrentStreak = streak?.CurrentStreak ?? 0,
+            BestStreak = streak?.BestStreak ?? 0,
+            ClassId = profile.ClassId,
             Reading = reading,
             Assignments = assignments,
             ActivityLast7Days = activityByDay,
@@ -354,5 +358,102 @@ public sealed class StudentSelfService(
             .ToListAsync(cancellationToken);
 
         return Result<List<StudentBadgeDto>>.Ok(badges);
+    }
+
+    public async Task<Result<List<ActivityCalendarDayDto>>> GetActivityCalendarAsync(int days, CancellationToken cancellationToken)
+    {
+        if (days <= 0) days = 30;
+        if (days > 90) days = 90;
+
+        var profile = await FindProfileAsync(cancellationToken);
+        if (profile is null)
+            return Result<List<ActivityCalendarDayDto>>.Fail("Student profile not found.");
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var from = today.AddDays(-(days - 1));
+
+        var activityByDate = await db.ActivityLogs
+            .AsNoTracking()
+            .Where(a => a.StudentProfileId == profile.Id && a.Date >= from && a.Date <= today)
+            .GroupBy(a => a.Date)
+            .Select(g => new
+            {
+                Date = g.Key,
+                PointsEarned = g.Sum(a => a.PointsEarned ?? 0),
+                PagesRead = g.Sum(a => a.PagesRead ?? 0),
+                ActivityCount = g.Count()
+            })
+            .ToListAsync(cancellationToken);
+
+        var lookup = activityByDate.ToDictionary(x => x.Date);
+        var result = new List<ActivityCalendarDayDto>(days);
+
+        for (var i = 0; i < days; i++)
+        {
+            var date = from.AddDays(i);
+            if (lookup.TryGetValue(date, out var day))
+            {
+                result.Add(new ActivityCalendarDayDto
+                {
+                    Date = date,
+                    HasActivity = true,
+                    PointsEarned = day.PointsEarned,
+                    PagesRead = day.PagesRead,
+                    ActivityCount = day.ActivityCount
+                });
+            }
+            else
+            {
+                result.Add(new ActivityCalendarDayDto
+                {
+                    Date = date,
+                    HasActivity = false,
+                    PointsEarned = 0,
+                    PagesRead = 0,
+                    ActivityCount = 0
+                });
+            }
+        }
+
+        return Result<List<ActivityCalendarDayDto>>.Ok(result);
+    }
+
+    public async Task<Result<List<LeaderboardItemDto>>> GetMyLeaderboardAsync(CancellationToken cancellationToken)
+    {
+        var profile = await FindProfileAsync(cancellationToken);
+        if (profile is null)
+            return Result<List<LeaderboardItemDto>>.Fail("Student profile not found.");
+
+        if (!profile.ClassId.HasValue)
+            return Result<List<LeaderboardItemDto>>.Ok([]);
+
+        var classId = profile.ClassId.Value;
+
+        var rawItems = await (
+            from s in db.Students
+            where s.ClassId == classId
+            join sp in db.StudentPoints on s.Id equals sp.StudentProfileId into spGroup
+            from sp in spGroup.DefaultIfEmpty()
+            join ss in db.StudentStreaks on s.Id equals ss.StudentProfileId into ssGroup
+            from ss in ssGroup.DefaultIfEmpty()
+            select new
+            {
+                StudentId = s.Id,
+                StudentName = s.FirstName + " " + s.LastName,
+                Points = sp == null ? 0 : sp.TotalPoints,
+                BestStreak = ss == null ? 0 : ss.BestStreak
+            }
+        ).OrderByDescending(x => x.Points).ToListAsync(cancellationToken);
+
+        var leaderboard = rawItems.Select(r => new LeaderboardItemDto
+        {
+            StudentId = r.StudentId,
+            StudentName = r.StudentName,
+            Points = r.Points,
+            TopMedalCode = BadgeCodes.GetStreakMedalCode(r.BestStreak),
+            TopPointsMedalCode = BadgeCodes.GetPointsMedalCode(r.Points)
+        }).ToList();
+
+        return Result<List<LeaderboardItemDto>>.Ok(leaderboard);
     }
 }

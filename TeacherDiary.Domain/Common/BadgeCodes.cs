@@ -1,4 +1,4 @@
-namespace TeacherDiary.Domain.Common;
+﻿namespace TeacherDiary.Domain.Common;
 
 public static class BadgeCodes
 {
@@ -21,14 +21,14 @@ public static class BadgeCodes
 
     public static readonly (int Days, string Code)[] StreakTiers =
     [
-        (3,   Streak3),
-        (5,   Streak5),
-        (7,   SevenDayStreak),
-        (15,  Streak15),
-        (30,  Streak30),
-        (45,  Streak45),
-        (60,  Streak60),
-        (90,  Streak90),
+        (3, Streak3),
+        (5, Streak5),
+        (7, SevenDayStreak),
+        (15, Streak15),
+        (30, Streak30),
+        (45, Streak45),
+        (60, Streak60),
+        (90, Streak90),
         (180, Streak180),
         (360, Streak360),
     ];
@@ -49,28 +49,28 @@ public static class BadgeCodes
     };
 
     // Points medals
-    public const string Points100   = "POINTS_100";
-    public const string Points250   = "POINTS_250";
-    public const string Points500   = "POINTS_500";
-    public const string Points1000  = "POINTS_1000";
-    public const string Points1500  = "POINTS_1500";
-    public const string Points2000  = "POINTS_2000";
-    public const string Points3000  = "POINTS_3000";
-    public const string Points5000  = "POINTS_5000";
-    public const string Points7500  = "POINTS_7500";
+    public const string Points100 = "POINTS_100";
+    public const string Points250 = "POINTS_250";
+    public const string Points500 = "POINTS_500";
+    public const string Points1000 = "POINTS_1000";
+    public const string Points1500 = "POINTS_1500";
+    public const string Points2000 = "POINTS_2000";
+    public const string Points3000 = "POINTS_3000";
+    public const string Points5000 = "POINTS_5000";
+    public const string Points7500 = "POINTS_7500";
     public const string Points10000 = "POINTS_10000";
 
     public static readonly (int Points, string Code)[] PointsTiers =
     [
-        (100,   Points100),
-        (250,   Points250),
-        (500,   Points500),
-        (1000,  Points1000),
-        (1500,  Points1500),
-        (2000,  Points2000),
-        (3000,  Points3000),
-        (5000,  Points5000),
-        (7500,  Points7500),
+        (100, Points100),
+        (250, Points250),
+        (500, Points500),
+        (1000, Points1000),
+        (1500, Points1500),
+        (2000, Points2000),
+        (3000, Points3000),
+        (5000, Points5000),
+        (7500, Points7500),
         (10000, Points10000),
     ];
 

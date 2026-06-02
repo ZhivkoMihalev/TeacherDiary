@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Moq;
 using TeacherDiary.Application.Abstractions.Services;
 using TeacherDiary.Domain.Entities;
@@ -30,11 +30,7 @@ public class LearningActivityServiceTests
     private LearningActivityService CreateService(AppDbContext db) =>
         new(db, _currentUserMock.Object);
 
-    // -----------------------------------------------------------------------
-    // Seed helpers
-    // -----------------------------------------------------------------------
-
-    private static Class SeedClass(AppDbContext db)
+private static Class SeedClass(AppDbContext db)
     {
         var cls = new Class
         {
@@ -149,11 +145,7 @@ public class LearningActivityServiceTests
         return p;
     }
 
-    // -----------------------------------------------------------------------
-    // CreateForAssignedBookAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task CreateForAssignedBookAsync_WhenNoActiveStudents_CreatesActivityWithNoProgressRows()
     {
         await using var db = CreateDbContext();
@@ -195,11 +187,7 @@ public class LearningActivityServiceTests
             p => Assert.Equal(ProgressStatus.NotStarted, p.Status));
     }
 
-    // -----------------------------------------------------------------------
-    // CreateForAssignmentAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task CreateForAssignmentAsync_WhenActiveStudentsExist_CreatesActivityAndProgressPerStudent()
     {
         await using var db = CreateDbContext();
@@ -230,11 +218,7 @@ public class LearningActivityServiceTests
         Assert.Equal(2, db.StudentLearningActivityProgress.Count());
     }
 
-    // -----------------------------------------------------------------------
-    // CreateForChallengeAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task CreateForChallengeAsync_WhenActiveStudentsExist_CreatesActivityAndProgressPerStudent()
     {
         await using var db = CreateDbContext();
@@ -267,17 +251,12 @@ public class LearningActivityServiceTests
         Assert.Equal(5, db.StudentLearningActivityProgress.Single().TargetValue);
     }
 
-    // -----------------------------------------------------------------------
-    // UpdateReadingProgressAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task UpdateReadingProgressAsync_WhenProgressNotFound_DoesNothing()
     {
         await using var db = CreateDbContext();
         var service = CreateService(db);
 
-        // No progress seeded — should silently return
         await service.UpdateReadingProgressAsync(
             Guid.NewGuid(), Guid.NewGuid(), 50, CancellationToken.None);
 
@@ -301,7 +280,7 @@ public class LearningActivityServiceTests
         var p = db.StudentLearningActivityProgress.Local.Single();
         Assert.Equal(ProgressStatus.InProgress, p.Status);
         Assert.Equal(50, p.CurrentValue);
-        Assert.NotNull(p.StartedAt);   // was null → now set
+        Assert.NotNull(p.StartedAt);
         Assert.Null(p.CompletedAt);
     }
 
@@ -323,7 +302,7 @@ public class LearningActivityServiceTests
         var p = db.StudentLearningActivityProgress.Local.Single();
         Assert.Equal(ProgressStatus.Completed, p.Status);
         Assert.Equal(200, p.CurrentValue);
-        Assert.Equal(existingStartedAt, p.StartedAt);  // pre-set value kept (??= not-null branch)
+        Assert.Equal(existingStartedAt, p.StartedAt);
         Assert.NotNull(p.CompletedAt);
     }
 
@@ -334,7 +313,6 @@ public class LearningActivityServiceTests
         var cls = SeedClass(db);
         var (_, ab) = SeedBookAndAssignedBook(db, cls.Id);
         var student = SeedStudent(db, cls.Id);
-        // targetValue: null → TargetValue.HasValue = false → if on line 145 not entered
         var la = SeedLearningActivityForBook(db, cls.Id, ab.Id, targetValue: null);
         SeedProgress(db, student.Id, la, targetValue: null, startedAt: null);
         await db.SaveChangesAsync();
@@ -347,11 +325,7 @@ public class LearningActivityServiceTests
         Assert.Null(p.CompletedAt);
     }
 
-    // -----------------------------------------------------------------------
-    // UpdateAssignmentProgressAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task UpdateAssignmentProgressAsync_WhenProgressNotFound_DoesNothing()
     {
         await using var db = CreateDbContext();
@@ -381,7 +355,7 @@ public class LearningActivityServiceTests
         var p = db.StudentLearningActivityProgress.Local.Single();
         Assert.Equal(ProgressStatus.InProgress, p.Status);
         Assert.Equal(5, p.Score);
-        Assert.NotNull(p.StartedAt);   // null → set
+        Assert.NotNull(p.StartedAt);
         Assert.Null(p.CompletedAt);
     }
 
@@ -429,15 +403,11 @@ public class LearningActivityServiceTests
 
         var p = db.StudentLearningActivityProgress.Local.Single();
         Assert.Equal(ProgressStatus.Completed, p.Status);
-        Assert.Equal(originalStartedAt, p.StartedAt);      // ??= kept pre-set value
-        Assert.Equal(originalCompletedAt, p.CompletedAt);  // not overwritten
+        Assert.Equal(originalStartedAt, p.StartedAt);
+        Assert.Equal(originalCompletedAt, p.CompletedAt);
     }
 
-    // -----------------------------------------------------------------------
-    // UpdateChallengeProgressAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task UpdateChallengeProgressAsync_WhenProgressNotFound_DoesNothing()
     {
         await using var db = CreateDbContext();

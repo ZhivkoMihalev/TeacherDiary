@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,9 +14,6 @@ namespace TeacherDiary.Tests.Services;
 
 public class AuthServiceTests
 {
-    // -----------------------------------------------------------------------
-    // Fixture — wires up real Identity with an InMemory EF Core database
-    // -----------------------------------------------------------------------
 
     private sealed class AuthServiceFixture : IDisposable
     {
@@ -82,11 +79,7 @@ public class AuthServiceTests
         }
     }
 
-    // -----------------------------------------------------------------------
-    // Request helpers
-    // -----------------------------------------------------------------------
-
-    private static RegisterRequest TeacherRequest(string email = "teacher@test.com") => new()
+private static RegisterRequest TeacherRequest(string email = "teacher@test.com") => new()
     {
         Email = email,
         Password = "Pass1234",
@@ -111,11 +104,7 @@ public class AuthServiceTests
         LastName = "Brown"
     };
 
-    // -----------------------------------------------------------------------
-    // RegisterTeacherAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task RegisterTeacherAsync_WhenEmailAlreadyExists_ReturnsFail()
     {
         using var f = new AuthServiceFixture();
@@ -185,20 +174,14 @@ public class AuthServiceTests
     {
         using var f = new AuthServiceFixture();
 
-        // First call creates all four roles
         await f.Service.RegisterTeacherAsync(TeacherRequest("first@test.com"), CancellationToken.None);
 
-        // Second call: EnsureRolesAsync finds existing roles and skips creation
         var result = await f.Service.RegisterTeacherAsync(TeacherRequest("second@test.com"), CancellationToken.None);
 
         Assert.True(result.Success);
     }
 
-    // -----------------------------------------------------------------------
-    // RegisterParentAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task RegisterParentAsync_WhenEmailAlreadyExists_ReturnsFail()
     {
         using var f = new AuthServiceFixture();
@@ -251,11 +234,7 @@ public class AuthServiceTests
         Assert.NotEmpty(result.Data.UserId);
     }
 
-    // -----------------------------------------------------------------------
-    // RegisterStudentAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task RegisterStudentAsync_WhenEmailAlreadyExists_ReturnsFail()
     {
         using var f = new AuthServiceFixture();
@@ -321,11 +300,7 @@ public class AuthServiceTests
         Assert.Equal(Guid.Parse(result.Data.UserId), profile.UserId);
     }
 
-    // -----------------------------------------------------------------------
-    // LoginAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task LoginAsync_WhenUserNotFound_ReturnsFail()
     {
         using var f = new AuthServiceFixture();

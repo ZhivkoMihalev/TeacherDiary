@@ -230,4 +230,40 @@ public class ParentsController(
         var result = await parentService.CompleteChallengeForStudentAsync(studentId, challengeId, cancellationToken);
         return result.Success ? Ok() : BadRequest(new { error = result.Error });
     }
+
+    /// <summary>Returns a daily activity calendar for the parent's student.</summary>
+    /// <param name="studentId">ID of the student (must belong to the authenticated parent).</param>
+    /// <param name="days">Number of days to return (1–90, default 30).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>List of calendar day entries, oldest first.</returns>
+    /// <response code="200">Returns the calendar data.</response>
+    /// <response code="404">Student not found or does not belong to the authenticated parent.</response>
+    [HttpGet("students/{studentId:guid}/activity-calendar")]
+    public async Task<IActionResult> GetStudentActivityCalendar(
+        Guid studentId,
+        [FromQuery] int days = 30,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await parentService.GetStudentActivityCalendarAsync(studentId, days, cancellationToken);
+        return result.Success
+            ? Ok(result.Data)
+            : NotFound(new { error = result.Error });
+    }
+
+    /// <summary>Returns the class leaderboard for the parent's student's class.</summary>
+    /// <param name="studentId">ID of the student (must belong to the authenticated parent).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Ordered list of students by total points. Empty when student is not enrolled.</returns>
+    /// <response code="200">Returns the leaderboard.</response>
+    /// <response code="404">Student not found or does not belong to the authenticated parent.</response>
+    [HttpGet("students/{studentId:guid}/leaderboard")]
+    public async Task<IActionResult> GetStudentLeaderboard(
+        Guid studentId,
+        CancellationToken cancellationToken)
+    {
+        var result = await parentService.GetStudentLeaderboardAsync(studentId, cancellationToken);
+        return result.Success
+            ? Ok(result.Data)
+            : NotFound(new { error = result.Error });
+    }
 }

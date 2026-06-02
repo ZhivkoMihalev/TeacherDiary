@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using TeacherDiary.Infrastructure.Services;
@@ -17,7 +17,6 @@ public class CurrentUserTests
         return new CurrentUser(accessor.Object);
     }
 
-    // Creates a CurrentUser with a non-null HttpContext but the given User (may be null).
     private static CurrentUser CreateSutWithMockedHttpContext(ClaimsPrincipal? user)
     {
         var mockCtx = new Mock<HttpContext>();
@@ -33,11 +32,7 @@ public class CurrentUserTests
         return new DefaultHttpContext { User = new ClaimsPrincipal(identity) };
     }
 
-    // -----------------------------------------------------------------------
-    // UserId
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public void UserId_WhenHttpContextIsNull_ReturnsGuidEmpty()
     {
         var sut = CreateSut(null);
@@ -57,7 +52,6 @@ public class CurrentUserTests
     [Fact]
     public void UserId_WhenOnlySubClaimPresent_ReturnsThatGuid()
     {
-        // NameIdentifier is absent → ?? falls through to "sub"
         var ctx = MakeContext([new Claim("sub", SomeId.ToString())]);
         var sut = CreateSut(ctx);
 
@@ -67,7 +61,6 @@ public class CurrentUserTests
     [Fact]
     public void UserId_WhenNeitherClaimPresent_ReturnsGuidEmpty()
     {
-        // Both sides of ?? are null → TryParse(null) → false → Guid.Empty
         var ctx = MakeContext([]);
         var sut = CreateSut(ctx);
 
@@ -77,17 +70,12 @@ public class CurrentUserTests
     [Fact]
     public void UserId_WhenUserIsNull_ReturnsGuidEmpty()
     {
-        // HttpContext non-null but User is null → ?.User null branch fires → TryParse(null) → Guid.Empty
         var sut = CreateSutWithMockedHttpContext(null);
 
         Assert.Equal(Guid.Empty, sut.UserId);
     }
 
-    // -----------------------------------------------------------------------
-    // OrganizationId
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public void OrganizationId_WhenHttpContextIsNull_ReturnsGuidEmpty()
     {
         var sut = CreateSut(null);
@@ -116,20 +104,14 @@ public class CurrentUserTests
     [Fact]
     public void OrganizationId_WhenUserIsNull_ReturnsGuidEmpty()
     {
-        // HttpContext non-null but User is null → ?.User null branch fires → TryParse(null) → Guid.Empty
         var sut = CreateSutWithMockedHttpContext(null);
 
         Assert.Equal(Guid.Empty, sut.OrganizationId);
     }
 
-    // -----------------------------------------------------------------------
-    // IsInRole
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public void IsInRole_WhenHttpContextIsNull_ReturnsFalse()
     {
-        // HttpContext?.User → null → ?? false
         var sut = CreateSut(null);
 
         Assert.False(sut.IsInRole("Admin"));
@@ -147,7 +129,6 @@ public class CurrentUserTests
     [Fact]
     public void IsInRole_WhenUserIsNotInRole_ReturnsFalse()
     {
-        // IsInRole returns false (non-null bool?) → ?? false left is non-null → false
         var ctx = MakeContext([]);
         var sut = CreateSut(ctx);
 
@@ -157,20 +138,14 @@ public class CurrentUserTests
     [Fact]
     public void IsInRole_WhenUserIsNull_ReturnsFalse()
     {
-        // HttpContext non-null but User is null → ?.User null branch → ?? false
         var sut = CreateSutWithMockedHttpContext(null);
 
         Assert.False(sut.IsInRole("Admin"));
     }
 
-    // -----------------------------------------------------------------------
-    // IsAuthenticated
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public void IsAuthenticated_WhenHttpContextIsNull_ReturnsFalse()
     {
-        // HttpContext?.User?.Identity?.IsAuthenticated → null → ?? false
         var sut = CreateSut(null);
 
         Assert.False(sut.IsAuthenticated);
@@ -188,7 +163,6 @@ public class CurrentUserTests
     [Fact]
     public void IsAuthenticated_WhenIdentityIsNotAuthenticated_ReturnsFalse()
     {
-        // authenticationType = null → ClaimsIdentity.IsAuthenticated = false (non-null bool?) → ?? false left non-null → false
         var ctx = MakeContext([], authenticated: false);
         var sut = CreateSut(ctx);
 
@@ -198,7 +172,6 @@ public class CurrentUserTests
     [Fact]
     public void IsAuthenticated_WhenUserIsNull_ReturnsFalse()
     {
-        // HttpContext non-null, User is null → ?.User null branch → null → ?? false
         var sut = CreateSutWithMockedHttpContext(null);
 
         Assert.False(sut.IsAuthenticated);
@@ -207,7 +180,6 @@ public class CurrentUserTests
     [Fact]
     public void IsAuthenticated_WhenIdentityIsNull_ReturnsFalse()
     {
-        // ClaimsPrincipal with no identities → Identity returns null → ?.Identity null branch → ?? false
         var sut = CreateSutWithMockedHttpContext(new ClaimsPrincipal());
 
         Assert.False(sut.IsAuthenticated);

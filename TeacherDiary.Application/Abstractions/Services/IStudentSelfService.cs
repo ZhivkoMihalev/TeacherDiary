@@ -1,4 +1,5 @@
 using TeacherDiary.Application.Common;
+using TeacherDiary.Application.DTOs.Leaderboard;
 using TeacherDiary.Application.DTOs.Students;
 
 namespace TeacherDiary.Application.Abstractions.Services;
@@ -18,4 +19,8 @@ public interface IStudentSelfService
     Task<Result<bool>> CompleteChallengeAsync(Guid challengeId, CancellationToken cancellationToken);
 
     Task<Result<List<StudentBadgeDto>>> GetMyBadgesAsync(CancellationToken cancellationToken);
+
+    Task<Result<List<ActivityCalendarDayDto>>> GetActivityCalendarAsync(int days, CancellationToken cancellationToken);
+
+    Task<Result<List<LeaderboardItemDto>>> GetMyLeaderboardAsync(CancellationToken cancellationToken);
 }

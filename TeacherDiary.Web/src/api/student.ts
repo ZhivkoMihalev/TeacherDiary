@@ -1,5 +1,5 @@
 import { client } from './client'
-import type { StudentBadgeDto, StudentDetailsDto } from '../types'
+import type { ActivityCalendarDayDto, LeaderboardItemDto, StudentBadgeDto, StudentDetailsDto } from '../types'
 
 export const studentApi = {
   getMyDetails: () =>
@@ -22,4 +22,10 @@ export const studentApi = {
 
   getMyBadges: () =>
     client.get<StudentBadgeDto[]>('/student/me/badges').then((r) => r.data),
+
+  getActivityCalendar: (days = 30) =>
+    client.get<ActivityCalendarDayDto[]>('/student/me/activity-calendar', { params: { days } }).then((r) => r.data),
+
+  getMyLeaderboard: () =>
+    client.get<LeaderboardItemDto[]>('/student/me/leaderboard').then((r) => r.data),
 }

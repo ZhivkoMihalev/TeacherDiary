@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Moq;
 using TeacherDiary.Application.Abstractions.Services;
 using TeacherDiary.Application.DTOs.Assignments;
@@ -14,13 +14,13 @@ namespace TeacherDiary.Tests.Services;
 public class AssignmentServiceTests
 {
     private static readonly Guid TeacherId = new("11111111-1111-1111-1111-111111111111");
-    private static readonly Guid OrgId    = new("22222222-2222-2222-2222-222222222222");
+    private static readonly Guid OrgId = new("22222222-2222-2222-2222-222222222222");
 
-    private readonly Mock<ICurrentUser>           _currentUserMock       = new();
-    private readonly Mock<IActivityService>        _activityMock          = new();
+    private readonly Mock<ICurrentUser> _currentUserMock = new();
+    private readonly Mock<IActivityService> _activityMock = new();
     private readonly Mock<ILearningActivityService> _learningActivityMock = new();
-    private readonly Mock<IBadgeService>           _badgeMock             = new();
-    private readonly Mock<IEventDispatcher>        _eventDispatcherMock   = new();
+    private readonly Mock<IBadgeService> _badgeMock = new();
+    private readonly Mock<IEventDispatcher> _eventDispatcherMock = new();
 
     public AssignmentServiceTests()
     {
@@ -40,11 +40,7 @@ public class AssignmentServiceTests
         => new(db, _currentUserMock.Object, _activityMock.Object,
                _learningActivityMock.Object, _badgeMock.Object, _eventDispatcherMock.Object);
 
-    // -----------------------------------------------------------------------
-    // Seed helpers
-    // -----------------------------------------------------------------------
-
-    private static Class SeedClass(AppDbContext db)
+private static Class SeedClass(AppDbContext db)
     {
         var cls = new Class
         {
@@ -114,11 +110,7 @@ public class AssignmentServiceTests
         Points = 10
     };
 
-    // -----------------------------------------------------------------------
-    // CreateAssignmentAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task CreateAssignmentAsync_WhenClassNotFound_ReturnsFail()
     {
         await using var db = CreateDbContext();
@@ -171,11 +163,7 @@ public class AssignmentServiceTests
         Assert.Equal(2, db.AssignmentProgress.Count());
     }
 
-    // -----------------------------------------------------------------------
-    // UpdateProgressAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task UpdateProgressAsync_WhenStudentNotFound_ReturnsFail()
     {
         await using var db = CreateDbContext();
@@ -193,7 +181,7 @@ public class AssignmentServiceTests
     {
         await using var db = CreateDbContext();
         var cls = SeedClass(db);
-        var student = SeedStudent(db, cls.Id, parentId: Guid.NewGuid()); // different from currentUser.UserId
+        var student = SeedStudent(db, cls.Id, parentId: Guid.NewGuid());
         await db.SaveChangesAsync();
 
         var service = CreateService(db);
@@ -378,11 +366,7 @@ public class AssignmentServiceTests
             Times.Never);
     }
 
-    // -----------------------------------------------------------------------
-    // GetAssignmentsByClassAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task GetAssignmentsByClassAsync_WhenClassNotFound_ReturnsFail()
     {
         await using var db = CreateDbContext();
@@ -428,11 +412,7 @@ public class AssignmentServiceTests
         Assert.True(item.IsExpired);
     }
 
-    // -----------------------------------------------------------------------
-    // GetStudentProgressForAssignmentAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task GetStudentProgressForAssignmentAsync_WhenClassNotFound_ReturnsFail()
     {
         await using var db = CreateDbContext();
@@ -465,11 +445,7 @@ public class AssignmentServiceTests
         Assert.Equal(ProgressStatus.Completed, item.Status);
     }
 
-    // -----------------------------------------------------------------------
-    // UpdateAssignmentAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task UpdateAssignmentAsync_WhenAssignmentNotFound_ReturnsFail()
     {
         await using var db = CreateDbContext();
@@ -537,7 +513,7 @@ public class AssignmentServiceTests
         var service = CreateService(db);
         await service.UpdateAssignmentAsync(
             cls.Id, assignment.Id,
-            new AssignmentUpdateRequest { Title = "X", Points = 20 }, // delta = +10
+            new AssignmentUpdateRequest { Title = "X", Points = 20 },
             CancellationToken.None);
 
         var sp = db.StudentPoints.Single();
@@ -559,7 +535,7 @@ public class AssignmentServiceTests
         var service = CreateService(db);
         await service.UpdateAssignmentAsync(
             cls.Id, assignment.Id,
-            new AssignmentUpdateRequest { Title = "X", Points = 15 }, // delta = +5
+            new AssignmentUpdateRequest { Title = "X", Points = 15 },
             CancellationToken.None);
 
         var sp = db.StudentPoints.Single();
@@ -580,7 +556,7 @@ public class AssignmentServiceTests
         var service = CreateService(db);
         await service.UpdateAssignmentAsync(
             cls.Id, assignment.Id,
-            new AssignmentUpdateRequest { Title = "X", Points = 10 }, // delta = -10
+            new AssignmentUpdateRequest { Title = "X", Points = 10 },
             CancellationToken.None);
 
         var sp = db.StudentPoints.Single();
@@ -600,7 +576,7 @@ public class AssignmentServiceTests
         var service = CreateService(db);
         await service.UpdateAssignmentAsync(
             cls.Id, assignment.Id,
-            new AssignmentUpdateRequest { Title = "X", Points = 10 }, // delta = -10, sp is null
+            new AssignmentUpdateRequest { Title = "X", Points = 10 },
             CancellationToken.None);
 
         Assert.Empty(db.StudentPoints.ToList());
@@ -629,7 +605,7 @@ public class AssignmentServiceTests
         var service = CreateService(db);
         await service.UpdateAssignmentAsync(
             cls.Id, assignment.Id,
-            new AssignmentUpdateRequest { Title = "X", Points = 15 }, // delta = +5
+            new AssignmentUpdateRequest { Title = "X", Points = 15 },
             CancellationToken.None);
 
         Assert.Equal(15, log.PointsEarned);
@@ -649,7 +625,7 @@ public class AssignmentServiceTests
         var service = CreateService(db);
         var result = await service.UpdateAssignmentAsync(
             cls.Id, assignment.Id,
-            new AssignmentUpdateRequest { Title = "X", Points = 15 }, // delta = +5, no log
+            new AssignmentUpdateRequest { Title = "X", Points = 15 },
             CancellationToken.None);
 
         Assert.True(result.Success);
@@ -670,7 +646,7 @@ public class AssignmentServiceTests
         var service = CreateService(db);
         await service.UpdateAssignmentAsync(
             cls.Id, assignment.Id,
-            new AssignmentUpdateRequest { Title = "X", Points = 20 }, // delta = +10
+            new AssignmentUpdateRequest { Title = "X", Points = 20 },
             CancellationToken.None);
 
         _badgeMock.Verify(

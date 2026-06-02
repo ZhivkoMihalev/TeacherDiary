@@ -1,4 +1,4 @@
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using TeacherDiary.Application.Abstractions.Services;
@@ -13,11 +13,11 @@ namespace TeacherDiary.Tests.Services;
 
 public class NotificationServiceTests
 {
-    private static readonly Guid MyId    = new("11111111-1111-1111-1111-111111111111");
+    private static readonly Guid MyId = new("11111111-1111-1111-1111-111111111111");
     private static readonly Guid OtherId = new("22222222-2222-2222-2222-222222222222");
 
-    private readonly Mock<ICurrentUser>       _currentUserMock = new();
-    private readonly Mock<INotificationPusher> _pusherMock      = new();
+    private readonly Mock<ICurrentUser> _currentUserMock = new();
+    private readonly Mock<INotificationPusher> _pusherMock = new();
 
     public NotificationServiceTests()
     {
@@ -29,7 +29,6 @@ public class NotificationServiceTests
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options);
 
-    // SQLite in-memory is required for ExecuteUpdateAsync (not supported by InMemory provider).
     private static (AppDbContext db, SqliteConnection conn) CreateSqliteDbContext()
     {
         var conn = new SqliteConnection("DataSource=:memory:");
@@ -66,11 +65,7 @@ public class NotificationServiceTests
         return n;
     }
 
-    // -----------------------------------------------------------------------
-    // CreateAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task CreateAsync_WhenCalled_PersistsNotificationAndCallsPusher()
     {
         await using var db = CreateDbContext();
@@ -124,17 +119,13 @@ public class NotificationServiceTests
         Assert.Null(saved.ReferenceId);
     }
 
-    // -----------------------------------------------------------------------
-    // GetForUserAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task GetForUserAsync_WhenCalled_ReturnsOnlyNonDeletedForCurrentUser()
     {
         await using var db = CreateDbContext();
-        SeedNotification(db, MyId, message: "Mine");             // included
-        SeedNotification(db, MyId, isDeleted: true);             // deleted → excluded (!n.IsDeleted false branch)
-        SeedNotification(db, OtherId, message: "NotMine");       // other user → excluded (UserId != branch)
+        SeedNotification(db, MyId, message: "Mine");
+        SeedNotification(db, MyId, isDeleted: true);
+        SeedNotification(db, OtherId, message: "NotMine");
         await db.SaveChangesAsync();
         var service = CreateService(db);
 
@@ -171,22 +162,18 @@ public class NotificationServiceTests
 
         var result = await service.GetForUserAsync(page: 2, pageSize: 2, CancellationToken.None);
 
-        Assert.Single(result);   // 3 total, skip 2 on page 1 → 1 remains on page 2
+        Assert.Single(result);
     }
 
-    // -----------------------------------------------------------------------
-    // GetUnreadCountAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task GetUnreadCountAsync_WhenCalled_CountsOnlyUnreadNonDeletedForCurrentUser()
     {
         await using var db = CreateDbContext();
-        SeedNotification(db, MyId, isRead: false);                     // counted
-        SeedNotification(db, MyId, isRead: false);                     // counted
-        SeedNotification(db, MyId, isRead: true);                      // read → excluded (!n.IsRead false branch)
-        SeedNotification(db, MyId, isRead: false, isDeleted: true);    // deleted → excluded (!n.IsDeleted false branch)
-        SeedNotification(db, OtherId, isRead: false);                  // other user → excluded (UserId != branch)
+        SeedNotification(db, MyId, isRead: false);
+        SeedNotification(db, MyId, isRead: false);
+        SeedNotification(db, MyId, isRead: true);
+        SeedNotification(db, MyId, isRead: false, isDeleted: true);
+        SeedNotification(db, OtherId, isRead: false);
         await db.SaveChangesAsync();
         var service = CreateService(db);
 
@@ -195,17 +182,12 @@ public class NotificationServiceTests
         Assert.Equal(2, count);
     }
 
-    // -----------------------------------------------------------------------
-    // MarkAsReadAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task MarkAsReadAsync_WhenNotificationNotFound_ReturnsEarly()
     {
         await using var db = CreateDbContext();
         var service = CreateService(db);
 
-        // Should not throw; notification is null branch → early return
         await service.MarkAsReadAsync(Guid.NewGuid(), CancellationToken.None);
 
         Assert.Empty(db.Notifications.Local);
@@ -237,11 +219,7 @@ public class NotificationServiceTests
         Assert.True(db.Notifications.Local.Single().IsRead);
     }
 
-    // -----------------------------------------------------------------------
-    // MarkAllAsReadAsync  (SQLite required — ExecuteUpdateAsync)
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task MarkAllAsReadAsync_WhenCalled_MarksAllUnreadNotificationsAsRead()
     {
         var (db, conn) = CreateSqliteDbContext();
@@ -250,7 +228,7 @@ public class NotificationServiceTests
         {
             SeedNotification(db, MyId, isRead: false);
             SeedNotification(db, MyId, isRead: false);
-            SeedNotification(db, MyId, isRead: true);   // already read — remains read
+            SeedNotification(db, MyId, isRead: true);
             await db.SaveChangesAsync();
             var service = CreateService(db);
 

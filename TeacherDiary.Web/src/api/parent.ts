@@ -1,5 +1,5 @@
 import { client } from './client'
-import type { StudentDetailsDto, StudentDto } from '../types'
+import type { ActivityCalendarDayDto, LeaderboardItemDto, StudentDetailsDto, StudentDto } from '../types'
 
 export const parentApi = {
   getMyStudents: () =>
@@ -25,4 +25,10 @@ export const parentApi = {
 
   deleteStudent: (studentId: string) =>
     client.delete(`/parent/students/${studentId}`),
+
+  getStudentActivityCalendar: (studentId: string, days = 30) =>
+    client.get<ActivityCalendarDayDto[]>(`/parent/students/${studentId}/activity-calendar`, { params: { days } }).then((r) => r.data),
+
+  getStudentLeaderboard: (studentId: string) =>
+    client.get<LeaderboardItemDto[]>(`/parent/students/${studentId}/leaderboard`).then((r) => r.data),
 }

@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Moq;
 using TeacherDiary.Application.Abstractions.Services;
 using TeacherDiary.Application.Events;
@@ -13,9 +13,9 @@ namespace TeacherDiary.Tests.Services;
 public class StudentServiceTests
 {
     private static readonly Guid TeacherId = new("11111111-1111-1111-1111-111111111111");
-    private static readonly Guid OrgId     = new("22222222-2222-2222-2222-222222222222");
+    private static readonly Guid OrgId = new("22222222-2222-2222-2222-222222222222");
 
-    private readonly Mock<ICurrentUser>     _currentUserMock     = new();
+    private readonly Mock<ICurrentUser> _currentUserMock = new();
     private readonly Mock<IEventDispatcher> _eventDispatcherMock = new();
 
     public StudentServiceTests()
@@ -32,19 +32,15 @@ public class StudentServiceTests
     private StudentService CreateService(AppDbContext db) =>
         new(db, _currentUserMock.Object, _eventDispatcherMock.Object);
 
-    // -----------------------------------------------------------------------
-    // Seed helpers
-    // -----------------------------------------------------------------------
-
-    private static Class SeedClass(AppDbContext db, Guid? teacherId = null, Guid? orgId = null)
+private static Class SeedClass(AppDbContext db, Guid? teacherId = null, Guid? orgId = null)
     {
         var cls = new Class
         {
             OrganizationId = orgId     ?? OrgId,
-            TeacherId      = teacherId ?? TeacherId,
-            Name           = "3A",
-            Grade          = 3,
-            SchoolYear     = "2024/2025"
+            TeacherId = teacherId ?? TeacherId,
+            Name = "3A",
+            Grade = 3,
+            SchoolYear = "2024/2025"
         };
         db.Classes.Add(cls);
         return cls;
@@ -58,11 +54,7 @@ public class StudentServiceTests
         return s;
     }
 
-    // -----------------------------------------------------------------------
-    // GetByClassAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task GetByClassAsync_WhenClassNotFound_ReturnsFail()
     {
         await using var db = CreateDbContext();
@@ -78,11 +70,10 @@ public class StudentServiceTests
     public async Task GetByClassAsync_WhenStudentHasStreakAndPoints_SetsBothMedalCodes()
     {
         await using var db = CreateDbContext();
-        var cls     = SeedClass(db);
+        var cls = SeedClass(db);
         var student = SeedStudent(db, classId: cls.Id);
         await db.SaveChangesAsync();
 
-        // BestStreak=10 → non-null medal; PointsEarned=500 → non-null medal
         db.StudentStreaks.Add(new StudentStreak
         {
             StudentProfileId = student.Id, CurrentStreak = 10, BestStreak = 10
@@ -90,10 +81,10 @@ public class StudentServiceTests
         db.ActivityLogs.Add(new ActivityLog
         {
             StudentProfileId = student.Id,
-            ActivityType     = ActivityType.ReadingProgress,
-            ReferenceType    = ActivityReferenceType.AssignedBook,
-            ReferenceId      = Guid.NewGuid(),
-            PointsEarned     = 500
+            ActivityType = ActivityType.ReadingProgress,
+            ReferenceType = ActivityReferenceType.AssignedBook,
+            ReferenceId = Guid.NewGuid(),
+            PointsEarned = 500
         });
         await db.SaveChangesAsync();
         var service = CreateService(db);
@@ -102,8 +93,8 @@ public class StudentServiceTests
 
         Assert.True(result.Success);
         Assert.Single(result.Data);
-        Assert.NotNull(result.Data[0].TopMedalCode);       // TryGetValue streak → true
-        Assert.NotNull(result.Data[0].TopPointsMedalCode); // TryGetValue points → true
+        Assert.NotNull(result.Data[0].TopMedalCode);
+        Assert.NotNull(result.Data[0].TopPointsMedalCode);
     }
 
     [Fact]
@@ -119,15 +110,11 @@ public class StudentServiceTests
 
         Assert.True(result.Success);
         Assert.Single(result.Data);
-        Assert.Null(result.Data[0].TopMedalCode);          // TryGetValue streak → false
-        Assert.Null(result.Data[0].TopPointsMedalCode);    // TryGetValue points → false
+        Assert.Null(result.Data[0].TopMedalCode);
+        Assert.Null(result.Data[0].TopPointsMedalCode);
     }
 
-    // -----------------------------------------------------------------------
-    // AddStudentToClassAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task AddStudentToClassAsync_WhenClassNotFound_ReturnsFail()
     {
         await using var db = CreateDbContext();
@@ -159,11 +146,10 @@ public class StudentServiceTests
     public async Task AddStudentToClassAsync_WhenValid_CreatesAllProgressRowsAndPublishesEvent()
     {
         await using var db = CreateDbContext();
-        var cls     = SeedClass(db);
-        var student = SeedStudent(db);   // ClassId=null initially
+        var cls = SeedClass(db);
+        var student = SeedStudent(db);
         await db.SaveChangesAsync();
 
-        // Seed one of each class item the student should get progress for
         var book = new Book { Title = "B", Author = "A", TotalPages = 100 };
         db.Books.Add(book);
         await db.SaveChangesAsync();
@@ -197,7 +183,7 @@ public class StudentServiceTests
             ClassId = cls.Id, CreatedByTeacherId = TeacherId,
             Title = "LA Inactive", Type = LearningActivityType.Reading,
             Status = LearningActivityStatus.Active,
-            IsActive = false  // should be excluded from progress rows
+            IsActive = false
         };
         db.LearningActivities.Add(activeLa);
         db.LearningActivities.Add(inactiveLa);
@@ -209,19 +195,14 @@ public class StudentServiceTests
         Assert.True(result.Success);
         Assert.True(result.Data);
 
-        // Student ClassId set
         Assert.Equal(cls.Id, db.Students.Local.Single().ClassId);
 
-        // One ReadingProgress for the assigned book
         Assert.Single(db.ReadingProgress.Local);
 
-        // One AssignmentProgress
         Assert.Single(db.AssignmentProgress.Local);
 
-        // One ChallengeProgress
         Assert.Single(db.ChallengeProgress.Local);
 
-        // One StudentLearningActivityProgress (only for active LA)
         Assert.Single(db.StudentLearningActivityProgress.Local);
         Assert.Equal(activeLa.Id, db.StudentLearningActivityProgress.Local.Single().LearningActivityId);
 
@@ -234,7 +215,7 @@ public class StudentServiceTests
     public async Task AddStudentToClassAsync_WhenStudentAlreadyHasProgress_SkipsDuplicateRows()
     {
         await using var db = CreateDbContext();
-        var cls     = SeedClass(db);
+        var cls = SeedClass(db);
         var student = SeedStudent(db);
         await db.SaveChangesAsync();
 
@@ -246,11 +227,10 @@ public class StudentServiceTests
         db.AssignedBooks.Add(ab);
         await db.SaveChangesAsync();
 
-        // Student already has a ReadingProgress for this book → should be excluded
         db.ReadingProgress.Add(new ReadingProgress
         {
             StudentProfileId = student.Id,
-            AssignedBookId   = ab.Id
+            AssignedBookId = ab.Id
         });
         await db.SaveChangesAsync();
         var service = CreateService(db);
@@ -258,19 +238,13 @@ public class StudentServiceTests
         var result = await service.AddStudentToClassAsync(cls.Id, student.Id, CancellationToken.None);
 
         Assert.True(result.Success);
-        // Still only 1 ReadingProgress (the pre-existing one, not duplicated)
         Assert.Equal(1, db.ReadingProgress.Count());
     }
 
-    // -----------------------------------------------------------------------
-    // SearchAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task SearchAsync_WhenStudentClassIdIsNull_IncludesInResults()
     {
         await using var db = CreateDbContext();
-        // ClassId=null → always included regardless of org (first part of OR)
         SeedStudent(db, classId: null, firstName: "Alice");
         await db.SaveChangesAsync();
         var service = CreateService(db);
@@ -285,7 +259,7 @@ public class StudentServiceTests
     public async Task SearchAsync_WhenStudentClassIdMatchesOrg_IncludesInResults()
     {
         await using var db = CreateDbContext();
-        var cls = SeedClass(db, orgId: OrgId);  // same org as currentUser
+        var cls = SeedClass(db, orgId: OrgId);
         SeedStudent(db, classId: cls.Id, firstName: "Bob");
         await db.SaveChangesAsync();
         var service = CreateService(db);
@@ -301,7 +275,7 @@ public class StudentServiceTests
     {
         await using var db = CreateDbContext();
         var otherOrg = Guid.NewGuid();
-        var cls = SeedClass(db, orgId: otherOrg); // different org → excluded
+        var cls = SeedClass(db, orgId: otherOrg);
         SeedStudent(db, classId: cls.Id, firstName: "Carol");
         await db.SaveChangesAsync();
         var service = CreateService(db);
@@ -320,7 +294,6 @@ public class StudentServiceTests
         await db.SaveChangesAsync();
         var service = CreateService(db);
 
-        // firstName does NOT match "johnson" but lastName does
         var result = await service.SearchAsync("johnson", 1, 10, CancellationToken.None);
 
         Assert.True(result.Success);
@@ -341,14 +314,10 @@ public class StudentServiceTests
 
         Assert.True(result.Success);
         Assert.Equal(3, result.Data.TotalCount);
-        Assert.Single(result.Data.Items);   // 3 total, skip 2 → 1 on page 2
+        Assert.Single(result.Data.Items);
     }
 
-    // -----------------------------------------------------------------------
-    // RemoveStudentFromClassAsync
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task RemoveStudentFromClassAsync_WhenStudentNotFound_ReturnsFail()
     {
         await using var db = CreateDbContext();
@@ -364,7 +333,7 @@ public class StudentServiceTests
     public async Task RemoveStudentFromClassAsync_WhenStudentNotInClass_ReturnsFail()
     {
         await using var db = CreateDbContext();
-        SeedStudent(db, classId: null);  // ClassId is null → "not assigned"
+        SeedStudent(db, classId: null);
         await db.SaveChangesAsync();
         var service = CreateService(db);
 
@@ -379,7 +348,7 @@ public class StudentServiceTests
     public async Task RemoveStudentFromClassAsync_WhenClassBelongsToOtherTeacher_ReturnsForbidden()
     {
         await using var db = CreateDbContext();
-        var cls = SeedClass(db, teacherId: Guid.NewGuid()); // different teacher
+        var cls = SeedClass(db, teacherId: Guid.NewGuid());
         var student = SeedStudent(db, classId: cls.Id);
         await db.SaveChangesAsync();
         var service = CreateService(db);
@@ -394,7 +363,7 @@ public class StudentServiceTests
     public async Task RemoveStudentFromClassAsync_WhenValid_SetsClassIdNullAndReturnsOk()
     {
         await using var db = CreateDbContext();
-        var cls     = SeedClass(db);
+        var cls = SeedClass(db);
         var student = SeedStudent(db, classId: cls.Id);
         await db.SaveChangesAsync();
         var service = CreateService(db);

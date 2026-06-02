@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Moq;
 using TeacherDiary.Application.Events;
 using TeacherDiary.Domain.Common;
@@ -25,11 +25,7 @@ public class BadgeServiceTests
     private BadgeService CreateService(AppDbContext db)
         => new(db, _eventDispatcherMock.Object);
 
-    // -----------------------------------------------------------------------
-    // Seed helpers
-    // -----------------------------------------------------------------------
-
-    private static StudentProfile SeedStudent(AppDbContext db)
+private static StudentProfile SeedStudent(AppDbContext db)
     {
         var student = new StudentProfile { FirstName = "Test", LastName = "User" };
         db.Students.Add(student);
@@ -120,11 +116,7 @@ public class BadgeServiceTests
         return streak;
     }
 
-    // -----------------------------------------------------------------------
-    // Student existence guard
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task EvaluateAsync_WhenStudentDoesNotExist_ReturnsWithoutDoingAnything()
     {
         await using var db = CreateDbContext();
@@ -136,16 +128,11 @@ public class BadgeServiceTests
         _eventDispatcherMock.VerifyNoOtherCalls();
     }
 
-    // -----------------------------------------------------------------------
-    // Early return when no badges earned
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task EvaluateAsync_WhenNoBadgeConditionsMet_AwardsNoBadgesAndDispatchesNoEvents()
     {
         await using var db = CreateDbContext();
         var student = SeedStudent(db);
-        // No ReadingProgress, no ActivityLogs, no AssignmentProgress, no StudentStreak
         await db.SaveChangesAsync();
 
         var service = CreateService(db);
@@ -155,11 +142,7 @@ public class BadgeServiceTests
         _eventDispatcherMock.VerifyNoOtherCalls();
     }
 
-    // -----------------------------------------------------------------------
-    // FirstBookCompleted badge
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task EvaluateAsync_WhenStudentCompletedFirstBook_AwardsFirstBookBadge()
     {
         await using var db = CreateDbContext();
@@ -195,7 +178,6 @@ public class BadgeServiceTests
         var service = CreateService(db);
         await service.EvaluateAsync(student.Id, CancellationToken.None);
 
-        // Only the pre-existing badge, no new one added
         Assert.Equal(1, db.StudentBadges.Count());
         _eventDispatcherMock.VerifyNoOtherCalls();
     }
@@ -216,11 +198,7 @@ public class BadgeServiceTests
         _eventDispatcherMock.VerifyNoOtherCalls();
     }
 
-    // -----------------------------------------------------------------------
-    // Read100Pages badge
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task EvaluateAsync_WhenTotalPagesReadAtLeast100_AwardsRead100PagesBadge()
     {
         await using var db = CreateDbContext();
@@ -257,11 +235,7 @@ public class BadgeServiceTests
         _eventDispatcherMock.VerifyNoOtherCalls();
     }
 
-    // -----------------------------------------------------------------------
-    // Complete5Assignments badge
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task EvaluateAsync_WhenFiveAssignmentsCompleted_AwardsAssignmentBadge()
     {
         await using var db = CreateDbContext();
@@ -314,16 +288,11 @@ public class BadgeServiceTests
         _eventDispatcherMock.VerifyNoOtherCalls();
     }
 
-    // -----------------------------------------------------------------------
-    // Streak badges
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task EvaluateAsync_WhenStudentHasNoStreak_SkipsAllStreakBadges()
     {
         await using var db = CreateDbContext();
         var student = SeedStudent(db);
-        // No StudentStreak seeded
         await db.SaveChangesAsync();
 
         var service = CreateService(db);
@@ -375,7 +344,7 @@ public class BadgeServiceTests
     {
         await using var db = CreateDbContext();
         var student = SeedStudent(db);
-        SeedStreak(db, student.Id, bestStreak: 2); // below minimum tier of 3
+        SeedStreak(db, student.Id, bestStreak: 2);
         foreach (var (_, code) in BadgeCodes.StreakTiers)
             SeedBadge(db, code);
         await db.SaveChangesAsync();
@@ -387,11 +356,7 @@ public class BadgeServiceTests
         _eventDispatcherMock.VerifyNoOtherCalls();
     }
 
-    // -----------------------------------------------------------------------
-    // Points badges
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task EvaluateAsync_WhenTotalPointsMeetLowestTier_AwardsPointsBadge()
     {
         await using var db = CreateDbContext();
@@ -433,7 +398,7 @@ public class BadgeServiceTests
     {
         await using var db = CreateDbContext();
         var student = SeedStudent(db);
-        SeedActivityLog(db, student.Id, pointsEarned: 50); // below 100 threshold
+        SeedActivityLog(db, student.Id, pointsEarned: 50);
         foreach (var (_, code) in BadgeCodes.PointsTiers)
             SeedBadge(db, code);
         await db.SaveChangesAsync();
@@ -445,20 +410,14 @@ public class BadgeServiceTests
         _eventDispatcherMock.VerifyNoOtherCalls();
     }
 
-    // -----------------------------------------------------------------------
-    // Multiple badges at once
-    // -----------------------------------------------------------------------
-
-    [Fact]
+[Fact]
     public async Task EvaluateAsync_WhenMultipleBadgesEarned_AwardsAllAndDispatchesSeparateEvents()
     {
         await using var db = CreateDbContext();
         var student = SeedStudent(db);
 
-        // Triggers FirstBookCompleted
         SeedReadingProgress(db, student.Id, ProgressStatus.Completed);
 
-        // Triggers Read100Pages (but not Points100 since PointsEarned = 0)
         SeedReadingActivityLog(db, student.Id, pagesRead: 100, pointsEarned: 0);
 
         var bookBadge = SeedBadge(db, BadgeCodes.FirstBookCompleted, "First Book");
