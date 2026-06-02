@@ -22,6 +22,7 @@ import { ClassStudentsPage } from './pages/teacher/ClassStudentsPage'
 import { ClassReadingPage } from './pages/teacher/ClassReadingPage'
 import { ClassAssignmentsPage } from './pages/teacher/ClassAssignmentsPage'
 import { ClassChallengesPage } from './pages/teacher/ClassChallengesPage'
+import { ClassAnalyticsPage } from './pages/teacher/ClassAnalyticsPage'
 import { TeacherStudentPage } from './pages/teacher/TeacherStudentPage'
 
 import { MyStudentsPage } from './pages/parent/MyStudentsPage'
@@ -72,6 +73,7 @@ export default function App() {
                 <Route path="reading" element={<ClassReadingPage />} />
                 <Route path="assignments" element={<ClassAssignmentsPage />} />
                 <Route path="challenges" element={<ClassChallengesPage />} />
+                <Route path="analytics" element={<ClassAnalyticsPage />} />
               </Route>
             </Route>
 

@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../context/AuthContext'
 import { messagesApi } from '../api/messages'
 import { NotificationBell } from '../components/NotificationBell'
+import { NotificationsSignalRProvider } from '../components/NotificationsSignalRProvider'
 
 function SidebarDivider() {
   return <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(124,58,237,0.15), transparent)', margin: '8px 16px' }} />
@@ -39,6 +40,7 @@ export function StudentLayout() {
     : '?'
 
   return (
+    <NotificationsSignalRProvider>
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
 
       {/* Mobile top bar */}
@@ -160,12 +162,13 @@ export function StudentLayout() {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto flex flex-col min-w-0 pt-[52px] lg:pt-3">
+      <main className="flex-1 overflow-y-auto flex flex-col min-w-0 pt-[52px] lg:pt-3 2xl:pr-[316px]">
         <div style={{ flex: 1 }}><Outlet /></div>
         <Footer />
       </main>
 
       <AdSidebar />
     </div>
+    </NotificationsSignalRProvider>
   )
 }

@@ -57,6 +57,7 @@ public static class DependencyInjection
         services.AddScoped<IMessageService, MessageService>();
         services.AddScoped<IStudentSelfService, StudentSelfService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IAnalyticsService, AnalyticsService>();
 
         // Domain events
         services.AddScoped<IEventDispatcher, EventDispatcher>();

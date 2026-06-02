@@ -12,6 +12,7 @@ const tabs = [
   { to: 'reading', label: 'Четене' },
   { to: 'assignments', label: 'Задачи' },
   { to: 'challenges', label: 'Предизвикателства' },
+  { to: 'analytics', label: 'Аналитики' },
 ]
 
 export function ClassDashboardPage() {

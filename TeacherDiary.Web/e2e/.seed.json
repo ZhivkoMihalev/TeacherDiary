@@ -1,0 +1,15 @@
+{
+  "password": "Test123!",
+  "teacher": {
+    "email": "qa.teacher.1780421691447@example.com",
+    "classId": "cb6cdec6-d92c-4e51-a262-7bd5805bc717",
+    "bookTitle": "Под игото 1780421691447"
+  },
+  "parent": {
+    "email": "qa.parent.1780421691447@example.com",
+    "childId": "b4722f81-31ad-41a0-a704-d535e0af8f17"
+  },
+  "student": {
+    "email": "qa.student.1780421691447@example.com"
+  }
+}

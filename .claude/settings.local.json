@@ -1,4 +1,7 @@
 {
+  "env": {
+    "CLAUDE_CODE_DISABLE_1M_CONTEXT": "1"
+  },
   "permissions": {
     "allow": [
       "PowerShell(node --version)",
@@ -9,7 +12,30 @@
       "Bash(dotnet build *)",
       "Bash(npx tsc *)",
       "Bash(npm install *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "WebSearch",
+      "WebFetch(domain:www.allmediadesk.com)",
+      "WebFetch(domain:bidscube.com)",
+      "WebFetch(domain:www.adpushup.com)",
+      "WebFetch(domain:socialrails.com)",
+      "WebFetch(domain:www.iabstandards.be)",
+      "WebFetch(domain:www.publift.com)",
+      "WebFetch(domain:www.digitaland.tv)",
+      "WebFetch(domain:www.edtechinnovationhub.com)",
+      "WebFetch(domain:www.adweek.com)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:quizlet.com)",
+      "WebFetch(domain:www.rebelmouse.com)",
+      "WebFetch(domain:akashhamirwasia.com)",
+      "WebFetch(domain:blog.logrocket.com)",
+      "WebFetch(domain:www.framer.com)",
+      "WebFetch(domain:services.google.com)",
+      "WebFetch(domain:developers.google.com)",
+      "WebFetch(domain:support.google.com)",
+      "WebFetch(domain:web.dev)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.conroyp.com)"
     ]
-  }
+  },
+  "model": "sonnet"
 }

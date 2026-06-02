@@ -395,6 +395,47 @@ export interface NotificationDto {
   createdAt: string
 }
 
+// Analytics
+export interface DailyActivityDto {
+  date: string
+  activeStudents: number
+  pagesRead: number
+  pointsEarned: number
+  completedAssignments: number
+}
+
+export interface StudentEngagementDto {
+  studentId: string
+  studentName: string
+  daysActiveLast7: number
+  totalPoints: number
+  currentStreak: number
+  activeToday: boolean
+  lastActivityAt: string | null
+}
+
+export interface SubjectCompletionDto {
+  subject: string
+  totalRows: number
+  completedRows: number
+  completionRate: number
+}
+
+export interface ReadingStatsDto {
+  notStartedCount: number
+  inProgressCount: number
+  completedCount: number
+  pagesReadLast7Days: number
+  pagesReadLast30Days: number
+}
+
+export interface ClassAnalyticsDto {
+  activityTimeline: DailyActivityDto[]
+  studentEngagement: StudentEngagementDto[]
+  subjectCompletion: SubjectCompletionDto[]
+  readingStats: ReadingStatsDto
+}
+
 // Enums
 export type ProgressStatus = 'NotStarted' | 'InProgress' | 'Completed'
 export type TargetType = 'None' | 'Pages' | 'Books' | 'Assignments'

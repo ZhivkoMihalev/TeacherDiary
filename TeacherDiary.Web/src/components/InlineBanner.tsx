@@ -9,10 +9,9 @@ function pickRandom(exclude?: number): number {
   return idx
 }
 
-export function AdSidebar() {
+export function InlineBanner() {
   const { pathname } = useLocation()
   const [index, setIndex] = useState(() => Math.floor(Math.random() * Math.max(BANNERS.length, 1)))
-  const [visible, setVisible] = useState(false)
 
   useEffect(() => {
     setIndex(prev => pickRandom(prev))
@@ -24,63 +23,49 @@ export function AdSidebar() {
     return () => clearInterval(id)
   }, [pathname])
 
-  // Only show when there's enough room — avoids overlapping content
-  useEffect(() => {
-    const check = () => setVisible(window.innerWidth >= 1536)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
-
-  if (!visible || BANNERS.length === 0) return null
+  if (BANNERS.length === 0) return null
 
   const banner = BANNERS[index]
 
   return (
-    <aside
-      aria-label="Реклама"
-      style={{
-        position: 'fixed',
-        right: '16px',
-        top: '50%',
-        transform: 'translateY(-50%)',
-        width: '300px',
-        zIndex: 40,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '6px',
-      }}
-    >
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '6px',
+      padding: '20px 16px',
+      borderTop: '1px solid rgba(124,58,237,0.08)',
+    }}>
       <p style={{
         margin: 0,
         fontSize: '0.68rem',
         fontWeight: 600,
-        color: '#94a3b8',
+        color: '#c4b5fd',
         letterSpacing: '0.08em',
         textTransform: 'uppercase',
         fontFamily: "'Plus Jakarta Sans', sans-serif",
-        alignSelf: 'flex-start',
       }}>
         Реклама
       </p>
 
+      {/* IAB Medium Rectangle — 300×250 */}
       <a
         href={banner.linkUrl}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Реклама"
         style={{
           display: 'block',
-          width: '300px',
-          borderRadius: '14px',
+          minWidth: '300px',
+          minHeight: '250px',
+          borderRadius: '12px',
           overflow: 'hidden',
-          boxShadow: '0 4px 24px rgba(0,0,0,0.10)',
+          boxShadow: '0 2px 12px rgba(124,58,237,0.10)',
           transition: 'opacity 0.2s, transform 0.2s',
         }}
+        aria-label="Реклама"
         onMouseEnter={e => {
           e.currentTarget.style.opacity = '0.92'
-          e.currentTarget.style.transform = 'translateY(-2px)'
+          e.currentTarget.style.transform = 'translateY(-1px)'
         }}
         onMouseLeave={e => {
           e.currentTarget.style.opacity = '1'
@@ -90,10 +75,10 @@ export function AdSidebar() {
         <img
           src={banner.imageUrl}
           alt="Реклама"
-          style={{ width: '300px', height: 'auto', display: 'block' }}
+          style={{ width: '300px', height: '250px', objectFit: 'cover', objectPosition: 'top', display: 'block' }}
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
         />
       </a>
-    </aside>
+    </div>
   )
 }

@@ -8,6 +8,7 @@ import { messagesApi } from '../api/messages'
 import type { ClassDto } from '../types'
 import { AdSidebar } from '../components/AdSidebar'
 import { NotificationBell } from '../components/NotificationBell'
+import { NotificationsSignalRProvider } from '../components/NotificationsSignalRProvider'
 import { Footer } from '../components/Footer'
 
 function ChevronIcon({ open }: { open: boolean }) {
@@ -137,6 +138,7 @@ export function TeacherLayout() {
     : '?'
 
   return (
+    <NotificationsSignalRProvider>
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
 
       {/* Mobile top bar */}
@@ -349,7 +351,7 @@ export function TeacherLayout() {
       </aside>
 
       {/* ── Main ── */}
-      <main className="flex-1 overflow-y-auto flex flex-col min-w-0 pt-[52px] lg:pt-3">
+      <main className="flex-1 overflow-y-auto flex flex-col min-w-0 pt-[52px] lg:pt-3 2xl:pr-[316px]">
         <div style={{ flex: 1 }}>
           <Outlet />
         </div>
@@ -358,5 +360,6 @@ export function TeacherLayout() {
 
       <AdSidebar />
     </div>
+    </NotificationsSignalRProvider>
   )
 }
