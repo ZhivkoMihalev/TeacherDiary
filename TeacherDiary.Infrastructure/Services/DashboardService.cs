@@ -166,7 +166,7 @@ public sealed class DashboardService(AppDbContext db, ICurrentUser currentUser) 
                 sb.AwardedAt >= DateTime.UtcNow.AddDays(-7))
             .OrderByDescending(sb => sb.AwardedAt)
             .Take(10)
-            .Select(sb => new RecentBadgeDto
+            .Select(sb => new TeacherDiary.Application.DTOs.Dashboard.RecentBadgeDto
             {
                 StudentId = sb.StudentProfileId,
                 StudentName = sb.StudentProfile.FirstName + " " + sb.StudentProfile.LastName,

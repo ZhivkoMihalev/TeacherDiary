@@ -8,7 +8,7 @@ namespace TeacherDiary.Api.Controllers;
 [ApiController]
 [Authorize(Roles = "Student")]
 [Route("api/student")]
-public class StudentSelfController(IStudentSelfService studentSelf) : ControllerBase
+public class StudentSelfController(IStudentSelfService studentSelf, IStudentService studentService) : ControllerBase
 {
     /// <summary>
     /// Returns the authenticated student's own profile and progress.
@@ -201,6 +201,20 @@ public class StudentSelfController(IStudentSelfService studentSelf) : Controller
     public async Task<IActionResult> GetMyLeaderboard(CancellationToken cancellationToken)
     {
         var result = await studentSelf.GetMyLeaderboardAsync(cancellationToken);
+        return result.Success
+            ? Ok(result.Data)
+            : NotFound(new { error = result.Error });
+    }
+
+    /// <summary>Returns a consolidated gamification summary for the authenticated student.</summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Total points, streak, class rank, class size, most recent badge and total badge count.</returns>
+    /// <response code="200">Returns the gamification summary.</response>
+    /// <response code="404">Student profile not found or student is not enrolled in a class.</response>
+    [HttpGet("me/gamification-summary")]
+    public async Task<IActionResult> GetGamificationSummary(CancellationToken cancellationToken)
+    {
+        var result = await studentService.GetGamificationSummaryAsync(cancellationToken);
         return result.Success
             ? Ok(result.Data)
             : NotFound(new { error = result.Error });

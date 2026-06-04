@@ -7,6 +7,7 @@ import { Spinner } from '../../components/ui/Spinner'
 import { CelebrationDialog } from '../../components/ui/CelebrationDialog'
 import { AlertDialog } from '../../components/ui/AlertDialog'
 import { MedalIcon } from '../../components/ui/MedalIcon'
+import { GamificationHero } from '../../components/student/GamificationHero'
 import type { ProgressStatus, StudentChallengeDto, ActivityCalendarDayDto } from '../../types'
 import { formatDate } from '../../utils/formatDate'
 
@@ -305,6 +306,7 @@ export function StudentDashboardPage() {
       qc.invalidateQueries({ queryKey: ['student-me'] })
       qc.invalidateQueries({ queryKey: ['student-activity-calendar'] })
       qc.invalidateQueries({ queryKey: ['student-leaderboard'] })
+      qc.invalidateQueries({ queryKey: ['student-gamification-summary'] })
       setReadingPages({})
       if (pendingCelebration.current) {
         setCelebration(pendingCelebration.current)
@@ -331,6 +333,7 @@ export function StudentDashboardPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['student-me'] })
       qc.invalidateQueries({ queryKey: ['student-leaderboard'] })
+      qc.invalidateQueries({ queryKey: ['student-gamification-summary'] })
     },
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
@@ -352,6 +355,7 @@ export function StudentDashboardPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['student-me'] })
       qc.invalidateQueries({ queryKey: ['student-leaderboard'] })
+      qc.invalidateQueries({ queryKey: ['student-gamification-summary'] })
     },
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
@@ -383,6 +387,9 @@ export function StudentDashboardPage() {
 
   return (
     <div style={{ maxWidth: '820px', margin: '0 auto', padding: '20px 16px 48px' }}>
+
+      {/* ── Gamification Hero (streak / точки / класиране / награди) ──────── */}
+      <GamificationHero />
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <div style={{

@@ -1,5 +1,5 @@
 import { client } from './client'
-import type { ActivityCalendarDayDto, LeaderboardItemDto, StudentBadgeDto, StudentDetailsDto } from '../types'
+import type { ActivityCalendarDayDto, GamificationSummaryDto, LeaderboardItemDto, StudentBadgeDto, StudentDetailsDto } from '../types'
 
 export const studentApi = {
   getMyDetails: () =>
@@ -28,4 +28,9 @@ export const studentApi = {
 
   getMyLeaderboard: () =>
     client.get<LeaderboardItemDto[]>('/student/me/leaderboard').then((r) => r.data),
+}
+
+export const gamificationSummaryApi = {
+  get: () =>
+    client.get<GamificationSummaryDto>('/student/me/gamification-summary').then((r) => r.data),
 }

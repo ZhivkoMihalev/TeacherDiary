@@ -240,4 +240,74 @@ public sealed class StudentService(AppDbContext db, ICurrentUser currentUser, IE
 
         return Result<bool>.Ok(true);
     }
+
+    public async Task<Result<GamificationSummaryDto>> GetGamificationSummaryAsync(CancellationToken cancellationToken)
+    {
+        var student = await db.Students
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.UserId == currentUser.UserId, cancellationToken);
+
+        if (student is null)
+            return Result<GamificationSummaryDto>.Fail("Student profile not found.");
+
+        if (student.ClassId is null)
+            return Result<GamificationSummaryDto>.Fail("Student is not enrolled in a class.");
+
+        var classId = student.ClassId.Value;
+
+        var totalPoints = await db.StudentPoints
+            .AsNoTracking()
+            .Where(p => p.StudentProfileId == student.Id)
+            .Select(p => (int?)p.TotalPoints)
+            .FirstOrDefaultAsync(cancellationToken) ?? 0;
+
+        var streak = await db.StudentStreaks
+            .AsNoTracking()
+            .Where(s => s.StudentProfileId == student.Id)
+            .Select(s => new { s.CurrentStreak, s.BestStreak })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var currentStreak = streak?.CurrentStreak ?? 0;
+        var bestStreak = streak?.BestStreak ?? 0;
+
+        var higherCount = await (
+            from s in db.Students
+            where s.ClassId == classId
+            join p in db.StudentPoints on s.Id equals p.StudentProfileId
+            where p.TotalPoints > totalPoints
+            select s.Id)
+            .CountAsync(cancellationToken);
+
+        var classRank = higherCount + 1;
+
+        var classSize = await db.Students
+            .AsNoTracking()
+            .CountAsync(s => s.ClassId == classId, cancellationToken);
+
+        var totalBadges = await db.StudentBadges
+            .AsNoTracking()
+            .CountAsync(b => b.StudentProfileId == student.Id, cancellationToken);
+
+        var recentBadge = await db.StudentBadges
+            .AsNoTracking()
+            .Where(b => b.StudentProfileId == student.Id)
+            .OrderByDescending(b => b.AwardedAt)
+            .Select(b => new RecentBadgeDto(
+                b.Badge.Code,
+                b.Badge.Name,
+                b.Badge.Icon,
+                b.AwardedAt))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var summary = new GamificationSummaryDto(
+            totalPoints,
+            currentStreak,
+            bestStreak,
+            classRank,
+            classSize,
+            recentBadge,
+            totalBadges);
+
+        return Result<GamificationSummaryDto>.Ok(summary);
+    }
 }

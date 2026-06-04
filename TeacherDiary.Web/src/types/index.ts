@@ -159,6 +159,23 @@ export interface StudentBadgeDto {
   awardedAt: string
 }
 
+export interface RecentBadgeDto {
+  code: string
+  name: string
+  icon: string
+  awardedAt: string
+}
+
+export interface GamificationSummaryDto {
+  totalPoints: number
+  currentStreak: number
+  bestStreak: number
+  classRank: number
+  classSize: number
+  recentBadge: RecentBadgeDto | null
+  totalBadges: number
+}
+
 export interface StudentActivityDto {
   studentId: string
   studentName: string

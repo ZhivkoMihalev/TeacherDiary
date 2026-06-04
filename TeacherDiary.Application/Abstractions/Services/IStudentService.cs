@@ -13,4 +13,6 @@ public interface IStudentService
     Task<Result<PagedResult<StudentSearchDto>>> SearchAsync(string name, int page, int pageSize, CancellationToken cancellationToken);
 
     Task<Result<bool>> RemoveStudentFromClassAsync(Guid studentId, CancellationToken cancellationToken);
+
+    Task<Result<GamificationSummaryDto>> GetGamificationSummaryAsync(CancellationToken cancellationToken);
 }
