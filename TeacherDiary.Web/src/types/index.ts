@@ -322,7 +322,7 @@ export interface StudentStreakDto {
   bestStreak: number
 }
 
-export interface RecentBadgeDto {
+export interface DashboardRecentBadgeDto {
   studentId: string
   studentName: string
   badgeCode: string
@@ -344,7 +344,7 @@ export interface DashboardDto {
   leaderboard: LeaderboardItemDto[]
   topReaders: TopReaderDto[]
   bestStreaks: StudentStreakDto[]
-  recentBadges: RecentBadgeDto[]
+  recentBadges: DashboardRecentBadgeDto[]
 }
 
 // Messages
@@ -451,6 +451,21 @@ export interface ClassAnalyticsDto {
   studentEngagement: StudentEngagementDto[]
   subjectCompletion: SubjectCompletionDto[]
   readingStats: ReadingStatsDto
+}
+
+export interface TranslateRequestDto {
+  text: string
+  targetLanguage: string
+}
+
+export interface TranslateResponseDto {
+  translatedText: string
+  targetLanguage: string
+}
+
+export interface TranslationResult {
+  language: string
+  translatedText: string
 }
 
 // Enums

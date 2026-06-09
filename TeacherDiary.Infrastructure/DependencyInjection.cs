@@ -59,6 +59,13 @@ public static class DependencyInjection
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IAnalyticsService, AnalyticsService>();
 
+        services.AddHttpClient("DeepL", c =>
+        {
+            c.BaseAddress = new Uri("https://api-free.deepl.com/v2/");
+            c.Timeout = TimeSpan.FromSeconds(10);
+        });
+        services.AddScoped<ITranslationService, TranslationService>();
+
         // Domain events
         services.AddScoped<IEventDispatcher, EventDispatcher>();
 
@@ -75,6 +82,7 @@ public static class DependencyInjection
         services.AddScoped<IDomainEventHandler<StreakBrokenEvent>, StreakBrokenNotificationHandler>();
         services.AddScoped<IDomainEventHandler<StreakReminderEvent>, StreakReminderNotificationHandler>();
         services.AddScoped<IDomainEventHandler<StudentJoinedClassEvent>, StudentJoinedClassNotificationHandler>();
+        services.AddScoped<IDomainEventHandler<MessageReceivedEvent>, MessageReceivedNotificationHandler>();
 
         // Background services
         services.AddHostedService<OverdueAndReminderService>();

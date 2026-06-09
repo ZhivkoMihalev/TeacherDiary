@@ -1,5 +1,5 @@
 import { client } from './client'
-import type { ConversationDto, MessageDto, MessageContactDto } from '../types'
+import type { ConversationDto, MessageDto, MessageContactDto, TranslateRequestDto, TranslateResponseDto } from '../types'
 
 export const messagesApi = {
   getContacts: () =>
@@ -22,4 +22,11 @@ export const messagesApi = {
     form.append('file', file)
     return client.post<{ imageUrl: string }>('/messages/upload-image', form).then((r) => r.data)
   },
+}
+
+export const translationApi = {
+  translate: (text: string, targetLanguage: string) =>
+    client
+      .post<TranslateResponseDto>('/translation/translate', { text, targetLanguage } satisfies TranslateRequestDto)
+      .then((r) => r.data),
 }

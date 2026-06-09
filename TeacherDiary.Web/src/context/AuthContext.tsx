@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import type { AuthResponse } from '../types'
 
 interface AuthContextValue {
@@ -23,6 +24,7 @@ function loadUser(): AuthResponse | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthResponse | null>(loadUser)
+  const queryClient = useQueryClient()
 
   function login(data: AuthResponse) {
     localStorage.setItem('token', data.token)
@@ -33,6 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   function logout() {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+    queryClient.clear()
     setUser(null)
   }
 

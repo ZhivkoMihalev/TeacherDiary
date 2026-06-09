@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { messagesApi } from '../../api/messages'
+import { TranslateButton } from '../../components/TranslateButton'
 import type { ConversationDto, MessageContactDto } from '../../types'
 
 function formatTime(iso: string) {
@@ -309,7 +310,7 @@ export function MessagesPage() {
               {messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`flex ${msg.isFromMe ? 'justify-end' : 'justify-start'}`}
+                  className={`flex flex-col ${msg.isFromMe ? 'items-end' : 'items-start'}`}
                 >
                   <div
                     className={`max-w-[70%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
@@ -334,6 +335,11 @@ export function MessagesPage() {
                       {msg.isFromMe && (msg.isRead ? ' ✓✓' : ' ✓')}
                     </p>
                   </div>
+                  {msg.content?.trim() && (
+                    <div className="max-w-[70%] mt-1 px-1">
+                      <TranslateButton text={msg.content} />
+                    </div>
+                  )}
                 </div>
               ))}
               <div ref={bottomRef} />

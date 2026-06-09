@@ -13,5 +13,6 @@ public enum NotificationType
     BadgeEarned,
     StreakReminder,
     StreakBroken,
-    StudentJoinedClass
+    StudentJoinedClass,
+    MessageReceived
 }

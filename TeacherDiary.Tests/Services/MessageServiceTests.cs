@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using TeacherDiary.Application.Abstractions.Services;
 using TeacherDiary.Application.DTOs.Messages;
+using TeacherDiary.Application.Events;
 using TeacherDiary.Domain.Entities;
 using TeacherDiary.Infrastructure.Auth;
 using TeacherDiary.Infrastructure.Persistence;
@@ -17,6 +18,7 @@ public class MessageServiceTests
     private static readonly Guid OtherId = new("22222222-2222-2222-2222-222222222222");
 
     private readonly Mock<ICurrentUser> _currentUserMock = new();
+    private readonly Mock<IEventDispatcher> _eventDispatcherMock = new();
 
     public MessageServiceTests()
     {
@@ -41,7 +43,7 @@ public class MessageServiceTests
     }
 
     private MessageService CreateService(AppDbContext db) =>
-        new(db, _currentUserMock.Object);
+        new(db, _currentUserMock.Object, _eventDispatcherMock.Object);
 
 private static AppUser SeedUser(AppDbContext db, Guid id, string firstName, string lastName)
     {
@@ -243,6 +245,25 @@ private static AppUser SeedUser(AppDbContext db, Guid id, string firstName, stri
         Assert.Equal(MyId, msg.SenderId);
         Assert.Equal(OtherId, msg.ReceiverId);
         Assert.False(msg.IsRead);
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_WhenMessageSent_PublishesMessageReceivedEvent()
+    {
+        await using var db = CreateDbContext();
+        SeedUser(db, MyId, "Sender", "User");
+        SeedUser(db, OtherId, "Receiver", "User");
+        await db.SaveChangesAsync();
+        var service = CreateService(db);
+
+        var result = await service.SendMessageAsync(
+            new SendMessageRequest { ReceiverId = OtherId, Content = "Hello", ImageUrl = null },
+            CancellationToken.None);
+
+        Assert.True(result.Success);
+        _eventDispatcherMock.Verify(
+            d => d.PublishAsync(It.IsAny<IDomainEvent>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]

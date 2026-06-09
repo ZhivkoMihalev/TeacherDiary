@@ -2,12 +2,13 @@ using Microsoft.EntityFrameworkCore;
 using TeacherDiary.Application.Abstractions.Services;
 using TeacherDiary.Application.Common;
 using TeacherDiary.Application.DTOs.Messages;
+using TeacherDiary.Application.Events;
 using TeacherDiary.Domain.Entities;
 using TeacherDiary.Infrastructure.Persistence;
 
 namespace TeacherDiary.Infrastructure.Services;
 
-public sealed class MessageService(AppDbContext db, ICurrentUser currentUser) : IMessageService
+public sealed class MessageService(AppDbContext db, ICurrentUser currentUser, IEventDispatcher eventDispatcher) : IMessageService
 {
     public async Task<Result<List<ConversationDto>>> GetConversationsAsync(CancellationToken cancellationToken)
     {
@@ -115,6 +116,15 @@ public sealed class MessageService(AppDbContext db, ICurrentUser currentUser) : 
 
         db.Messages.Add(message);
         await db.SaveChangesAsync(cancellationToken);
+
+        var senderName = await db.Users
+            .Where(u => u.Id == message.SenderId)
+            .Select(u => u.FirstName + " " + u.LastName)
+            .FirstOrDefaultAsync(cancellationToken) ?? "";
+
+        await eventDispatcher.PublishAsync(
+            new MessageReceivedEvent(message.Id, message.SenderId, message.ReceiverId, senderName),
+            cancellationToken);
 
         return Result<Guid>.Ok(message.Id);
     }
