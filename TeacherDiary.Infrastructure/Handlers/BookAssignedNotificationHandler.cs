@@ -17,7 +17,7 @@ public sealed class BookAssignedNotificationHandler(
             .Select(s => new { s.Id, s.UserId, s.ParentId })
             .ToListAsync(cancellationToken);
 
-        var message = $"Получихте нова книга за четене: {e.BookTitle}.";
+        var message = $"You have a new book to read: {e.BookTitle}.";
 
         foreach (var student in students)
         {

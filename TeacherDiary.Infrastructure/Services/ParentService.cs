@@ -136,14 +136,14 @@ public sealed class ParentService(AppDbContext db, ICurrentUser currentUser) : I
                 Date = a.Date,
                 Description = a.ActivityType switch
                 {
-                    ActivityType.ReadingProgress => $"Прочел {a.PagesRead ?? 0} стр.",
-                    ActivityType.AssignmentCompleted => "Завърши задача",
-                    ActivityType.AssignmentStarted => "Стартира задача",
-                    ActivityType.ChallengeCompleted => "Завърши предизвикателство",
-                    ActivityType.ChallengeProgressUpdated => "Актуализира предизвикателство",
-                    ActivityType.LearningActivityCompleted => "Завърши учебна дейност",
-                    ActivityType.LearningActivityStarted => "Стартира учебна дейност",
-                    _ => "Активност"
+                    ActivityType.ReadingProgress => $"Read {a.PagesRead ?? 0} pages",
+                    ActivityType.AssignmentCompleted => "Completed assignment",
+                    ActivityType.AssignmentStarted => "Started assignment",
+                    ActivityType.ChallengeCompleted => "Completed challenge",
+                    ActivityType.ChallengeProgressUpdated => "Updated challenge progress",
+                    ActivityType.LearningActivityCompleted => "Completed learning activity",
+                    ActivityType.LearningActivityStarted => "Started learning activity",
+                    _ => "Activity"
                 },
                 PointsEarned = a.PointsEarned ?? 0
             })
@@ -297,7 +297,7 @@ public sealed class ParentService(AppDbContext db, ICurrentUser currentUser) : I
             return Result<bool>.Fail("Student not found.");
 
         if (student.ClassId is not null)
-            return Result<bool>.Fail("Детето е записано в клас. Помолете учителя да го премахне от класа преди да го изтриете.");
+            return Result<bool>.Fail("The student is enrolled in a class. Ask the teacher to remove them from the class before deleting.");
 
         await db.ActivityLogs.Where(a => a.StudentProfileId == studentId).ExecuteDeleteAsync(cancellationToken);
         await db.StudentPoints.Where(p => p.StudentProfileId == studentId).ExecuteDeleteAsync(cancellationToken);

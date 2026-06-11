@@ -12,7 +12,7 @@ public sealed class BookOverdueNotificationHandler(
 {
     public async Task HandleAsync(BookOverdueEvent e, CancellationToken cancellationToken)
     {
-        var message = $"Времето за прочитане на книга: {e.BookTitle} изтече.";
+        var message = $"The deadline for reading: {e.BookTitle} has passed.";
 
         var teacherId = await db.Classes
             .Where(c => c.Id == e.ClassId)

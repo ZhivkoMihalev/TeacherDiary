@@ -19,7 +19,7 @@ public sealed class BadgeEarnedNotificationHandler(
 
         if (student is null) return;
 
-        var message = $"Получихте медал: {e.BadgeName}.";
+        var message = $"You earned a badge: {e.BadgeName}.";
 
         if (student.UserId.HasValue)
             await notificationService.CreateAsync(

@@ -31,7 +31,7 @@ public sealed class ChallengeCompletedNotificationHandler(
 
         if (student is null || challengeTitle is null) return;
 
-        var message = $"{student.FirstName} {student.LastName} завърши предизвикателството: {challengeTitle}.";
+        var message = $"{student.FirstName} {student.LastName} completed the challenge: {challengeTitle}.";
 
         await notificationService.CreateAsync(
             teacherId,

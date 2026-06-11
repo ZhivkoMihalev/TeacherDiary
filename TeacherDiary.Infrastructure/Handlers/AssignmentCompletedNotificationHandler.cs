@@ -31,7 +31,7 @@ public sealed class AssignmentCompletedNotificationHandler(
 
         if (student is null || assignment is null) return;
 
-        var message = $"{student.FirstName} {student.LastName} завърши задача: {assignment}.";
+        var message = $"{student.FirstName} {student.LastName} completed assignment: {assignment}.";
 
         await notificationService.CreateAsync(
             teacherId,

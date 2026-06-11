@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { messagesApi } from '../../api/messages'
 import { TranslateButton } from '../../components/TranslateButton'
 import type { ConversationDto, MessageContactDto } from '../../types'
+import { useLanguage } from '../../context/LanguageContext'
 
 function formatTime(iso: string) {
   const d = new Date(iso)
@@ -89,6 +90,7 @@ function NewConversationModal({
 
 export function MessagesPage() {
   const qc = useQueryClient()
+  const { translate } = useLanguage()
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
   const [selectedUserName, setSelectedUserName] = useState('')
   const [input, setInput] = useState('')
@@ -253,7 +255,7 @@ export function MessagesPage() {
                 <div className="flex items-center justify-between">
                   <p className="text-xs text-gray-500 truncate">
                     {conv.lastMessageIsFromMe ? 'Вие: ' : ''}
-                    {conv.lastMessage}
+                    {translate(conv.lastMessage)}
                   </p>
                   {conv.unreadCount > 0 && (
                     <span className="ml-2 shrink-0 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">

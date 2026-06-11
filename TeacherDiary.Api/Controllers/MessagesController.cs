@@ -136,13 +136,13 @@ public class MessagesController(IMessageService messages, IWebHostEnvironment en
     public async Task<IActionResult> UploadImage(IFormFile file, CancellationToken cancellationToken)
     {
         if (file is null || file.Length == 0)
-            return BadRequest(new { error = "Не е избрано изображение." });
+            return BadRequest(new { error = "No image selected." });
 
         if (file.Length > 5 * 1024 * 1024)
-            return BadRequest(new { error = "Изображението е прекалено голямо (макс. 5MB)." });
+            return BadRequest(new { error = "Image is too large (max 5MB)." });
 
         if (!AllowedContentTypes.Contains(file.ContentType.ToLower()))
-            return BadRequest(new { error = "Разрешени са само изображения (JPEG, PNG, GIF, WEBP)." });
+            return BadRequest(new { error = "Only images are allowed (JPEG, PNG, GIF, WEBP)." });
 
         var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
         if (string.IsNullOrEmpty(ext))

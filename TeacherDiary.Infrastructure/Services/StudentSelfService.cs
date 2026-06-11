@@ -73,14 +73,14 @@ public sealed class StudentSelfService(
                 Date = a.Date,
                 Description = a.ActivityType switch
                 {
-                    ActivityType.ReadingProgress => $"Прочел {a.PagesRead ?? 0} стр.",
-                    ActivityType.AssignmentCompleted => "Завърши задача",
-                    ActivityType.AssignmentStarted => "Стартира задача",
-                    ActivityType.ChallengeCompleted => "Завърши предизвикателство",
-                    ActivityType.ChallengeProgressUpdated => "Актуализира предизвикателство",
-                    ActivityType.LearningActivityCompleted => "Завърши учебна дейност",
-                    ActivityType.LearningActivityStarted => "Стартира учебна дейност",
-                    _ => "Активност"
+                    ActivityType.ReadingProgress => $"Read {a.PagesRead ?? 0} pages",
+                    ActivityType.AssignmentCompleted => "Completed assignment",
+                    ActivityType.AssignmentStarted => "Started assignment",
+                    ActivityType.ChallengeCompleted => "Completed challenge",
+                    ActivityType.ChallengeProgressUpdated => "Updated challenge progress",
+                    ActivityType.LearningActivityCompleted => "Completed learning activity",
+                    ActivityType.LearningActivityStarted => "Started learning activity",
+                    _ => "Activity"
                 },
                 PointsEarned = a.PointsEarned ?? 0
             })

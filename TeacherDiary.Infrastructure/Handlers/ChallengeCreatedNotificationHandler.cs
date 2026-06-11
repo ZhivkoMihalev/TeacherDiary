@@ -17,7 +17,7 @@ public sealed class ChallengeCreatedNotificationHandler(
             .Select(s => new { s.Id, s.UserId, s.ParentId })
             .ToListAsync(cancellationToken);
 
-        var message = $"Ново предизвикателство: {e.Title}.";
+        var message = $"New challenge: {e.Title}.";
 
         foreach (var student in students)
         {

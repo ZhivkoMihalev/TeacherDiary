@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useNotifications } from '../../hooks/useNotifications'
 import type { NotificationDto, NotificationType } from '../../types'
+import { useLanguage } from '../../context/LanguageContext'
 
 function getIcon(type: NotificationType): string {
   switch (type) {
@@ -72,6 +73,7 @@ const FONT = "'Plus Jakarta Sans', sans-serif"
 
 export function NotificationsPage() {
   const { notifications, unreadCount, loading, markAsRead, markAllAsRead } = useNotifications()
+  const { translate } = useLanguage()
   const navigate = useNavigate()
   const [filter, setFilter] = useState<'all' | 'unread'>('all')
 
@@ -269,7 +271,7 @@ export function NotificationsPage() {
                         fontFamily: FONT,
                         fontWeight: n.isRead ? 400 : 500,
                       }}>
-                        {n.message}
+                        {translate(n.message)}
                       </p>
                       <p style={{ margin: '3px 0 0', fontSize: '0.75rem', color: '#a78bfa', fontFamily: FONT }}>
                         {relativeTime(n.createdAt)}

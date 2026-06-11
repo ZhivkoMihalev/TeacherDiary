@@ -9,6 +9,7 @@ import type { ClassDto } from '../types'
 import { AdSidebar } from '../components/AdSidebar'
 import { NotificationBell } from '../components/NotificationBell'
 import { NotificationsSignalRProvider } from '../components/NotificationsSignalRProvider'
+import { LanguageSelector } from '../components/LanguageSelector'
 import { Footer } from '../components/Footer'
 
 function ChevronIcon({ open }: { open: boolean }) {
@@ -288,6 +289,11 @@ export function TeacherLayout() {
         </nav>
 
         <SidebarDivider />
+
+        {/* Language */}
+        <div style={{ padding: '4px 16px 0' }}>
+          <LanguageSelector />
+        </div>
 
         {/* User */}
         <div style={{ padding: '12px 16px 16px' }}>

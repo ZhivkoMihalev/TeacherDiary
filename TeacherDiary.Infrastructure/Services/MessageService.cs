@@ -57,9 +57,9 @@ public sealed class MessageService(AppDbContext db, ICurrentUser currentUser, IE
                 return new ConversationDto
                 {
                     OtherUserId = g.Key,
-                    OtherUserName = userMap.GetValueOrDefault(g.Key, "Непознат"),
+                    OtherUserName = userMap.GetValueOrDefault(g.Key, "Unknown"),
                     StudentName = studentNameMap.GetValueOrDefault(g.Key),
-                    LastMessage = last.ImageUrl != null && last.Content == null ? "[Снимка]" : last.Content ?? "",
+                    LastMessage = last.ImageUrl != null && last.Content == null ? "[Image]" : last.Content ?? "",
                     LastMessageIsImage = last.ImageUrl != null && last.Content == null,
                     LastMessageAt = last.CreatedAt,
                     UnreadCount = g.Count(m => m.ReceiverId == myId && !m.IsRead),
@@ -103,7 +103,7 @@ public sealed class MessageService(AppDbContext db, ICurrentUser currentUser, IE
     public async Task<Result<Guid>> SendMessageAsync(SendMessageRequest request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.Content) && string.IsNullOrWhiteSpace(request.ImageUrl))
-            return Result<Guid>.Fail("Съобщението не може да е празно.");
+            return Result<Guid>.Fail("Message cannot be empty.");
 
         var message = new Message
         {

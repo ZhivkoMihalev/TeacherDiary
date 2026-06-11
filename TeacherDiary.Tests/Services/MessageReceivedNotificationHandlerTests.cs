@@ -29,7 +29,7 @@ public class MessageReceivedNotificationHandlerTests
             n => n.CreateAsync(
                 receiverId,
                 NotificationType.MessageReceived,
-                "Ново съобщение от Jane Parent",
+                "New message from Jane Parent",
                 "/messages",
                 messageId,
                 CancellationToken.None),

@@ -26,7 +26,7 @@ public sealed class StudentJoinedClassNotificationHandler(
 
         if (student is null) return;
 
-        var message = $"{student.FirstName} {student.LastName} се присъедини към класа.";
+        var message = $"{student.FirstName} {student.LastName} joined the class.";
 
         await notificationService.CreateAsync(
             teacherId,

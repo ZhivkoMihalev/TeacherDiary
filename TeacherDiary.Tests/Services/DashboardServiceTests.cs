@@ -452,13 +452,13 @@ private static Class SeedClass(AppDbContext db)
 
         Assert.Equal(7, dto.ActivityLast7Days.Count);
         var descs = dto.ActivityLast7Days.Select(a => a.Description).ToList();
-        Assert.Contains(descs, d => d.StartsWith("Прочел"));
-        Assert.Contains(descs, d => d == "Завърши задача");
-        Assert.Contains(descs, d => d == "Стартира задача");
-        Assert.Contains(descs, d => d == "Завърши предизвикателство");
-        Assert.Contains(descs, d => d == "Актуализира предизвикателство");
-        Assert.Contains(descs, d => d == "Завърши учебна дейност");
-        Assert.Contains(descs, d => d == "Стартира учебна дейност");
+        Assert.Contains(descs, d => d.StartsWith("Read"));
+        Assert.Contains(descs, d => d == "Completed assignment");
+        Assert.Contains(descs, d => d == "Started assignment");
+        Assert.Contains(descs, d => d == "Completed challenge");
+        Assert.Contains(descs, d => d == "Updated challenge progress");
+        Assert.Contains(descs, d => d == "Completed learning activity");
+        Assert.Contains(descs, d => d == "Started learning activity");
 
         Assert.Equal(50, dto.TotalPoints);
         Assert.Equal(10, dto.TotalPagesRead);
@@ -495,7 +495,7 @@ private static Class SeedClass(AppDbContext db)
 
         Assert.True(result.Success);
         Assert.Single(result.Data.ActivityLast7Days);
-        Assert.Equal("Активност", result.Data.ActivityLast7Days[0].Description);
+        Assert.Equal("Activity", result.Data.ActivityLast7Days[0].Description);
     }
 
 [Fact]

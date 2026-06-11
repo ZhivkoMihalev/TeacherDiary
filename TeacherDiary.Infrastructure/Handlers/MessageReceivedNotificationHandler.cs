@@ -12,7 +12,7 @@ public sealed class MessageReceivedNotificationHandler(
         await notificationService.CreateAsync(
             e.ReceiverId,
             NotificationType.MessageReceived,
-            $"Ново съобщение от {e.SenderName}",
+            $"New message from {e.SenderName}",
             "/messages",
             e.MessageId,
             cancellationToken);

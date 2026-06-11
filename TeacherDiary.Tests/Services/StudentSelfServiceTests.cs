@@ -218,15 +218,15 @@ public class StudentSelfServiceTests
         Assert.NotEqual(0, result.Data.TotalPoints);
 
         var descs = result.Data.ActivityLast7Days.Select(a => a.Description).ToList();
-        Assert.Contains("Прочел 10 стр.", descs);
-        Assert.Contains("Прочел 0 стр.", descs);
-        Assert.Contains("Завърши задача", descs);
-        Assert.Contains("Стартира задача", descs);
-        Assert.Contains("Завърши предизвикателство", descs);
-        Assert.Contains("Актуализира предизвикателство", descs);
-        Assert.Contains("Завърши учебна дейност", descs);
-        Assert.Contains("Стартира учебна дейност", descs);
-        Assert.Contains("Активност", descs);
+        Assert.Contains("Read 10 pages", descs);
+        Assert.Contains("Read 0 pages", descs);
+        Assert.Contains("Completed assignment", descs);
+        Assert.Contains("Started assignment", descs);
+        Assert.Contains("Completed challenge", descs);
+        Assert.Contains("Updated challenge progress", descs);
+        Assert.Contains("Completed learning activity", descs);
+        Assert.Contains("Started learning activity", descs);
+        Assert.Contains("Activity", descs);
 
         Assert.Contains(result.Data.ActivityLast7Days, a => a.PointsEarned == 0);
         Assert.Contains(result.Data.ActivityLast7Days, a => a.PointsEarned > 0);

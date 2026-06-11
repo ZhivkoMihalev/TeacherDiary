@@ -12,7 +12,7 @@ public sealed class AssignmentOverdueNotificationHandler(
 {
     public async Task HandleAsync(AssignmentOverdueEvent e, CancellationToken cancellationToken)
     {
-        var message = $"Времето за завършване на задача: {e.Title} изтече.";
+        var message = $"The deadline for assignment: {e.Title} has passed.";
 
         var teacherId = await db.Classes
             .Where(c => c.Id == e.ClassId)

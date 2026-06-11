@@ -15,6 +15,7 @@ import type {
   ReadingStatsDto,
 } from '../../types'
 import { formatDate } from '../../utils/formatDate'
+import { useLanguage } from '../../context/LanguageContext'
 
 const FONT = "'Plus Jakarta Sans', sans-serif"
 
@@ -76,6 +77,7 @@ function StudentDetailDrawer({
   studentId: string
   onClose: () => void
 }) {
+  const { translate } = useLanguage()
   const { data, isLoading } = useQuery({
     queryKey: ['teacher-student', studentId],
     queryFn: () => dashboardApi.getStudentDetails(studentId),
@@ -316,7 +318,7 @@ function StudentDetailDrawer({
                   {data.activityLast7Days.map((entry, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '6px 0', borderBottom: '1px solid rgba(124,58,237,0.06)', fontSize: '0.8rem' }}>
                       <span style={{ color: '#6b7280', flexShrink: 0, marginRight: '8px' }}>{formatDate(entry.date)}</span>
-                      <span style={{ color: '#1e1b4b', flex: 1, textAlign: 'center' }}>{entry.description}</span>
+                      <span style={{ color: '#1e1b4b', flex: 1, textAlign: 'center' }}>{translate(entry.description)}</span>
                       <span style={{ color: '#7c3aed', fontWeight: 600, flexShrink: 0, marginLeft: '8px' }}>
                         {entry.pointsEarned > 0 ? `+${entry.pointsEarned}` : '—'}
                       </span>

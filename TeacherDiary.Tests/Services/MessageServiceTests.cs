@@ -165,7 +165,7 @@ private static AppUser SeedUser(AppDbContext db, Guid id, string firstName, stri
         var result = await service.GetConversationsAsync(CancellationToken.None);
 
         var conv = result.Data[0];
-        Assert.Equal("[Снимка]", conv.LastMessage);
+        Assert.Equal("[Image]", conv.LastMessage);
         Assert.True(conv.LastMessageIsImage);
     }
 
@@ -181,7 +181,7 @@ private static AppUser SeedUser(AppDbContext db, Guid id, string firstName, stri
         var result = await service.GetConversationsAsync(CancellationToken.None);
 
         var conv = result.Data[0];
-        Assert.Equal("Непознат", conv.OtherUserName);
+        Assert.Equal("Unknown", conv.OtherUserName);
         Assert.Equal("", conv.LastMessage);
         Assert.False(conv.LastMessageIsImage);
     }

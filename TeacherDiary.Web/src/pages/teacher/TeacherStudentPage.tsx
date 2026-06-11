@@ -7,6 +7,7 @@ import { Spinner } from '../../components/ui/Spinner'
 import { MedalIcon } from '../../components/ui/MedalIcon'
 import type { ProgressStatus, StudentChallengeDto } from '../../types'
 import { formatDate } from '../../utils/formatDate'
+import { useLanguage } from '../../context/LanguageContext'
 
 function statusVariant(s: ProgressStatus) {
   if (s === 'Completed') return 'green'
@@ -23,6 +24,7 @@ function translateStatus(s: ProgressStatus) {
 export function TeacherStudentPage() {
   const { studentId } = useParams<{ studentId: string }>()
   const navigate = useNavigate()
+  const { translate } = useLanguage()
 
   const { data, isLoading } = useQuery({
     queryKey: ['teacher-student', studentId],
@@ -137,7 +139,7 @@ export function TeacherStudentPage() {
                 {data.activityLast7Days.map((entry, i) => (
                   <tr key={i}>
                     <td className="px-6 py-2.5 text-gray-500 whitespace-nowrap">{formatDate(entry.date)}</td>
-                    <td className="px-6 py-2.5 text-gray-700">{entry.description}</td>
+                    <td className="px-6 py-2.5 text-gray-700">{translate(entry.description)}</td>
                     <td className="px-6 py-2.5 text-right font-medium text-indigo-600">
                       {entry.pointsEarned > 0 ? `+${entry.pointsEarned}` : '—'}
                     </td>

@@ -17,7 +17,7 @@ public sealed class AssignmentCreatedNotificationHandler(
             .Select(s => new { s.Id, s.UserId, s.ParentId })
             .ToListAsync(cancellationToken);
 
-        var message = $"Получихте нова задача: {e.Title}.";
+        var message = $"You have a new assignment: {e.Title}.";
 
         foreach (var student in students)
         {

@@ -19,7 +19,7 @@ public sealed class StreakReminderNotificationHandler(
 
         if (student is null) return;
 
-        const string message = "Не забравяй! Учи и днес, за да запазиш серията си.";
+        const string message = "Don't forget! Study today to keep your streak.";
 
         if (student.UserId.HasValue)
             await notificationService.CreateAsync(

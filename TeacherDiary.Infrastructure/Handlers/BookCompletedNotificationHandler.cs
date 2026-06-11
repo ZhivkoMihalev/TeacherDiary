@@ -31,7 +31,7 @@ public sealed class BookCompletedNotificationHandler(
 
         if (student is null || bookTitle is null) return;
 
-        var message = $"{student.FirstName} {student.LastName} прочете книгата: {bookTitle}.";
+        var message = $"{student.FirstName} {student.LastName} completed the book: {bookTitle}.";
 
         await notificationService.CreateAsync(
             teacherId,

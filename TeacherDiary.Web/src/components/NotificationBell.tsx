@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useNotifications } from '../hooks/useNotifications'
 import { useAuth } from '../context/AuthContext'
+import { useLanguage } from '../context/LanguageContext'
 
 function formatRelativeTime(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -19,6 +20,7 @@ export function NotificationBell() {
   const ref = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { translate } = useLanguage()
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications()
 
   const notificationsUrl =
@@ -134,7 +136,7 @@ export function NotificationBell() {
                   />
                   <div className="min-w-0 flex-1">
                     <p style={{ margin: 0, fontSize: '0.8125rem', color: '#1e1b4b', lineHeight: 1.4, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                      {n.message}
+                      {translate(n.message)}
                     </p>
                     <p style={{ margin: '2px 0 0', fontSize: '0.72rem', color: '#a78bfa', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                       {formatRelativeTime(n.createdAt)}

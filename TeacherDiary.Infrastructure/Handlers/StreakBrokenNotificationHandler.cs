@@ -19,7 +19,7 @@ public sealed class StreakBrokenNotificationHandler(
 
         if (student is null) return;
 
-        var message = $"Серията ти от {e.OldStreak} {(e.OldStreak == 1 ? "ден" : "дни")} беше прекъсната. Продължи да учиш ежедневно!";
+        var message = $"Your {e.OldStreak}-day streak was broken. Keep studying every day!";
 
         if (student.UserId.HasValue)
             await notificationService.CreateAsync(

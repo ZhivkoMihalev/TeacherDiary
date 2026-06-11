@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import { messagesApi } from '../api/messages'
 import { NotificationBell } from '../components/NotificationBell'
 import { NotificationsSignalRProvider } from '../components/NotificationsSignalRProvider'
+import { LanguageSelector } from '../components/LanguageSelector'
 
 function SidebarDivider() {
   return <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(124,58,237,0.15), transparent)', margin: '8px 16px' }} />
@@ -136,6 +137,11 @@ export function ParentLayout() {
         </nav>
 
         <SidebarDivider />
+
+        {/* Language */}
+        <div style={{ padding: '4px 16px 0' }}>
+          <LanguageSelector />
+        </div>
 
         <div style={{ padding: '12px 16px 16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
