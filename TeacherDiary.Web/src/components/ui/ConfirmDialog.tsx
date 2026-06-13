@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 interface Props {
   message: string
   onConfirm: () => void
@@ -6,6 +8,8 @@ interface Props {
 }
 
 export function ConfirmDialog({ message, onConfirm, onCancel, loading }: Props) {
+  const { t } = useTranslation()
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
@@ -17,14 +21,14 @@ export function ConfirmDialog({ message, onConfirm, onCancel, loading }: Props) 
             disabled={loading}
             className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
           >
-            Не
+            {t('common.no')}
           </button>
           <button
             onClick={onConfirm}
             disabled={loading}
             className="px-4 py-2 text-sm font-medium rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
           >
-            {loading ? 'Премахване…' : 'Да'}
+            {loading ? t('common.removing') : t('common.yes')}
           </button>
         </div>
       </div>

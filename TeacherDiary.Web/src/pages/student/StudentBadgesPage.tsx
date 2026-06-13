@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { studentApi } from '../../api/student'
 import { Spinner } from '../../components/ui/Spinner'
 
@@ -18,6 +19,7 @@ function nextTier(value: number, tiers: number[]): { current: number | null; nex
 const FONT = "'Plus Jakarta Sans', sans-serif"
 
 export function StudentBadgesPage() {
+  const { t } = useTranslation()
   const { data: badges = [], isLoading: badgesLoading } = useQuery({
     queryKey: ['student-badges'],
     queryFn: studentApi.getMyBadges,
@@ -40,11 +42,10 @@ export function StudentBadgesPage() {
       {/* Header */}
       <div style={{ marginBottom: '22px' }}>
         <h1 style={{ margin: '0 0 3px', fontSize: '1.375rem', fontWeight: 700, fontFamily: "'Bricolage Grotesque', 'Plus Jakarta Sans', sans-serif", color: '#1e1b4b' }}>
-          Моите значки
+          {t('student.badges.title')}
         </h1>
         <p style={{ margin: 0, fontSize: '0.82rem', color: '#a78bfa', fontFamily: FONT }}>
-          Спечелени: <strong style={{ color: '#7c3aed' }}>{badges.length}</strong>
-          {' '}· Чети и изпълнявай задачи, за да спечелиш повече!
+          {t('student.badges.earned', { count: badges.length })}
         </p>
       </div>
 
@@ -66,9 +67,9 @@ export function StudentBadgesPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
                 <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #fb923c, #f97316)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>🔥</div>
                 <div>
-                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>Серия на активност</div>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>{t('student.badges.streakCard')}</div>
                   <div style={{ fontSize: '0.72rem', color: '#a78bfa', fontFamily: FONT }}>
-                    {streak} / {streakProgress.next} дни
+                    {t('student.badges.streakProgress', { current: streak, next: streakProgress.next })}
                   </div>
                 </div>
               </div>
@@ -78,7 +79,7 @@ export function StudentBadgesPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
                 <span style={{ fontSize: '0.7rem', color: '#c2410c', fontFamily: FONT, fontWeight: 600 }}>{streakProgress.pct}%</span>
                 <span style={{ fontSize: '0.7rem', color: '#a78bfa', fontFamily: FONT }}>
-                  Следваща значка при {streakProgress.next} дни 🔥
+                  {t('student.badges.nextStreakBadge', { next: streakProgress.next })}
                 </span>
               </div>
             </div>
@@ -98,9 +99,9 @@ export function StudentBadgesPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
                 <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>⚡</div>
                 <div>
-                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>Точки</div>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>{t('student.badges.pointsCard')}</div>
                   <div style={{ fontSize: '0.72rem', color: '#a78bfa', fontFamily: FONT }}>
-                    {points} / {pointsProgress.next} т
+                    {t('student.badges.pointsProgress', { current: points, next: pointsProgress.next })}
                   </div>
                 </div>
               </div>
@@ -110,7 +111,7 @@ export function StudentBadgesPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
                 <span style={{ fontSize: '0.7rem', color: '#b45309', fontFamily: FONT, fontWeight: 600 }}>{pointsProgress.pct}%</span>
                 <span style={{ fontSize: '0.7rem', color: '#a78bfa', fontFamily: FONT }}>
-                  Следваща значка при {pointsProgress.next} т ⭐
+                  {t('student.badges.nextPointsBadge', { next: pointsProgress.next })}
                 </span>
               </div>
             </div>
@@ -131,9 +132,9 @@ export function StudentBadgesPage() {
           boxShadow: '0 2px 12px rgba(124,58,237,0.07)',
         }}>
           <div style={{ fontSize: '3rem', marginBottom: '14px' }}>🏅</div>
-          <p style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>Все още нямаш значки</p>
+          <p style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>{t('student.badges.noBadges')}</p>
           <p style={{ margin: '6px 0 0', fontSize: '0.85rem', color: '#a78bfa', fontFamily: FONT }}>
-            Чети книги и изпълнявай задачи, за да спечелиш!
+            {t('student.badges.noBadgesHint')}
           </p>
         </div>
       ) : (

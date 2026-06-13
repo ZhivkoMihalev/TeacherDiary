@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NavLink, Link, Outlet, useNavigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { AdSidebar } from '../components/AdSidebar'
 import { Footer } from '../components/Footer'
 import { useQuery } from '@tanstack/react-query'
@@ -14,6 +15,7 @@ function SidebarDivider() {
 }
 
 export function StudentLayout() {
+  const { t } = useTranslation()
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -58,7 +60,7 @@ export function StudentLayout() {
         <button
           onClick={() => setSidebarOpen(true)}
           className="p-2 rounded-lg text-sky-600 hover:bg-sky-50 transition-colors"
-          aria-label="Отвори меню"
+          aria-label={t('common.openMenu')}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="3" y1="6" x2="21" y2="6" />
@@ -104,7 +106,7 @@ export function StudentLayout() {
             <button
               className="lg:hidden p-1.5 rounded-lg text-violet-400 hover:bg-violet-100 hover:text-violet-600 transition-colors"
               onClick={() => setSidebarOpen(false)}
-              aria-label="Затвори меню"
+              aria-label={t('common.closeMenu')}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 6 6 18M6 6l12 12" />
@@ -115,22 +117,22 @@ export function StudentLayout() {
 
         <nav style={{ flex: 1, paddingTop: '10px', paddingBottom: '8px', overflowY: 'auto' }}>
           <NavLink to="/student/dashboard" className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`}>
-            <span>⭐</span> Моят напредък
+            <span>⭐</span> {t('nav.myProgress')}
           </NavLink>
 
           <NavLink to="/student/badges" className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`}>
-            <span>🏅</span> Значки
+            <span>🏅</span> {t('nav.badges')}
           </NavLink>
 
           <NavLink to="/student/notifications" className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`}>
-            <span>🔔</span> Известия
+            <span>🔔</span> {t('nav.notifications')}
           </NavLink>
 
           <SidebarDivider />
 
           <NavLink to="/student/messages" className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`} style={{ justifyContent: 'space-between' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
-              <span>💬</span> Съобщения
+              <span>💬</span> {t('nav.messages')}
             </span>
             {unreadCount > 0 && (
               <span style={{ background: 'linear-gradient(135deg, #7c3aed, #db2777)', color: 'white', fontSize: '0.68rem', fontWeight: 700, borderRadius: '99px', minWidth: '19px', height: '19px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>
@@ -156,14 +158,14 @@ export function StudentLayout() {
               <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 600, fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#1e1b4b', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {user?.fullName}
               </p>
-              <p style={{ margin: 0, fontSize: '0.72rem', color: '#a78bfa', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Ученик</p>
+              <p style={{ margin: 0, fontSize: '0.72rem', color: '#a78bfa', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{t('roles.student')}</p>
             </div>
           </div>
           <button onClick={handleLogout}
             style={{ fontSize: '0.75rem', fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 500, color: '#a78bfa', background: 'none', border: 'none', padding: 0, cursor: 'pointer', transition: 'color 0.15s' }}
             onMouseEnter={e => (e.currentTarget.style.color = '#dc2626')}
             onMouseLeave={e => (e.currentTarget.style.color = '#a78bfa')}>
-            ← Изход
+            {t('common.logout')}
           </button>
         </div>
       </aside>

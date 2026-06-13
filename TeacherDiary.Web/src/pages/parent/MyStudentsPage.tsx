@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { parentApi } from '../../api/parent'
@@ -10,6 +11,7 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { MedalIcon } from '../../components/ui/MedalIcon'
 
 export function MyStudentsPage() {
+  const { t } = useTranslation()
   const qc = useQueryClient()
   const [showForm, setShowForm] = useState(false)
   const [firstName, setFirstName] = useState('')
@@ -42,7 +44,7 @@ export function MyStudentsPage() {
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
       setConfirmDeleteId(null)
-      setDeleteError(msg ?? 'Грешка при изтриване. Моля, опитайте отново.')
+      setDeleteError(msg ?? t('parent.myStudents.errorDelete'))
     },
   })
 
@@ -55,10 +57,10 @@ export function MyStudentsPage() {
     <div className="p-8 max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Моите деца</h1>
-          <p className="text-gray-500 text-sm mt-0.5">Следете напредъка на децата си</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('parent.myStudents.title')}</h1>
+          <p className="text-gray-500 text-sm mt-0.5">{t('parent.myStudents.subtitle')}</p>
         </div>
-        <Button onClick={() => setShowForm(true)}>+ Добави дете</Button>
+        <Button onClick={() => setShowForm(true)}>{t('parent.myStudents.addButton')}</Button>
       </div>
 
       {showForm && (
@@ -66,25 +68,25 @@ export function MyStudentsPage() {
           <CardBody>
             <form onSubmit={handleSubmit} className="flex items-end gap-3">
               <Input
-                label="Име"
+                label={t('parent.myStudents.formFirstName')}
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 required
                 autoFocus
               />
               <Input
-                label="Фамилия"
+                label={t('parent.myStudents.formLastName')}
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 required
               />
               <div className="flex gap-2 pb-px">
-                <Button type="submit" loading={createMutation.isPending}>Добави</Button>
-                <Button variant="secondary" type="button" onClick={() => setShowForm(false)}>Отказ</Button>
+                <Button type="submit" loading={createMutation.isPending}>{t('parent.myStudents.submit')}</Button>
+                <Button variant="secondary" type="button" onClick={() => setShowForm(false)}>{t('common.cancel')}</Button>
               </div>
             </form>
             <p className="text-xs text-gray-400 mt-3">
-              След добавянето, помолете учителя да запише детето в клас.
+              {t('parent.myStudents.helpText')}
             </p>
           </CardBody>
         </Card>
@@ -98,8 +100,8 @@ export function MyStudentsPage() {
         <Card>
           <CardBody className="text-center py-16">
             <div className="text-5xl mb-3">👶</div>
-            <p className="font-semibold text-gray-700">Нямате добавени деца</p>
-            <p className="text-sm text-gray-400 mt-1">Добавете първото дете, за да следите напредъка им.</p>
+            <p className="font-semibold text-gray-700">{t('parent.myStudents.noChildren')}</p>
+            <p className="text-sm text-gray-400 mt-1">{t('parent.myStudents.noChildrenHint')}</p>
           </CardBody>
         </Card>
       ) : (
@@ -120,18 +122,18 @@ export function MyStudentsPage() {
                       </p>
                       <p className="text-sm mt-0.5">
                         {s.classId
-                          ? <span className="text-emerald-600">✓ Записано в клас</span>
-                          : <span className="text-amber-500">⏳ Очаква записване в клас</span>
+                          ? <span className="text-emerald-600">{t('parent.myStudents.enrolled')}</span>
+                          : <span className="text-amber-500">{t('parent.myStudents.waiting')}</span>
                         }
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <Link to={`/parent/students/${s.id}`}>
-                      <Button size="sm" variant="secondary">Виж напредъка</Button>
+                      <Button size="sm" variant="secondary">{t('parent.myStudents.viewProgress')}</Button>
                     </Link>
                     <Button size="sm" variant="ghost" onClick={() => { setConfirmDeleteId(s.id); setDeleteError('') }}>
-                      Премахни
+                      {t('common.remove')}
                     </Button>
                   </div>
                 </div>
@@ -149,7 +151,7 @@ export function MyStudentsPage() {
         const student = students.find((s) => s.id === confirmDeleteId)
         return student ? (
           <ConfirmDialog
-            message={`Сигурни ли сте, че желаете да изтриете ${student.firstName} ${student.lastName}?`}
+            message={t('parent.myStudents.confirmDelete', { firstName: student.firstName, lastName: student.lastName })}
             loading={deleteMutation.isPending}
             onConfirm={() => deleteMutation.mutate(confirmDeleteId)}
             onCancel={() => { setConfirmDeleteId(null); setDeleteError('') }}

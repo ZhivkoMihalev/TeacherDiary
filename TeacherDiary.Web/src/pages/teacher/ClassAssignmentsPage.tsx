@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { assignmentsApi } from '../../api/assignments'
@@ -31,9 +32,9 @@ function EyeIcon() {
 }
 
 function statusLabel(s: AssignmentStudentProgressDto['status']) {
-  if (s === 'Completed') return { text: 'Завършено', variant: 'green' as const }
-  if (s === 'InProgress') return { text: 'В процес', variant: 'blue' as const }
-  return { text: 'Не е стартирано', variant: 'gray' as const }
+  if (s === 'Completed') return { key: 'status.completed', variant: 'green' as const }
+  if (s === 'InProgress') return { key: 'status.inProgress', variant: 'blue' as const }
+  return { key: 'status.notStarted', variant: 'gray' as const }
 }
 
 type EditForm = { title: string; subject: string; description: string; dueDate: string; points: string }
@@ -46,6 +47,7 @@ interface AssignmentRowProps {
 }
 
 function AssignmentRow({ a, classId, onEdit, onPreview }: AssignmentRowProps) {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
   const [showExtend, setShowExtend] = useState(false)
   const [extendDate, setExtendDate] = useState('')
@@ -91,10 +93,10 @@ function AssignmentRow({ a, classId, onEdit, onPreview }: AssignmentRowProps) {
                 <p className="font-medium text-gray-900 group-hover:text-indigo-600 transition-colors">
                   {a.title}
                 </p>
-                {a.isExpired && <Badge variant="gray">Приключила</Badge>}
+                {a.isExpired && <Badge variant="gray">{t('status.expired')}</Badge>}
               </div>
               <p className="text-sm text-gray-400">
-                {a.subject}{a.dueDate ? ` · Срок: ${formatDate(a.dueDate)}` : ''}{a.points ? ` · ${a.points} т.` : ''}
+                {a.subject}{a.dueDate ? ` · ${t('teacher.classAssignments.dueShort', { date: formatDate(a.dueDate) })}` : ''}{a.points ? ` · ${t('teacher.classDashboard.pointsDisplay', { points: a.points })}` : ''}
               </p>
               {a.description && (
                 <p className="text-sm text-gray-500 mt-0.5">{a.description}</p>
@@ -104,11 +106,11 @@ function AssignmentRow({ a, classId, onEdit, onPreview }: AssignmentRowProps) {
 
           <div className="flex items-center gap-2 shrink-0">
             <Badge variant={a.completedCount === a.totalStudents && a.totalStudents > 0 ? 'green' : 'gray'}>
-              {a.completedCount}/{a.totalStudents} завършени
+              {t('teacher.classAssignments.completedBadge', { count: a.completedCount, total: a.totalStudents })}
             </Badge>
             {a.isExpired ? (
               <Button size="sm" variant="secondary" onClick={() => setShowExtend((v) => !v)}>
-                Промени срок
+                {t('teacher.classAssignments.changeDeadline')}
               </Button>
             ) : (
               <>
@@ -120,7 +122,7 @@ function AssignmentRow({ a, classId, onEdit, onPreview }: AssignmentRowProps) {
                     <PencilIcon />
                   </button>
                   <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 -top-8 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                    Промени
+                    {t('common.edit')}
                   </span>
                 </div>
                 <div className="relative group">
@@ -131,7 +133,7 @@ function AssignmentRow({ a, classId, onEdit, onPreview }: AssignmentRowProps) {
                     <EyeIcon />
                   </button>
                   <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 -top-8 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                    Преглед
+                    {t('common.preview')}
                   </span>
                 </div>
               </>
@@ -142,7 +144,7 @@ function AssignmentRow({ a, classId, onEdit, onPreview }: AssignmentRowProps) {
         {showExtend && (
           <div className="mt-3 flex items-end gap-2 border-t border-gray-100 pt-3">
             <DateInput
-              label="Нов краен срок"
+              label={t('teacher.classAssignments.newDueDateLabel')}
               value={extendDate}
               onChange={setExtendDate}
               className="w-48"
@@ -153,10 +155,10 @@ function AssignmentRow({ a, classId, onEdit, onPreview }: AssignmentRowProps) {
               disabled={!extendDate}
               onClick={() => extendMutation.mutate()}
             >
-              Запази
+              {t('common.save')}
             </Button>
             <Button size="sm" variant="secondary" onClick={() => setShowExtend(false)}>
-              Отказ
+              {t('common.cancel')}
             </Button>
           </div>
         )}
@@ -168,15 +170,15 @@ function AssignmentRow({ a, classId, onEdit, onPreview }: AssignmentRowProps) {
                 <Spinner className="text-indigo-600 h-5 w-5" />
               </div>
             ) : students.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-2">Няма ученици.</p>
+              <p className="text-sm text-gray-400 text-center py-2">{t('teacher.classAssignments.noStudents')}</p>
             ) : (
               <div className="divide-y divide-gray-50">
                 {students.map((s) => {
-                  const { text, variant } = statusLabel(s.status)
+                  const { key, variant } = statusLabel(s.status)
                   return (
                     <div key={s.studentId} className="py-3 flex items-center justify-between gap-4">
                       <p className="text-sm font-medium text-gray-800">{s.studentName}</p>
-                      <Badge variant={variant}>{text}</Badge>
+                      <Badge variant={variant}>{t(key)}</Badge>
                     </div>
                   )
                 })}
@@ -190,23 +192,24 @@ function AssignmentRow({ a, classId, onEdit, onPreview }: AssignmentRowProps) {
 }
 
 function PreviewModal({ a, onClose }: { a: AssignmentDto; onClose: () => void }) {
+  const { t } = useTranslation()
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div className="relative bg-white rounded-xl shadow-lg p-6 max-w-md w-full mx-4 space-y-3">
         <h2 className="text-lg font-bold text-gray-900">{a.title}</h2>
         <div className="text-sm text-gray-600 space-y-1">
-          <p><span className="font-medium text-gray-700">Предмет:</span> {a.subject}</p>
-          <p><span className="font-medium text-gray-700">Краен срок:</span> {formatDate(a.dueDate)}</p>
+          <p><span className="font-medium text-gray-700">{t('teacher.classAssignments.previewSubject')}</span> {a.subject}</p>
+          <p><span className="font-medium text-gray-700">{t('teacher.classAssignments.previewDeadline')}</span> {formatDate(a.dueDate)}</p>
           {a.points > 0 && (
-            <p><span className="font-medium text-gray-700">Точки за изпълнение:</span> {a.points} т.</p>
+            <p><span className="font-medium text-gray-700">{t('teacher.classAssignments.previewPoints')}</span> {t('teacher.classDashboard.pointsDisplay', { points: a.points })}</p>
           )}
           {a.description && (
-            <p><span className="font-medium text-gray-700">Описание:</span> {a.description}</p>
+            <p><span className="font-medium text-gray-700">{t('teacher.classAssignments.previewDescription')}</span> {a.description}</p>
           )}
           <p>
-            <span className="font-medium text-gray-700">Изпълнение:</span>{' '}
-            {a.completedCount}/{a.totalStudents} ученика
+            <span className="font-medium text-gray-700">{t('teacher.classAssignments.previewCompletion')}</span>{' '}
+            {t('teacher.classAssignments.previewStudents', { completed: a.completedCount, total: a.totalStudents })}
           </p>
         </div>
         <div className="flex justify-end pt-2">
@@ -214,7 +217,7 @@ function PreviewModal({ a, onClose }: { a: AssignmentDto; onClose: () => void })
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200"
           >
-            Затвори
+            {t('common.close')}
           </button>
         </div>
       </div>
@@ -225,6 +228,7 @@ function PreviewModal({ a, onClose }: { a: AssignmentDto; onClose: () => void })
 const emptyEdit: EditForm = { title: '', subject: '', description: '', dueDate: '', points: '' }
 
 export function ClassAssignmentsPage() {
+  const { t } = useTranslation()
   const { classId } = useParams<{ classId: string }>()
   const qc = useQueryClient()
 
@@ -309,22 +313,22 @@ export function ClassAssignmentsPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
-        <Button onClick={() => setShowForm(true)}>+ Нова задача</Button>
+        <Button onClick={() => setShowForm(true)}>{t('teacher.classAssignments.newButton')}</Button>
       </div>
 
       {showForm && (
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-800">Създаване на задача</h2>
+            <h2 className="font-semibold text-gray-800">{t('teacher.classAssignments.createHeader')}</h2>
           </CardHeader>
           <CardBody>
             <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate() }} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <Input label="Заглавие" value={form.title} onChange={set('title')} required autoFocus />
-                <Input label="Предмет" value={form.subject} onChange={set('subject')} required />
+                <Input label={t('teacher.classAssignments.titleLabel')} value={form.title} onChange={set('title')} required autoFocus />
+                <Input label={t('teacher.classAssignments.subjectLabel')} value={form.subject} onChange={set('subject')} required />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-700">Описание</label>
+                <label className="text-sm font-medium text-gray-700">{t('teacher.classAssignments.descriptionLabel')}</label>
                 <textarea
                   value={form.description}
                   onChange={set('description')}
@@ -333,12 +337,12 @@ export function ClassAssignmentsPage() {
                 />
               </div>
               <div className="flex items-end gap-4">
-                <DateInput label="Краен срок" value={form.dueDate} onChange={(v) => setForm((p) => ({ ...p, dueDate: v }))} required className="w-48" />
-                <Input label="Точки" type="number" value={form.points} onChange={set('points')} required className="w-28" />
+                <DateInput label={t('teacher.classAssignments.dueDateLabel')} value={form.dueDate} onChange={(v) => setForm((p) => ({ ...p, dueDate: v }))} required className="w-48" />
+                <Input label={t('teacher.classAssignments.pointsLabel')} type="number" value={form.points} onChange={set('points')} required className="w-28" />
               </div>
               <div className="flex gap-2">
-                <Button type="submit" loading={createMutation.isPending}>Създай</Button>
-                <Button variant="secondary" type="button" onClick={() => setShowForm(false)}>Отказ</Button>
+                <Button type="submit" loading={createMutation.isPending}>{t('common.create')}</Button>
+                <Button variant="secondary" type="button" onClick={() => setShowForm(false)}>{t('common.cancel')}</Button>
               </div>
             </form>
           </CardBody>
@@ -348,16 +352,16 @@ export function ClassAssignmentsPage() {
       {editingId && (
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-800">Промяна на задача</h2>
+            <h2 className="font-semibold text-gray-800">{t('teacher.classAssignments.editHeader')}</h2>
           </CardHeader>
           <CardBody>
             <form onSubmit={(e) => { e.preventDefault(); if (hasChanges) setShowSaveConfirm(true); else closeEdit() }} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <Input label="Заглавие" value={editForm.title} onChange={setEdit('title')} required autoFocus />
-                <Input label="Предмет" value={editForm.subject} onChange={setEdit('subject')} required />
+                <Input label={t('teacher.classAssignments.titleLabel')} value={editForm.title} onChange={setEdit('title')} required autoFocus />
+                <Input label={t('teacher.classAssignments.subjectLabel')} value={editForm.subject} onChange={setEdit('subject')} required />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-700">Описание</label>
+                <label className="text-sm font-medium text-gray-700">{t('teacher.classAssignments.descriptionLabel')}</label>
                 <textarea
                   value={editForm.description}
                   onChange={setEdit('description')}
@@ -366,12 +370,12 @@ export function ClassAssignmentsPage() {
                 />
               </div>
               <div className="flex items-end gap-4">
-                <DateInput label="Краен срок" value={editForm.dueDate} onChange={(v) => setEditForm((p) => ({ ...p, dueDate: v }))} required className="w-48" />
-                <Input label="Точки" type="number" value={editForm.points} onChange={setEdit('points')} required className="w-28" />
+                <DateInput label={t('teacher.classAssignments.dueDateLabel')} value={editForm.dueDate} onChange={(v) => setEditForm((p) => ({ ...p, dueDate: v }))} required className="w-48" />
+                <Input label={t('teacher.classAssignments.pointsLabel')} type="number" value={editForm.points} onChange={setEdit('points')} required className="w-28" />
               </div>
               <div className="flex gap-2">
-                <Button type="submit">Запази</Button>
-                <Button variant="secondary" type="button" onClick={handleCancelEdit}>Отказ</Button>
+                <Button type="submit">{t('common.save')}</Button>
+                <Button variant="secondary" type="button" onClick={handleCancelEdit}>{t('common.cancel')}</Button>
               </div>
             </form>
           </CardBody>
@@ -387,7 +391,7 @@ export function ClassAssignmentsPage() {
           {active.length === 0 && expired.length === 0 && (
             <Card>
               <CardBody className="text-center py-12">
-                <p className="text-gray-400 text-sm">Няма задачи.</p>
+                <p className="text-gray-400 text-sm">{t('teacher.classAssignments.noAssignments')}</p>
               </CardBody>
             </Card>
           )}
@@ -409,7 +413,7 @@ export function ClassAssignmentsPage() {
           {expired.length > 0 && (
             <div className="space-y-3">
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                Приключили задачи
+                {t('teacher.classAssignments.completedSection')}
               </h3>
               {expired.map((a) => (
                 <AssignmentRow
@@ -427,7 +431,7 @@ export function ClassAssignmentsPage() {
 
       {showSaveConfirm && (
         <ConfirmDialog
-          message="Сигурни ли сте, че искате да направите тези промени?"
+          message={t('teacher.classAssignments.confirmSave')}
           loading={updateMutation.isPending}
           onConfirm={() => updateMutation.mutate()}
           onCancel={() => setShowSaveConfirm(false)}
@@ -436,7 +440,7 @@ export function ClassAssignmentsPage() {
 
       {showCancelConfirm && (
         <ConfirmDialog
-          message="Сигурни ли сте, че искате да се откажете от промените?"
+          message={t('teacher.classAssignments.confirmDiscard')}
           onConfirm={closeEdit}
           onCancel={() => setShowCancelConfirm(false)}
         />
@@ -444,7 +448,7 @@ export function ClassAssignmentsPage() {
 
       {showSuccess && (
         <AlertDialog
-          message="Промените са запазени."
+          message={t('teacher.classAssignments.savedSuccess')}
           onClose={closeEdit}
         />
       )}

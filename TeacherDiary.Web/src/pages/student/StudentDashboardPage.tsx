@@ -1,4 +1,6 @@
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { studentApi } from '../../api/student'
 import { Button } from '../../components/ui/Button'
@@ -19,10 +21,10 @@ function statusVariant(s: ProgressStatus) {
   return 'gray'
 }
 
-function translateStatus(s: ProgressStatus) {
-  if (s === 'Completed') return 'Завършено'
-  if (s === 'InProgress') return 'В процес'
-  return 'Не е стартирано'
+function translateStatus(s: ProgressStatus, t: TFunction) {
+  if (s === 'Completed') return t('status.completed')
+  if (s === 'InProgress') return t('status.inProgress')
+  return t('status.notStarted')
 }
 
 const FONT = "'Plus Jakarta Sans', sans-serif"
@@ -41,6 +43,7 @@ function StreakCalendar({ days, currentStreak, bestStreak }: {
   currentStreak: number
   bestStreak: number
 }) {
+  const { t } = useTranslation()
   const [tooltip, setTooltip] = useState<{ day: ActivityCalendarDayDto; idx: number } | null>(null)
   const today = new Date().toISOString().slice(0, 10)
 
@@ -57,9 +60,8 @@ function StreakCalendar({ days, currentStreak, bestStreak }: {
       {/* Header row */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '1.1rem' }}>🔥</span>
           <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>
-            Серия на активност
+            {t('student.dashboard.activityStreak')}
           </span>
         </div>
         <div style={{ display: 'flex', gap: '14px' }}>
@@ -68,7 +70,7 @@ function StreakCalendar({ days, currentStreak, bestStreak }: {
               {currentStreak}
             </div>
             <div style={{ fontSize: '0.68rem', color: '#a78bfa', fontFamily: FONT, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Текуща
+              {t('student.dashboard.current')}
             </div>
           </div>
           <div style={{ width: '1px', background: 'rgba(124,58,237,0.15)' }} />
@@ -77,7 +79,7 @@ function StreakCalendar({ days, currentStreak, bestStreak }: {
               {bestStreak}
             </div>
             <div style={{ fontSize: '0.68rem', color: '#a78bfa', fontFamily: FONT, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Рекорд
+              {t('student.dashboard.record')}
             </div>
           </div>
         </div>
@@ -134,7 +136,7 @@ function StreakCalendar({ days, currentStreak, bestStreak }: {
                 {tooltip.day.activityCount} акт.
               </div>
             ) : (
-              <div style={{ fontSize: '0.7rem', color: '#a78bfa', fontFamily: FONT }}>Няма активност</div>
+              <div style={{ fontSize: '0.7rem', color: '#a78bfa', fontFamily: FONT }}>{t('student.dashboard.noActivity')}</div>
             )}
           </div>
         )}
@@ -142,11 +144,11 @@ function StreakCalendar({ days, currentStreak, bestStreak }: {
 
       {/* Legend */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '10px', flexWrap: 'wrap' }}>
-        <span style={{ fontSize: '0.68rem', color: '#a78bfa', fontFamily: FONT }}>По-малко</span>
+        <span style={{ fontSize: '0.68rem', color: '#a78bfa', fontFamily: FONT }}>{t('student.dashboard.less')}</span>
         {['rgba(200,200,210,0.25)', '#c4b5fd', '#a78bfa', '#7c3aed'].map((c, i) => (
           <div key={i} style={{ width: '14px', height: '14px', borderRadius: '3px', background: c }} />
         ))}
-        <span style={{ fontSize: '0.68rem', color: '#a78bfa', fontFamily: FONT }}>Повече</span>
+        <span style={{ fontSize: '0.68rem', color: '#a78bfa', fontFamily: FONT }}>{t('student.dashboard.more')}</span>
       </div>
     </div>
   )
@@ -155,6 +157,7 @@ function StreakCalendar({ days, currentStreak, bestStreak }: {
 // ─── Leaderboard ─────────────────────────────────────────────────────────────
 
 function Leaderboard({ items, myId }: { items: { studentId: string; studentName: string; points: number; topMedalCode?: string }[]; myId: string }) {
+  const { t } = useTranslation()
   const medals = ['🥇', '🥈', '🥉']
   const myRank = items.findIndex(i => i.studentId === myId) + 1
 
@@ -170,9 +173,8 @@ function Leaderboard({ items, myId }: { items: { studentId: string; studentName:
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px 12px', flexWrap: 'wrap', gap: '6px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '1.1rem' }}>🏆</span>
           <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>
-            Класация в класа
+            {t('student.dashboard.leaderboard')}
           </span>
         </div>
         {myRank > 0 && (
@@ -185,14 +187,14 @@ function Leaderboard({ items, myId }: { items: { studentId: string; studentName:
             borderRadius: '99px',
             fontFamily: FONT,
           }}>
-            Ти си #{myRank}
+            {t('student.dashboard.yourRank', { rank: myRank })}
           </span>
         )}
       </div>
 
       {items.length === 0 ? (
         <div style={{ padding: '20px', textAlign: 'center', fontSize: '0.85rem', color: '#a78bfa', fontFamily: FONT }}>
-          Все още няма данни за класацията.
+          {t('student.dashboard.noLeaderboard')}
         </div>
       ) : (
         items.slice(0, 8).map((item, idx) => {
@@ -237,7 +239,7 @@ function Leaderboard({ items, myId }: { items: { studentId: string; studentName:
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
                 }}>
-                  {item.studentName}{isMe ? ' (Ти)' : ''}
+                  {item.studentName}{isMe ? t('student.dashboard.you') : ''}
                 </div>
 
                 {/* Progress bar */}
@@ -276,6 +278,7 @@ function Leaderboard({ items, myId }: { items: { studentId: string; studentName:
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
 export function StudentDashboardPage() {
+  const { t } = useTranslation()
   const qc = useQueryClient()
   const [readingPages, setReadingPages] = useState<Record<string, string>>({})
   const [celebration, setCelebration] = useState<{ studentName: string; bookTitle: string } | null>(null)
@@ -315,7 +318,7 @@ export function StudentDashboardPage() {
     },
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
-      setAlertMessage(msg ?? 'Грешка при запис.')
+      setAlertMessage(msg ?? t('student.dashboard.errorSave'))
     },
   })
 
@@ -324,7 +327,7 @@ export function StudentDashboardPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['student-me'] }),
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
-      setAlertMessage(msg ?? 'Грешка при запис.')
+      setAlertMessage(msg ?? t('student.dashboard.errorSave'))
     },
   })
 
@@ -337,7 +340,7 @@ export function StudentDashboardPage() {
     },
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
-      setAlertMessage(msg ?? 'Грешка при запис.')
+      setAlertMessage(msg ?? t('student.dashboard.errorSave'))
     },
   })
 
@@ -346,7 +349,7 @@ export function StudentDashboardPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['student-me'] }),
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
-      setAlertMessage(msg ?? 'Грешка при запис.')
+      setAlertMessage(msg ?? t('student.dashboard.errorSave'))
     },
   })
 
@@ -359,7 +362,7 @@ export function StudentDashboardPage() {
     },
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
-      setAlertMessage(msg ?? 'Грешка при запис.')
+      setAlertMessage(msg ?? t('student.dashboard.errorSave'))
     },
   })
 
@@ -409,7 +412,7 @@ export function StudentDashboardPage() {
 
         <div style={{ padding: '24px 24px 20px', position: 'relative' }}>
           <p style={{ margin: '0 0 2px', fontSize: '0.8rem', fontWeight: 700, color: '#a78bfa', fontFamily: FONT, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-            Добре дошъл 👋
+            {t('student.dashboard.welcome')}
           </p>
           <h1 style={{ margin: '0 0 18px', fontSize: '1.8rem', fontWeight: 900, color: 'white', fontFamily: "'Bricolage Grotesque', 'Plus Jakarta Sans', sans-serif", letterSpacing: '-0.02em' }}>
             {data.studentName}
@@ -422,7 +425,7 @@ export function StudentDashboardPage() {
               <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'linear-gradient(135deg, #f59e0b, #fbbf24)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.15rem', flexShrink: 0 }}>⚡</div>
               <div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'white', fontFamily: FONT, lineHeight: 1 }}>{data.totalPoints}</div>
-                <div style={{ fontSize: '0.7rem', color: '#a78bfa', fontFamily: FONT, fontWeight: 600 }}>точки</div>
+                <div style={{ fontSize: '0.7rem', color: '#a78bfa', fontFamily: FONT, fontWeight: 600 }}>{t('common.points')}</div>
               </div>
             </div>
 
@@ -431,7 +434,7 @@ export function StudentDashboardPage() {
               <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'linear-gradient(135deg, #ef4444, #f97316)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.15rem', flexShrink: 0 }}>🔥</div>
               <div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'white', fontFamily: FONT, lineHeight: 1 }}>{data.currentStreak}</div>
-                <div style={{ fontSize: '0.7rem', color: '#a78bfa', fontFamily: FONT, fontWeight: 600 }}>дни серия</div>
+                <div style={{ fontSize: '0.7rem', color: '#a78bfa', fontFamily: FONT, fontWeight: 600 }}>{t('common.daysStreak')}</div>
               </div>
             </div>
 
@@ -441,7 +444,7 @@ export function StudentDashboardPage() {
                 <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'linear-gradient(135deg, #7c3aed, #db2777)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.15rem', flexShrink: 0 }}>🏆</div>
                 <div>
                   <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'white', fontFamily: FONT, lineHeight: 1 }}>#{myRank}</div>
-                  <div style={{ fontSize: '0.7rem', color: '#a78bfa', fontFamily: FONT, fontWeight: 600 }}>в класа</div>
+                  <div style={{ fontSize: '0.7rem', color: '#a78bfa', fontFamily: FONT, fontWeight: 600 }}>{t('common.inClass')}</div>
                 </div>
               </div>
             )}
@@ -451,7 +454,7 @@ export function StudentDashboardPage() {
               <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'linear-gradient(135deg, #059669, #34d399)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.15rem', flexShrink: 0 }}>📖</div>
               <div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'white', fontFamily: FONT, lineHeight: 1 }}>{data.totalPagesRead}</div>
-                <div style={{ fontSize: '0.7rem', color: '#a78bfa', fontFamily: FONT, fontWeight: 600 }}>стр. прочетени</div>
+                <div style={{ fontSize: '0.7rem', color: '#a78bfa', fontFamily: FONT, fontWeight: 600 }}>{t('common.pagesRead')}</div>
               </div>
             </div>
           </div>
@@ -480,7 +483,7 @@ export function StudentDashboardPage() {
       {hasTasks && (
         <div style={{ marginBottom: '6px' }}>
           <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#a78bfa', fontFamily: FONT, marginBottom: '10px', paddingLeft: '4px' }}>
-            Активни задачи
+            {t('student.dashboard.activeTasks')}
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -489,8 +492,7 @@ export function StudentDashboardPage() {
             {data.reading.length > 0 && (
               <div style={{ background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '14px', border: '1px solid rgba(124,58,237,0.1)', boxShadow: '0 2px 10px rgba(124,58,237,0.07)', overflow: 'hidden' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px 10px', borderBottom: '1px solid rgba(124,58,237,0.08)' }}>
-                  <span>📖</span>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>Четене</span>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>{t('student.dashboard.reading')}</span>
                 </div>
                 <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {activeReading.map((r) => {
@@ -502,10 +504,10 @@ export function StudentDashboardPage() {
                         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
                           <div style={{ minWidth: 0 }}>
                             <p style={{ margin: 0, fontSize: '0.87rem', fontWeight: 600, color: '#1e1b4b', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.bookTitle}</p>
-                            <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: '#a78bfa', fontFamily: FONT }}>стр. {r.currentPage} / {r.totalPages ?? '?'}</p>
+                            <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: '#a78bfa', fontFamily: FONT }}>{t('student.dashboard.pagesProgress', { current: r.currentPage, total: r.totalPages ?? '?' })}</p>
                           </div>
                           <Badge variant={isExpired ? 'red' : statusVariant(r.status)}>
-                            {isExpired ? 'Просрочено' : translateStatus(r.status)}
+                            {isExpired ? t('status.overdue') : translateStatus(r.status, t)}
                           </Badge>
                         </div>
                         {pct !== null && (
@@ -524,7 +526,7 @@ export function StudentDashboardPage() {
                               max={r.totalPages ?? undefined}
                               value={pagesInput}
                               onChange={(e) => setReadingPages((p) => ({ ...p, [r.assignedBookId]: e.target.value }))}
-                              placeholder={`Текуща страница (${r.currentPage})`}
+                              placeholder={t('student.dashboard.currentPagePlaceholder', { current: r.currentPage })}
                               style={{ flex: 1, border: '1px solid rgba(124,58,237,0.2)', borderRadius: '8px', padding: '7px 10px', fontSize: '0.82rem', outline: 'none', fontFamily: FONT, color: '#1e1b4b' }}
                             />
                             <Button
@@ -538,7 +540,7 @@ export function StudentDashboardPage() {
                                   pendingCelebration.current = { studentName: data.studentName, bookTitle: r.bookTitle }
                                 readingMutation.mutate({ assignedBookId: r.assignedBookId, page })
                               }}
-                            >Запиши</Button>
+                            >{t('common.save2')}</Button>
                           </div>
                         )}
                       </div>
@@ -547,7 +549,7 @@ export function StudentDashboardPage() {
                   {completedReading.map((r) => (
                     <div key={r.assignedBookId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', opacity: 0.55 }}>
                       <p style={{ margin: 0, fontSize: '0.87rem', color: '#1e1b4b', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.bookTitle}</p>
-                      <Badge variant="green">Завършено</Badge>
+                      <Badge variant="green">{t('status.completed')}</Badge>
                     </div>
                   ))}
                 </div>
@@ -558,8 +560,7 @@ export function StudentDashboardPage() {
             {data.assignments.length > 0 && (
               <div style={{ background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '14px', border: '1px solid rgba(124,58,237,0.1)', boxShadow: '0 2px 10px rgba(124,58,237,0.07)', overflow: 'hidden' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px 10px', borderBottom: '1px solid rgba(124,58,237,0.08)' }}>
-                  <span>📝</span>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>Задачи</span>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>{t('student.dashboard.assignments')}</span>
                 </div>
                 <div style={{ padding: '8px 0' }}>
                   {activeAssignments.map((a) => {
@@ -572,13 +573,13 @@ export function StudentDashboardPage() {
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                           <Badge variant={isExpired ? 'red' : statusVariant(a.status)}>
-                            {isExpired ? 'Просрочено' : translateStatus(a.status)}
+                            {isExpired ? t('status.overdue') : translateStatus(a.status, t)}
                           </Badge>
                           {!isExpired && a.status === 'NotStarted' && (
-                            <Button size="sm" variant="secondary" loading={startMutation.isPending} onClick={() => startMutation.mutate(a.assignmentId)}>Стартирай</Button>
+                            <Button size="sm" variant="secondary" loading={startMutation.isPending} onClick={() => startMutation.mutate(a.assignmentId)}>{t('common.start')}</Button>
                           )}
                           {!isExpired && a.status === 'InProgress' && (
-                            <Button size="sm" variant="success" loading={assignmentMutation.isPending} onClick={() => assignmentMutation.mutate(a.assignmentId)}>Завърши</Button>
+                            <Button size="sm" variant="success" loading={assignmentMutation.isPending} onClick={() => assignmentMutation.mutate(a.assignmentId)}>{t('common.complete')}</Button>
                           )}
                         </div>
                       </div>
@@ -587,7 +588,7 @@ export function StudentDashboardPage() {
                   {completedAssignments.map((a) => (
                     <div key={a.assignmentId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '9px 16px', opacity: 0.55 }}>
                       <p style={{ margin: 0, fontSize: '0.87rem', color: '#1e1b4b', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.title}</p>
-                      <Badge variant="green">Завършено</Badge>
+                      <Badge variant="green">{t('status.completed')}</Badge>
                     </div>
                   ))}
                 </div>
@@ -598,8 +599,7 @@ export function StudentDashboardPage() {
             {data.challenges.length > 0 && (
               <div style={{ background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '14px', border: '1px solid rgba(124,58,237,0.1)', boxShadow: '0 2px 10px rgba(124,58,237,0.07)', overflow: 'hidden' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px 10px', borderBottom: '1px solid rgba(124,58,237,0.08)' }}>
-                  <span>⚡</span>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>Предизвикателства</span>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>{t('student.dashboard.challenges')}</span>
                 </div>
                 <div style={{ padding: '8px 0' }}>
                   {activeChallenges.map((c) => (
@@ -607,19 +607,19 @@ export function StudentDashboardPage() {
                       <div style={{ minWidth: 0 }}>
                         <p style={{ margin: 0, fontSize: '0.87rem', fontWeight: 600, color: '#1e1b4b', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title}</p>
                         {challengeTargetLabel(c) && <p style={{ margin: '1px 0 0', fontSize: '0.72rem', color: '#a78bfa', fontFamily: FONT }}>{challengeTargetLabel(c)}</p>}
-                        <p style={{ margin: '1px 0 0', fontSize: '0.72rem', color: '#a78bfa', fontFamily: FONT }}>Срок: {formatDate(c.endDate)}</p>
+                        <p style={{ margin: '1px 0 0', fontSize: '0.72rem', color: '#a78bfa', fontFamily: FONT }}>{t('common.dueDate')} {formatDate(c.endDate)}</p>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                         {!c.started && (
                           <>
-                            <Badge variant="gray">Не е стартирано</Badge>
-                            <Button size="sm" variant="secondary" loading={startChallengeMutation.isPending} onClick={() => startChallengeMutation.mutate(c.challengeId)}>Стартирай</Button>
+                            <Badge variant="gray">{t('status.notStarted')}</Badge>
+                            <Button size="sm" variant="secondary" loading={startChallengeMutation.isPending} onClick={() => startChallengeMutation.mutate(c.challengeId)}>{t('common.start')}</Button>
                           </>
                         )}
                         {c.started && (
                           <>
-                            <Badge variant="blue">В процес</Badge>
-                            <Button size="sm" variant="success" loading={completeChallengewMutation.isPending} onClick={() => completeChallengewMutation.mutate(c.challengeId)}>Завърши</Button>
+                            <Badge variant="blue">{t('status.inProgress')}</Badge>
+                            <Button size="sm" variant="success" loading={completeChallengewMutation.isPending} onClick={() => completeChallengewMutation.mutate(c.challengeId)}>{t('common.complete')}</Button>
                           </>
                         )}
                       </div>
@@ -631,13 +631,13 @@ export function StudentDashboardPage() {
                         <p style={{ margin: 0, fontSize: '0.87rem', color: '#1e1b4b', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title}</p>
                         {challengeTargetLabel(c) && <p style={{ margin: '1px 0 0', fontSize: '0.72rem', color: '#a78bfa', fontFamily: FONT }}>{challengeTargetLabel(c)}</p>}
                       </div>
-                      <Badge variant="red">Просрочено</Badge>
+                      <Badge variant="red">{t('status.overdue')}</Badge>
                     </div>
                   ))}
                   {completedChallenges.map((c) => (
                     <div key={c.challengeId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '9px 16px', opacity: 0.55 }}>
                       <p style={{ margin: 0, fontSize: '0.87rem', color: '#1e1b4b', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title}</p>
-                      <Badge variant="green">Завършено</Badge>
+                      <Badge variant="green">{t('status.completed')}</Badge>
                     </div>
                   ))}
                 </div>
@@ -651,8 +651,8 @@ export function StudentDashboardPage() {
       {!hasTasks && (
         <div style={{ textAlign: 'center', padding: '48px 24px', background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(20px)', borderRadius: '16px', border: '1px solid rgba(124,58,237,0.1)' }}>
           <div style={{ fontSize: '3rem', marginBottom: '12px' }}>🎒</div>
-          <p style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: '#1e1b4b', fontFamily: FONT }}>Все още нямаш задания</p>
-          <p style={{ margin: '6px 0 0', fontSize: '0.85rem', color: '#a78bfa', fontFamily: FONT }}>Свържи се с учителя си, за да те добави в клас.</p>
+          <p style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: '#1e1b4b', fontFamily: FONT }}>{t('student.dashboard.noTasks')}</p>
+          <p style={{ margin: '6px 0 0', fontSize: '0.85rem', color: '#a78bfa', fontFamily: FONT }}>{t('student.dashboard.noTasksHint')}</p>
         </div>
       )}
 

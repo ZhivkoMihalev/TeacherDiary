@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useNotifications } from '../../hooks/useNotifications'
 import type { NotificationDto, NotificationType } from '../../types'
 import { useLanguage } from '../../context/LanguageContext'
@@ -37,7 +38,12 @@ function getIconBg(type: NotificationType): string {
   }
 }
 
-function groupByDate(items: NotificationDto[]): { label: string; items: NotificationDto[] }[] {
+function groupByDate(
+  items: NotificationDto[],
+  todayLabel: string,
+  yesterdayLabel: string,
+  locale: string,
+): { label: string; items: NotificationDto[] }[] {
   const todayMs  = new Date().setHours(0, 0, 0, 0)
   const yesterMs = todayMs - 86_400_000
   const order: string[] = []
@@ -46,9 +52,9 @@ function groupByDate(items: NotificationDto[]): { label: string; items: Notifica
   for (const n of items) {
     const dayMs = new Date(n.createdAt).setHours(0, 0, 0, 0)
     const label =
-      dayMs === todayMs  ? 'Днес' :
-      dayMs === yesterMs ? 'Вчера' :
-      new Date(n.createdAt).toLocaleDateString('bg-BG', { day: 'numeric', month: 'long', year: 'numeric' })
+      dayMs === todayMs  ? todayLabel :
+      dayMs === yesterMs ? yesterdayLabel :
+      new Date(n.createdAt).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })
 
     if (!map.has(label)) { map.set(label, []); order.push(label) }
     map.get(label)!.push(n)
@@ -57,16 +63,21 @@ function groupByDate(items: NotificationDto[]): { label: string; items: Notifica
   return order.map(label => ({ label, items: map.get(label)! }))
 }
 
-function relativeTime(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const mins = Math.floor(diff / 60_000)
-  if (mins < 1)  return 'Сега'
-  if (mins < 60) return `преди ${mins} мин`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `преди ${hours} ч`
-  const days = Math.floor(hours / 24)
-  if (days < 7)  return `преди ${days} дни`
-  return new Date(dateStr).toLocaleDateString('bg-BG', { day: 'numeric', month: 'short' })
+function useRelativeTime() {
+  const { t, i18n } = useTranslation()
+  const locale = i18n.language === 'bg' ? 'bg-BG' : 'en-GB'
+
+  return (dateStr: string): string => {
+    const diff = Date.now() - new Date(dateStr).getTime()
+    const mins = Math.floor(diff / 60_000)
+    if (mins < 1)  return t('notifications.justNow')
+    if (mins < 60) return t('notifications.minutesAgo', { count: mins })
+    const hours = Math.floor(mins / 60)
+    if (hours < 24) return t('notifications.hoursAgo', { count: hours })
+    const days = Math.floor(hours / 24)
+    if (days < 7)  return t('notifications.daysAgo', { count: days })
+    return new Date(dateStr).toLocaleDateString(locale, { day: 'numeric', month: 'short' })
+  }
 }
 
 const FONT = "'Plus Jakarta Sans', sans-serif"
@@ -74,11 +85,14 @@ const FONT = "'Plus Jakarta Sans', sans-serif"
 export function NotificationsPage() {
   const { notifications, unreadCount, loading, markAsRead, markAllAsRead } = useNotifications()
   const { translate } = useLanguage()
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const [filter, setFilter] = useState<'all' | 'unread'>('all')
+  const relativeTime = useRelativeTime()
+  const locale = i18n.language === 'bg' ? 'bg-BG' : 'en-GB'
 
   const filtered = filter === 'unread' ? notifications.filter(n => !n.isRead) : notifications
-  const groups   = groupByDate(filtered)
+  const groups   = groupByDate(filtered, t('notifications.today'), t('notifications.yesterday'), locale)
 
   async function handleClick(n: NotificationDto) {
     if (!n.isRead) await markAsRead(n.id)
@@ -92,7 +106,7 @@ export function NotificationsPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '22px', flexWrap: 'wrap', gap: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <h1 style={{ margin: 0, fontSize: '1.375rem', fontWeight: 700, fontFamily: "'Bricolage Grotesque', 'Plus Jakarta Sans', sans-serif", color: '#1e1b4b' }}>
-            Известия
+            {t('notifications.title')}
           </h1>
           {unreadCount > 0 && (
             <span style={{
@@ -130,7 +144,7 @@ export function NotificationsPage() {
             onMouseEnter={e => (e.currentTarget.style.background = 'rgba(124,58,237,0.08)')}
             onMouseLeave={e => (e.currentTarget.style.background = 'none')}
           >
-            Маркирай всички като прочетени
+            {t('notifications.markAllRead')}
           </button>
         )}
       </div>
@@ -164,8 +178,8 @@ export function NotificationsPage() {
             }}
           >
             {f === 'all'
-              ? 'Всички'
-              : `Непрочетени${unreadCount > 0 ? ` (${unreadCount})` : ''}`}
+              ? t('notifications.all')
+              : unreadCount > 0 ? t('notifications.unread', { count: unreadCount }) : t('notifications.unreadTab')}
           </button>
         ))}
       </div>
@@ -173,7 +187,7 @@ export function NotificationsPage() {
       {/* Body */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: '64px 0', color: '#a78bfa', fontFamily: FONT, fontSize: '0.9rem' }}>
-          Зареждане…
+          {t('notifications.loading')}
         </div>
       ) : filtered.length === 0 ? (
         <div style={{
@@ -188,12 +202,10 @@ export function NotificationsPage() {
         }}>
           <div style={{ fontSize: '2.75rem', marginBottom: '14px' }}>🔔</div>
           <p style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: '#1e1b4b', fontFamily: FONT }}>
-            {filter === 'unread' ? 'Няма непрочетени известия' : 'Няма известия'}
+            {filter === 'unread' ? t('notifications.noUnread') : t('notifications.noNotifications')}
           </p>
           <p style={{ margin: '6px 0 0', fontSize: '0.85rem', color: '#a78bfa', fontFamily: FONT }}>
-            {filter === 'unread'
-              ? 'Всички известия са прочетени.'
-              : 'Тук ще се появяват известия за дейности.'}
+            {filter === 'unread' ? t('notifications.allRead') : t('notifications.noActivity')}
           </p>
         </div>
       ) : (

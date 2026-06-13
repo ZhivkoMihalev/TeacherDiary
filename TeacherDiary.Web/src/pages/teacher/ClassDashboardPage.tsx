@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams, NavLink, Outlet } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { dashboardApi } from '../../api/dashboard'
@@ -7,15 +8,16 @@ import { Spinner } from '../../components/ui/Spinner'
 import { MedalIcon } from '../../components/ui/MedalIcon'
 
 const tabs = [
-  { to: 'dashboard', label: 'Дневник' },
-  { to: 'students', label: 'Ученици' },
-  { to: 'reading', label: 'Четене' },
-  { to: 'assignments', label: 'Задачи' },
-  { to: 'challenges', label: 'Предизвикателства' },
-  { to: 'analytics', label: 'Статистика' },
+  { to: 'dashboard', labelKey: 'teacher.classDashboard.tabDashboard' },
+  { to: 'students', labelKey: 'teacher.classDashboard.tabStudents' },
+  { to: 'reading', labelKey: 'teacher.classDashboard.tabReading' },
+  { to: 'assignments', labelKey: 'teacher.classDashboard.tabAssignments' },
+  { to: 'challenges', labelKey: 'teacher.classDashboard.tabChallenges' },
+  { to: 'analytics', labelKey: 'teacher.classDashboard.tabAnalytics' },
 ]
 
 export function ClassDashboardPage() {
+  const { t } = useTranslation()
   const { classId } = useParams<{ classId: string }>()
 
   const { data, isLoading } = useQuery({
@@ -35,11 +37,11 @@ export function ClassDashboardPage() {
     <div className="p-6 max-w-6xl mx-auto">
       <div className="mb-6">
         <h1 className="text-3xl font-black text-[#1C1917]">{data?.className}</h1>
-        <p className="text-[#78716C] text-sm font-semibold mt-0.5">{data?.studentsCount} записани ученика</p>
+        <p className="text-[#78716C] text-sm font-semibold mt-0.5">{t('teacher.classes.studentsEnrolled', { count: data?.studentsCount ?? 0 })}</p>
       </div>
 
       <div className="flex gap-1 mb-6 bg-white rounded-2xl p-1.5 border border-[#EAE8E0] shadow-sm w-fit">
-        {tabs.map(({ to, label }) => (
+        {tabs.map(({ to, labelKey }) => (
           <NavLink
             key={to}
             to={to}
@@ -51,7 +53,7 @@ export function ClassDashboardPage() {
               }`
             }
           >
-            {label}
+            {t(labelKey)}
           </NavLink>
         ))}
       </div>
@@ -62,6 +64,7 @@ export function ClassDashboardPage() {
 }
 
 export function ClassOverview() {
+  const { t } = useTranslation()
   const { classId } = useParams<{ classId: string }>()
 
   const { data, isLoading } = useQuery({
@@ -78,21 +81,21 @@ export function ClassOverview() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard label="Активни днес" value={data.activeTodayCount} total={data.studentsCount} icon="people" accent="#4F46E5" />
-        <StatCard label="Прочетени страници (7 дни)" value={data.totalPagesReadLast7Days} icon="book" accent="#059669" />
-        <StatCard label="Изпълнени задачи (7 дни)" value={data.completedAssignmentsLast7Days} icon="check" accent="#0284C7" />
-        <StatCard label="Активни задания" value={data.activeLearningActivitiesCount} icon="zap" accent="#D97706" />
+        <StatCard label={t('teacher.classDashboard.activeToday')} value={data.activeTodayCount} total={data.studentsCount} icon="people" accent="#4F46E5" />
+        <StatCard label={t('teacher.classDashboard.pagesRead7d')} value={data.totalPagesReadLast7Days} icon="book" accent="#059669" />
+        <StatCard label={t('teacher.classDashboard.completed7d')} value={data.completedAssignmentsLast7Days} icon="check" accent="#0284C7" />
+        <StatCard label={t('teacher.classDashboard.activeActivities')} value={data.activeLearningActivitiesCount} icon="zap" accent="#D97706" />
       </div>
 
       <div className="grid sm:grid-cols-2 gap-6">
         {/* Топ 5 — Точки */}
         <Card>
           <CardHeader>
-            <SectionTitle icon="trophy" color="#4F46E5" label="Топ 5 — Точки" />
+            <SectionTitle icon="trophy" color="#4F46E5" label={t('teacher.classDashboard.top5Points')} />
           </CardHeader>
           <CardBody className="p-0">
             {data.leaderboard.length === 0 ? (
-              <p className="text-base text-gray-400 px-6 py-6 text-center">Няма данни.</p>
+              <p className="text-base text-gray-400 px-6 py-6 text-center">{t('common.noData')}</p>
             ) : (
               <ol className="divide-y divide-gray-100">
                 {data.leaderboard.map((item, i) => (
@@ -105,7 +108,7 @@ export function ClassOverview() {
                         {item.topPointsMedalCode && <MedalIcon code={item.topPointsMedalCode} size="sm" />}
                       </span>
                     </div>
-                    <span className="text-base font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">{item.points} т.</span>
+                    <span className="text-base font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">{t('teacher.classDashboard.pointsDisplay', { points: item.points })}</span>
                   </li>
                 ))}
               </ol>
@@ -116,11 +119,11 @@ export function ClassOverview() {
         {/* Топ читатели */}
         <Card>
           <CardHeader>
-            <SectionTitle icon="book" color="#059669" label="Топ читатели (7 дни)" />
+            <SectionTitle icon="book" color="#059669" label={t('teacher.classDashboard.topReaders')} />
           </CardHeader>
           <CardBody className="p-0">
             {data.topReaders.length === 0 ? (
-              <p className="text-base text-gray-400 px-6 py-6 text-center">Няма активност по четене.</p>
+              <p className="text-base text-gray-400 px-6 py-6 text-center">{t('teacher.classDashboard.noReading')}</p>
             ) : (
               <ol className="divide-y divide-gray-100">
                 {data.topReaders.map((item, i) => (
@@ -129,7 +132,7 @@ export function ClassOverview() {
                       <RankBadge rank={i + 1} />
                       <span className="text-base font-semibold text-gray-800">{item.studentName}</span>
                     </div>
-                    <span className="text-base font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg">{item.pagesReadLast7Days} стр.</span>
+                    <span className="text-base font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg">{item.pagesReadLast7Days} {t('common.pages')}</span>
                   </li>
                 ))}
               </ol>
@@ -140,11 +143,11 @@ export function ClassOverview() {
         {/* Най-добри серии */}
         <Card>
           <CardHeader>
-            <SectionTitle icon="flame" color="#EA580C" label="Най-добри серии" />
+            <SectionTitle icon="flame" color="#EA580C" label={t('teacher.classDashboard.bestStreaks')} />
           </CardHeader>
           <CardBody className="p-0">
             {data.bestStreaks.length === 0 ? (
-              <p className="text-base text-gray-400 px-6 py-6 text-center">Няма данни за серии.</p>
+              <p className="text-base text-gray-400 px-6 py-6 text-center">{t('teacher.classDashboard.noStreaks')}</p>
             ) : (
               <ol className="divide-y divide-gray-100">
                 {data.bestStreaks.map((item, i) => (
@@ -155,18 +158,18 @@ export function ClassOverview() {
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-center">
-                        <p className="text-xs text-gray-400 font-medium mb-0.5">Серия</p>
+                        <p className="text-xs text-gray-400 font-medium mb-0.5">{t('teacher.classDashboard.streakLabel')}</p>
                         <div className="flex items-center gap-1 bg-orange-50 border border-orange-200 rounded-lg px-2.5 py-1">
                           <svg viewBox="0 0 24 24" fill="none" stroke="#EA580C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 shrink-0">
                             <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
                           </svg>
-                          <span className="text-sm font-black text-orange-600">{item.currentStreak} дни</span>
+                          <span className="text-sm font-black text-orange-600">{t('teacher.classDashboard.currentStreak', { count: item.currentStreak })}</span>
                         </div>
                       </div>
                       <div className="text-center">
-                        <p className="text-xs text-gray-400 font-medium mb-0.5">Рекорд</p>
+                        <p className="text-xs text-gray-400 font-medium mb-0.5">{t('teacher.classDashboard.recordLabel')}</p>
                         <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1">
-                          <span className="text-sm font-bold text-gray-600">🏆 {item.bestStreak} дни</span>
+                          <span className="text-sm font-bold text-gray-600">{t('teacher.classDashboard.bestStreak', { count: item.bestStreak })}</span>
                         </div>
                       </div>
                     </div>
@@ -180,11 +183,11 @@ export function ClassOverview() {
         {/* Нови медали */}
         <Card>
           <CardHeader>
-            <SectionTitle icon="award" color="#B45309" label="Нови медали (7 дни)" />
+            <SectionTitle icon="award" color="#B45309" label={t('teacher.classDashboard.newBadges')} />
           </CardHeader>
           <CardBody className="p-0">
             {data.recentBadges.length === 0 ? (
-              <p className="text-base text-gray-400 px-6 py-6 text-center">Няма присъдени медали наскоро.</p>
+              <p className="text-base text-gray-400 px-6 py-6 text-center">{t('teacher.classDashboard.noBadges')}</p>
             ) : (
               <ul className="divide-y divide-gray-100">
                 {data.recentBadges.map((b, i) => (

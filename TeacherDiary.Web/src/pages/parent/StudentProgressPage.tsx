@@ -1,4 +1,6 @@
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { parentApi } from '../../api/parent'
@@ -19,10 +21,10 @@ function statusVariant(s: ProgressStatus) {
   return 'gray'
 }
 
-function translateStatus(s: ProgressStatus) {
-  if (s === 'Completed') return 'Завършено'
-  if (s === 'InProgress') return 'В процес'
-  return 'Не е стартирано'
+function translateStatus(s: ProgressStatus, t: TFunction) {
+  if (s === 'Completed') return t('status.completed')
+  if (s === 'InProgress') return t('status.inProgress')
+  return t('status.notStarted')
 }
 
 const FONT = "'Plus Jakarta Sans', sans-serif"
@@ -41,6 +43,7 @@ function StreakCalendar({ days, currentStreak, bestStreak }: {
   currentStreak: number
   bestStreak: number
 }) {
+  const { t } = useTranslation()
   const [tooltip, setTooltip] = useState<{ day: ActivityCalendarDayDto; idx: number } | null>(null)
   const today = new Date().toISOString().slice(0, 10)
 
@@ -48,18 +51,17 @@ function StreakCalendar({ days, currentStreak, bestStreak }: {
     <div style={{ background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', border: '1px solid rgba(219,39,119,0.12)', boxShadow: '0 2px 12px rgba(219,39,119,0.07)', padding: '18px 20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '1.1rem' }}>🔥</span>
-          <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>Серия на активност</span>
+          <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>{t('parent.progress.activityStreak')}</span>
         </div>
         <div style={{ display: 'flex', gap: '14px' }}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#db2777', fontFamily: FONT, lineHeight: 1 }}>{currentStreak}</div>
-            <div style={{ fontSize: '0.68rem', color: '#a78bfa', fontFamily: FONT, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Текуща</div>
+            <div style={{ fontSize: '0.68rem', color: '#a78bfa', fontFamily: FONT, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('parent.progress.current')}</div>
           </div>
           <div style={{ width: '1px', background: 'rgba(219,39,119,0.2)' }} />
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#7c3aed', fontFamily: FONT, lineHeight: 1 }}>{bestStreak}</div>
-            <div style={{ fontSize: '0.68rem', color: '#a78bfa', fontFamily: FONT, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Рекорд</div>
+            <div style={{ fontSize: '0.68rem', color: '#a78bfa', fontFamily: FONT, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('parent.progress.record')}</div>
           </div>
         </div>
       </div>
@@ -90,18 +92,18 @@ function StreakCalendar({ days, currentStreak, bestStreak }: {
                 {tooltip.day.activityCount} акт.
               </div>
             ) : (
-              <div style={{ fontSize: '0.7rem', color: '#a78bfa', fontFamily: FONT }}>Няма активност</div>
+              <div style={{ fontSize: '0.7rem', color: '#a78bfa', fontFamily: FONT }}>{t('parent.progress.noActivity')}</div>
             )}
           </div>
         )}
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '10px', flexWrap: 'wrap' }}>
-        <span style={{ fontSize: '0.68rem', color: '#a78bfa', fontFamily: FONT }}>По-малко</span>
+        <span style={{ fontSize: '0.68rem', color: '#a78bfa', fontFamily: FONT }}>{t('parent.progress.less')}</span>
         {['rgba(200,200,210,0.25)', '#f9a8d4', '#ec4899', '#db2777'].map((c, i) => (
           <div key={i} style={{ width: '14px', height: '14px', borderRadius: '3px', background: c }} />
         ))}
-        <span style={{ fontSize: '0.68rem', color: '#a78bfa', fontFamily: FONT }}>Повече</span>
+        <span style={{ fontSize: '0.68rem', color: '#a78bfa', fontFamily: FONT }}>{t('parent.progress.more')}</span>
       </div>
     </div>
   )
@@ -113,6 +115,7 @@ function Leaderboard({ items, childId }: {
   items: { studentId: string; studentName: string; points: number; topMedalCode?: string }[]
   childId: string
 }) {
+  const { t } = useTranslation()
   const medals = ['🥇', '🥈', '🥉']
   const childRank = items.findIndex(i => i.studentId === childId) + 1
 
@@ -120,18 +123,17 @@ function Leaderboard({ items, childId }: {
     <div style={{ background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', border: '1px solid rgba(219,39,119,0.12)', boxShadow: '0 2px 12px rgba(219,39,119,0.07)', padding: '18px 0 6px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px 12px', flexWrap: 'wrap', gap: '6px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '1.1rem' }}>🏆</span>
-          <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>Класация в класа</span>
+          <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>{t('parent.progress.leaderboard')}</span>
         </div>
         {childRank > 0 && (
           <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#db2777', background: 'rgba(219,39,119,0.08)', padding: '3px 10px', borderRadius: '99px', fontFamily: FONT }}>
-            Детето е #{childRank}
+            {t('parent.progress.yourChild', { rank: childRank })}
           </span>
         )}
       </div>
 
       {items.length === 0 ? (
-        <div style={{ padding: '20px', textAlign: 'center', fontSize: '0.85rem', color: '#a78bfa', fontFamily: FONT }}>Все още няма данни.</div>
+        <div style={{ padding: '20px', textAlign: 'center', fontSize: '0.85rem', color: '#a78bfa', fontFamily: FONT }}>{t('parent.progress.noLeaderboard')}</div>
       ) : (
         items.slice(0, 8).map((item, idx) => {
           const isChild = item.studentId === childId
@@ -145,7 +147,7 @@ function Leaderboard({ items, childId }: {
               {item.topMedalCode && <MedalIcon code={item.topMedalCode} size="sm" />}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '0.845rem', fontWeight: isChild ? 700 : 500, color: isChild ? '#db2777' : '#1e1b4b', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {item.studentName}{isChild ? ' ← детето ти' : ''}
+                  {item.studentName}{isChild ? t('parent.progress.yourChildSuffix') : ''}
                 </div>
                 <div style={{ marginTop: '3px', height: '4px', borderRadius: '2px', background: 'rgba(219,39,119,0.1)', overflow: 'hidden' }}>
                   <div style={{ height: '100%', width: `${barPct}%`, borderRadius: '2px', background: idx === 0 ? 'linear-gradient(90deg,#f59e0b,#fbbf24)' : isChild ? 'linear-gradient(90deg,#db2777,#ec4899)' : 'rgba(219,39,119,0.3)' }} />
@@ -163,6 +165,7 @@ function Leaderboard({ items, childId }: {
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
 export function StudentProgressPage() {
+  const { t } = useTranslation()
   const { studentId } = useParams<{ studentId: string }>()
   const qc = useQueryClient()
   const [readingPages, setReadingPages] = useState<Record<string, string>>({})
@@ -250,7 +253,7 @@ export function StudentProgressPage() {
 
       {/* Back */}
       <Link to="/parent/students" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.82rem', color: '#a78bfa', fontFamily: FONT, textDecoration: 'none', marginBottom: '16px' }}>
-        ← Назад
+        {t('common.back')}
       </Link>
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
@@ -258,7 +261,7 @@ export function StudentProgressPage() {
         <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '200px', height: '200px', background: 'radial-gradient(circle, rgba(219,39,119,0.35) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ padding: '24px 24px 20px', position: 'relative' }}>
           <p style={{ margin: '0 0 2px', fontSize: '0.8rem', fontWeight: 700, color: '#f9a8d4', fontFamily: FONT, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-            Прогрес на детето
+            {t('parent.progress.title')}
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px', flexWrap: 'wrap' }}>
             <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 900, color: 'white', fontFamily: "'Bricolage Grotesque', 'Plus Jakarta Sans', sans-serif", letterSpacing: '-0.02em' }}>
@@ -273,7 +276,7 @@ export function StudentProgressPage() {
               <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'linear-gradient(135deg,#f59e0b,#fbbf24)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.15rem', flexShrink: 0 }}>⚡</div>
               <div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'white', fontFamily: FONT, lineHeight: 1 }}>{data.totalPoints}</div>
-                <div style={{ fontSize: '0.7rem', color: '#f9a8d4', fontFamily: FONT, fontWeight: 600 }}>точки</div>
+                <div style={{ fontSize: '0.7rem', color: '#f9a8d4', fontFamily: FONT, fontWeight: 600 }}>{t('common.points')}</div>
               </div>
             </div>
             {/* Streak */}
@@ -281,7 +284,7 @@ export function StudentProgressPage() {
               <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'linear-gradient(135deg,#ef4444,#f97316)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.15rem', flexShrink: 0 }}>🔥</div>
               <div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'white', fontFamily: FONT, lineHeight: 1 }}>{data.currentStreak}</div>
-                <div style={{ fontSize: '0.7rem', color: '#f9a8d4', fontFamily: FONT, fontWeight: 600 }}>дни серия</div>
+                <div style={{ fontSize: '0.7rem', color: '#f9a8d4', fontFamily: FONT, fontWeight: 600 }}>{t('common.daysStreak')}</div>
               </div>
             </div>
             {/* Rank */}
@@ -290,7 +293,7 @@ export function StudentProgressPage() {
                 <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'linear-gradient(135deg,#db2777,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.15rem', flexShrink: 0 }}>🏆</div>
                 <div>
                   <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'white', fontFamily: FONT, lineHeight: 1 }}>#{childRank}</div>
-                  <div style={{ fontSize: '0.7rem', color: '#f9a8d4', fontFamily: FONT, fontWeight: 600 }}>в класа</div>
+                  <div style={{ fontSize: '0.7rem', color: '#f9a8d4', fontFamily: FONT, fontWeight: 600 }}>{t('common.inClass')}</div>
                 </div>
               </div>
             )}
@@ -299,7 +302,7 @@ export function StudentProgressPage() {
               <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'linear-gradient(135deg,#059669,#34d399)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.15rem', flexShrink: 0 }}>📖</div>
               <div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'white', fontFamily: FONT, lineHeight: 1 }}>{data.totalPagesRead}</div>
-                <div style={{ fontSize: '0.7rem', color: '#f9a8d4', fontFamily: FONT, fontWeight: 600 }}>стр. прочетени</div>
+                <div style={{ fontSize: '0.7rem', color: '#f9a8d4', fontFamily: FONT, fontWeight: 600 }}>{t('common.pagesRead')}</div>
               </div>
             </div>
           </div>
@@ -324,7 +327,7 @@ export function StudentProgressPage() {
       {hasTasks && (
         <div style={{ marginBottom: '16px' }}>
           <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#a78bfa', fontFamily: FONT, marginBottom: '10px', paddingLeft: '4px' }}>
-            Активни задачи
+            {t('parent.progress.activeTasks')}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
@@ -332,8 +335,7 @@ export function StudentProgressPage() {
             {activeReading.length > 0 && (
               <div style={{ background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '14px', border: '1px solid rgba(219,39,119,0.1)', boxShadow: '0 2px 10px rgba(219,39,119,0.06)', overflow: 'hidden' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px 10px', borderBottom: '1px solid rgba(219,39,119,0.08)' }}>
-                  <span>📖</span>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>Четене</span>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>{t('parent.progress.reading')}</span>
                 </div>
                 <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                   {activeReading.map((r) => {
@@ -344,9 +346,9 @@ export function StudentProgressPage() {
                         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
                           <div style={{ minWidth: 0 }}>
                             <p style={{ margin: 0, fontSize: '0.87rem', fontWeight: 600, color: '#1e1b4b', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.bookTitle}</p>
-                            <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: '#a78bfa', fontFamily: FONT }}>стр. {r.currentPage} / {r.totalPages ?? '?'}</p>
+                            <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: '#a78bfa', fontFamily: FONT }}>{t('parent.progress.pagesProgress', { current: r.currentPage, total: r.totalPages ?? '?' })}</p>
                           </div>
-                          <Badge variant={statusVariant(r.status)}>{translateStatus(r.status)}</Badge>
+                          <Badge variant={statusVariant(r.status)}>{translateStatus(r.status, t)}</Badge>
                         </div>
                         {pct !== null && (
                           <div>
@@ -361,7 +363,7 @@ export function StudentProgressPage() {
                             <input
                               type="number" min={1} value={pageInput}
                               onChange={(e) => setReadingPages(p => ({ ...p, [r.assignedBookId]: e.target.value }))}
-                              placeholder="Брой нови стр."
+                              placeholder={t('common.newPages')}
                               style={{ flex: 1, border: '1px solid rgba(219,39,119,0.2)', borderRadius: '8px', padding: '7px 10px', fontSize: '0.82rem', outline: 'none', fontFamily: FONT, color: '#1e1b4b' }}
                             />
                             <Button
@@ -371,14 +373,14 @@ export function StudentProgressPage() {
                               onClick={() => {
                                 const newPage = r.currentPage + Number(pageInput)
                                 if (r.totalPages && newPage > r.totalPages) {
-                                  setAlertMessage('Не можете да отбележите повече страници от броя на оставащите!')
+                                  setAlertMessage(t('parent.progress.overMaxPages'))
                                   return
                                 }
                                 if (r.totalPages && newPage >= r.totalPages)
                                   pendingCelebration.current = { studentName: data.studentName, bookTitle: r.bookTitle }
                                 readingMutation.mutate({ assignedBookId: r.assignedBookId, page: newPage })
                               }}
-                            >Актуализирай</Button>
+                            >{t('common.update')}</Button>
                           </div>
                         )}
                       </div>
@@ -392,28 +394,27 @@ export function StudentProgressPage() {
             {activeAssignments.length > 0 && (
               <div style={{ background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '14px', border: '1px solid rgba(219,39,119,0.1)', boxShadow: '0 2px 10px rgba(219,39,119,0.06)', overflow: 'hidden' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px 10px', borderBottom: '1px solid rgba(219,39,119,0.08)' }}>
-                  <span>📝</span>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>Задачи</span>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>{t('parent.progress.assignments')}</span>
                 </div>
                 <div style={{ padding: '8px 0' }}>
                   {activeAssignments.map(a => (
                     <div key={a.assignmentId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '9px 16px', borderBottom: '1px solid rgba(219,39,119,0.05)' }}>
                       <div style={{ minWidth: 0 }}>
                         <p style={{ margin: 0, fontSize: '0.87rem', fontWeight: 600, color: '#1e1b4b', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.title}</p>
-                        <p style={{ margin: '1px 0 0', fontSize: '0.72rem', color: '#a78bfa', fontFamily: FONT }}>{a.subject}{a.dueDate ? ` · Срок: ${formatDate(a.dueDate)}` : ''}</p>
+                        <p style={{ margin: '1px 0 0', fontSize: '0.72rem', color: '#a78bfa', fontFamily: FONT }}>{a.subject}{a.dueDate ? ` · ${t('common.dueDate')} ${formatDate(a.dueDate)}` : ''}</p>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                        <Badge variant={statusVariant(a.status)}>{translateStatus(a.status)}</Badge>
+                        <Badge variant={statusVariant(a.status)}>{translateStatus(a.status, t)}</Badge>
                         {a.status === 'NotStarted' && (
                           <Button size="sm" variant="secondary" loading={assignmentMutation.isPending}
                             onClick={() => assignmentMutation.mutate({ assignmentId: a.assignmentId, markCompleted: false })}>
-                            Старт
+                            {t('common.start')}
                           </Button>
                         )}
                         {a.status === 'InProgress' && (
                           <Button size="sm" variant="success" loading={assignmentMutation.isPending}
                             onClick={() => assignmentMutation.mutate({ assignmentId: a.assignmentId, markCompleted: true })}>
-                            Завърши
+                            {t('common.complete')}
                           </Button>
                         )}
                       </div>
@@ -427,8 +428,7 @@ export function StudentProgressPage() {
             {data.challenges.length > 0 && (
               <div style={{ background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '14px', border: '1px solid rgba(219,39,119,0.1)', boxShadow: '0 2px 10px rgba(219,39,119,0.06)', overflow: 'hidden' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px 10px', borderBottom: '1px solid rgba(219,39,119,0.08)' }}>
-                  <span>⚡</span>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>Предизвикателства</span>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e1b4b', fontFamily: FONT }}>{t('parent.progress.challenges')}</span>
                 </div>
                 <div style={{ padding: '8px 0' }}>
                   {activeChallenges.map(c => (
@@ -436,11 +436,11 @@ export function StudentProgressPage() {
                       <div style={{ minWidth: 0 }}>
                         <p style={{ margin: 0, fontSize: '0.87rem', fontWeight: 600, color: '#1e1b4b', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title}</p>
                         {challengeTargetLabel(c) && <p style={{ margin: '1px 0 0', fontSize: '0.72rem', color: '#a78bfa', fontFamily: FONT }}>{challengeTargetLabel(c)}</p>}
-                        <p style={{ margin: '1px 0 0', fontSize: '0.72rem', color: '#a78bfa', fontFamily: FONT }}>Срок: {formatDate(c.endDate)}</p>
+                        <p style={{ margin: '1px 0 0', fontSize: '0.72rem', color: '#a78bfa', fontFamily: FONT }}>{t('common.dueDate')} {formatDate(c.endDate)}</p>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                        {!c.started && (<><Badge variant="gray">Не е стартирано</Badge><Button size="sm" variant="secondary" loading={startChallengeMutation.isPending} onClick={() => startChallengeMutation.mutate(c.challengeId)}>Стартирай</Button></>)}
-                        {c.started && (<><Badge variant="blue">В процес</Badge><Button size="sm" variant="success" loading={completeChallengewMutation.isPending} onClick={() => completeChallengewMutation.mutate(c.challengeId)}>Завърши</Button></>)}
+                        {!c.started && (<><Badge variant="gray">{t('status.notStarted')}</Badge><Button size="sm" variant="secondary" loading={startChallengeMutation.isPending} onClick={() => startChallengeMutation.mutate(c.challengeId)}>{t('common.start')}</Button></>)}
+                        {c.started && (<><Badge variant="blue">{t('status.inProgress')}</Badge><Button size="sm" variant="success" loading={completeChallengewMutation.isPending} onClick={() => completeChallengewMutation.mutate(c.challengeId)}>{t('common.complete')}</Button></>)}
                       </div>
                     </div>
                   ))}
@@ -450,13 +450,13 @@ export function StudentProgressPage() {
                         <p style={{ margin: 0, fontSize: '0.87rem', color: '#1e1b4b', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title}</p>
                         {challengeTargetLabel(c) && <p style={{ margin: '1px 0 0', fontSize: '0.72rem', color: '#a78bfa', fontFamily: FONT }}>{challengeTargetLabel(c)}</p>}
                       </div>
-                      <Badge variant="red">Просрочено</Badge>
+                      <Badge variant="red">{t('status.overdue')}</Badge>
                     </div>
                   ))}
                   {completedChallenges.map(c => (
                     <div key={c.challengeId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '9px 16px', opacity: 0.55 }}>
                       <p style={{ margin: 0, fontSize: '0.87rem', color: '#1e1b4b', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title}</p>
-                      <Badge variant="green">Завършено</Badge>
+                      <Badge variant="green">{t('status.completed')}</Badge>
                     </div>
                   ))}
                 </div>
@@ -469,7 +469,7 @@ export function StudentProgressPage() {
       {/* ── Archive ── */}
       {hasArchive && (
         <div>
-          <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#a78bfa', fontFamily: FONT, marginBottom: '10px', paddingLeft: '4px' }}>Архив</div>
+          <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#a78bfa', fontFamily: FONT, marginBottom: '10px', paddingLeft: '4px' }}>{t('parent.progress.archive')}</div>
           <div style={{ background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', borderRadius: '14px', border: '1px solid rgba(219,39,119,0.08)', overflow: 'hidden' }}>
             {archivedReading.map(r => {
               const pct = r.totalPages ? Math.min(100, Math.round((r.currentPage / r.totalPages) * 100)) : null
@@ -478,9 +478,9 @@ export function StudentProgressPage() {
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', marginBottom: pct !== null ? '6px' : 0 }}>
                     <div>
                       <p style={{ margin: 0, fontSize: '0.87rem', fontWeight: 600, color: '#1e1b4b', fontFamily: FONT }}>{r.bookTitle}</p>
-                      <p style={{ margin: '2px 0 0', fontSize: '0.72rem', color: '#a78bfa', fontFamily: FONT }}>стр. {r.currentPage} / {r.totalPages ?? '?'}</p>
+                      <p style={{ margin: '2px 0 0', fontSize: '0.72rem', color: '#a78bfa', fontFamily: FONT }}>{t('parent.progress.pagesProgress', { current: r.currentPage, total: r.totalPages ?? '?' })}</p>
                     </div>
-                    <Badge variant={statusVariant(r.status)}>{translateStatus(r.status)}</Badge>
+                    <Badge variant={statusVariant(r.status)}>{translateStatus(r.status, t)}</Badge>
                   </div>
                   {pct !== null && <div style={{ width: '100%', height: '4px', borderRadius: '2px', background: 'rgba(219,39,119,0.1)', overflow: 'hidden' }}><div style={{ height: '100%', width: `${pct}%`, background: 'rgba(219,39,119,0.35)' }} /></div>}
                 </div>
@@ -492,16 +492,16 @@ export function StudentProgressPage() {
                   <p style={{ margin: 0, fontSize: '0.87rem', fontWeight: 600, color: '#1e1b4b', fontFamily: FONT }}>{a.title}</p>
                   <p style={{ margin: '1px 0 0', fontSize: '0.72rem', color: '#a78bfa', fontFamily: FONT }}>{a.subject}</p>
                 </div>
-                <Badge variant={statusVariant(a.status)}>{translateStatus(a.status)}</Badge>
+                <Badge variant={statusVariant(a.status)}>{translateStatus(a.status, t)}</Badge>
               </div>
             ))}
             {archivedActivities.map(la => (
               <div key={la.learningActivityId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '9px 16px', opacity: 0.6 }}>
                 <div>
                   <p style={{ margin: 0, fontSize: '0.87rem', fontWeight: 600, color: '#1e1b4b', fontFamily: FONT }}>{la.title}</p>
-                  {la.dueDateUtc && <p style={{ margin: '1px 0 0', fontSize: '0.72rem', color: '#a78bfa', fontFamily: FONT }}>Срок: {formatDate(la.dueDateUtc)}</p>}
+                  {la.dueDateUtc && <p style={{ margin: '1px 0 0', fontSize: '0.72rem', color: '#a78bfa', fontFamily: FONT }}>{t('common.dueDate')} {formatDate(la.dueDateUtc)}</p>}
                 </div>
-                <Badge variant={statusVariant(la.status)}>{translateStatus(la.status)}</Badge>
+                <Badge variant={statusVariant(la.status)}>{translateStatus(la.status, t)}</Badge>
               </div>
             ))}
           </div>

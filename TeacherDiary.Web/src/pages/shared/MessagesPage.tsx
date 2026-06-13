@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { messagesApi } from '../../api/messages'
 import { TranslateButton } from '../../components/TranslateButton'
 import type { ConversationDto, MessageContactDto } from '../../types'
@@ -37,6 +38,7 @@ function NewConversationModal({
   onSelect: (contact: MessageContactDto) => void
   onClose: () => void
 }) {
+  const { t } = useTranslation()
   const [search, setSearch] = useState('')
   const trimmed = search.trim()
   const filtered = trimmed
@@ -47,14 +49,14 @@ function NewConversationModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
       <div className="bg-white rounded-xl shadow-xl w-80 max-h-[70vh] flex flex-col">
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-          <h3 className="font-semibold text-gray-800 text-sm">Ново съобщение</h3>
+          <h3 className="font-semibold text-gray-800 text-sm">{t('messages.newMessage')}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-lg leading-none">×</button>
         </div>
         <div className="px-4 py-3">
           <input
             autoFocus
             type="text"
-            placeholder="Търси..."
+            placeholder={t('messages.search')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full text-sm rounded-lg border border-gray-200 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
@@ -63,7 +65,7 @@ function NewConversationModal({
         {trimmed && (
           <div className="overflow-y-auto border-t border-gray-100">
             {filtered.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-6">Няма намерени контакти</p>
+              <p className="text-sm text-gray-400 text-center py-6">{t('messages.noConversations')}</p>
             ) : (
               filtered.map((c) => (
                 <button
@@ -90,6 +92,7 @@ function NewConversationModal({
 
 export function MessagesPage() {
   const qc = useQueryClient()
+  const { t } = useTranslation()
   const { translate } = useLanguage()
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
   const [selectedUserName, setSelectedUserName] = useState('')
@@ -220,19 +223,19 @@ export function MessagesPage() {
       {/* Sidebar: conversation list */}
       <aside className="w-72 border-r border-gray-200 flex flex-col bg-white shrink-0">
         <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="font-semibold text-gray-800">Съобщения</h2>
+          <h2 className="font-semibold text-gray-800">{t('messages.title')}</h2>
           <button
             onClick={() => setShowNewModal(true)}
             className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors"
           >
-            + Ново
+            + {t('messages.newMessage')}
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
           {conversations.length === 0 && (
             <p className="text-sm text-gray-400 text-center py-12 px-4">
-              Нямате съобщения. Натиснете "Ново", за да започнете разговор.
+              {t('messages.noConversations')}
             </p>
           )}
           {conversations.map((conv) => (
@@ -254,7 +257,7 @@ export function MessagesPage() {
                 )}
                 <div className="flex items-center justify-between">
                   <p className="text-xs text-gray-500 truncate">
-                    {conv.lastMessageIsFromMe ? 'Вие: ' : ''}
+                    {conv.lastMessageIsFromMe ? t('messages.you') + ' ' : ''}
                     {translate(conv.lastMessage)}
                   </p>
                   {conv.unreadCount > 0 && (
@@ -273,7 +276,7 @@ export function MessagesPage() {
       <div className="flex-1 flex flex-col min-w-0 bg-gray-50">
         {!selectedUserId ? (
           <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
-            Изберете разговор или започнете нов
+            {t('messages.noMessages')}
           </div>
         ) : (
           <>
@@ -391,7 +394,7 @@ export function MessagesPage() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder={pendingImage ? 'Добавете подпис (по желание)...' : 'Напишете съобщение...'}
+                  placeholder={t('messages.typeMessage')}
                   rows={1}
                   className="flex-1 resize-none rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 max-h-32 overflow-y-auto"
                   style={{ height: 'auto' }}
@@ -406,7 +409,7 @@ export function MessagesPage() {
                   disabled={!canSend}
                   className="bg-indigo-600 text-white rounded-xl px-4 py-2.5 text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
                 >
-                  {sendMutation.isPending ? '...' : 'Изпрати'}
+                  {sendMutation.isPending ? '...' : t('messages.send')}
                 </button>
               </div>
             </div>

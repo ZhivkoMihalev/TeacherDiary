@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { studentsApi } from '../../api/students'
@@ -12,6 +13,7 @@ import { MedalIcon } from '../../components/ui/MedalIcon'
 import type { StudentSearchDto } from '../../types'
 
 export function ClassStudentsPage() {
+  const { t } = useTranslation()
   const { classId } = useParams<{ classId: string }>()
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
@@ -42,7 +44,7 @@ export function ClassStudentsPage() {
       setSearch('')
       setAddError('')
     },
-    onError: () => setAddError('Грешка при записване на ученика. Моля, опитайте отново.'),
+    onError: () => setAddError(t('teacher.classStudents.errorAdd')),
   })
 
   const removeMutation = useMutation({
@@ -70,18 +72,18 @@ export function ClassStudentsPage() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <h2 className="font-semibold text-gray-800">Записване на ученик</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Търсете по име — родителят трябва първо да създаде профила на ученика</p>
+          <h2 className="font-semibold text-gray-800">{t('teacher.classStudents.enrollHeader')}</h2>
+          <p className="text-xs text-gray-400 mt-0.5">{t('teacher.classStudents.enrollHint')}</p>
         </CardHeader>
         <CardBody>
           <form onSubmit={handleSearch} className="flex gap-3">
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Име на ученик..."
+              placeholder={t('teacher.classStudents.searchPlaceholder')}
               className="flex-1"
             />
-            <Button type="submit" loading={searching} variant="secondary">Търси</Button>
+            <Button type="submit" loading={searching} variant="secondary">{t('teacher.classStudents.searchButton')}</Button>
           </form>
 
           {searchResults.length > 0 && (
@@ -94,14 +96,14 @@ export function ClassStudentsPage() {
                     loading={addMutation.isPending}
                     onClick={() => addMutation.mutate(s.id)}
                   >
-                    Запиши
+                    {t('teacher.classStudents.enrollButton')}
                   </Button>
                 </li>
               ))}
             </ul>
           )}
           {searchResults.length === 0 && search && !searching && (
-            <p className="text-sm text-gray-400 mt-3">Няма намерени резултати.</p>
+            <p className="text-sm text-gray-400 mt-3">{t('teacher.classStudents.noResults')}</p>
           )}
           {addError && <p className="text-sm text-red-600 mt-3">{addError}</p>}
         </CardBody>
@@ -109,7 +111,7 @@ export function ClassStudentsPage() {
 
       <Card>
         <CardHeader>
-          <h2 className="font-semibold text-gray-800">Записани ученици</h2>
+          <h2 className="font-semibold text-gray-800">{t('teacher.classStudents.enrolledHeader')}</h2>
         </CardHeader>
         {isLoading ? (
           <CardBody className="flex justify-center py-10">
@@ -117,7 +119,7 @@ export function ClassStudentsPage() {
           </CardBody>
         ) : students.length === 0 ? (
           <CardBody>
-            <p className="text-sm text-gray-400 text-center py-8">Няма записани ученици.</p>
+            <p className="text-sm text-gray-400 text-center py-8">{t('teacher.classStudents.noEnrolled')}</p>
           </CardBody>
         ) : (
           <div className="divide-y divide-gray-100">
@@ -132,9 +134,9 @@ export function ClassStudentsPage() {
                     {s.topMedalCode && <MedalIcon code={s.topMedalCode} size="sm" />}
                     {s.topPointsMedalCode && <MedalIcon code={s.topPointsMedalCode} size="sm" />}
                   </Link>
-                  {!s.isActive && <Badge variant="gray">Неактивен</Badge>}
+                  {!s.isActive && <Badge variant="gray">{t('teacher.classStudents.inactive')}</Badge>}
                 </div>
-                <Button size="sm" variant="ghost" onClick={() => setRemoveId(s.id)}>Премахни</Button>
+                <Button size="sm" variant="ghost" onClick={() => setRemoveId(s.id)}>{t('common.remove')}</Button>
               </div>
             ))}
           </div>
@@ -145,7 +147,7 @@ export function ClassStudentsPage() {
         const student = students.find((s) => s.id === removeId)
         return student ? (
           <ConfirmDialog
-            message={`Сигурни ли сте, че желаете да премахнете ${student.firstName} ${student.lastName} от класа?`}
+            message={t('teacher.classStudents.confirmRemove', { firstName: student.firstName, lastName: student.lastName })}
             loading={removeMutation.isPending}
             onConfirm={() => removeMutation.mutate(removeId)}
             onCancel={() => setRemoveId(null)}

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { challengesApi } from '../../api/challenges'
@@ -21,6 +22,7 @@ function EyeIcon() {
 }
 
 function ChallengePreviewModal({ c, onClose }: { c: ChallengeDto; onClose: () => void }) {
+  const { t } = useTranslation()
   const targetLabel = c.targetDescription
     ? `${c.targetDescription}${c.targetValue ? ` · ${c.targetValue}` : ''}`
     : c.targetValue
@@ -33,20 +35,20 @@ function ChallengePreviewModal({ c, onClose }: { c: ChallengeDto; onClose: () =>
       <div className="relative bg-white rounded-xl shadow-lg p-6 max-w-md w-full mx-4 space-y-3">
         <h2 className="text-lg font-bold text-gray-900">{c.title}</h2>
         <div className="text-sm text-gray-600 space-y-1">
-          <p><span className="font-medium text-gray-700">Начало:</span> {formatDate(c.startDate)}</p>
-          <p><span className="font-medium text-gray-700">Краен срок:</span> {formatDate(c.endDate)}</p>
+          <p><span className="font-medium text-gray-700">{t('teacher.classChallenges.previewStart')}</span> {formatDate(c.startDate)}</p>
+          <p><span className="font-medium text-gray-700">{t('teacher.classChallenges.previewDeadline')}</span> {formatDate(c.endDate)}</p>
           {targetLabel && (
-            <p><span className="font-medium text-gray-700">Цел:</span> {targetLabel}</p>
+            <p><span className="font-medium text-gray-700">{t('teacher.classChallenges.previewTarget')}</span> {targetLabel}</p>
           )}
           {c.points > 0 && (
-            <p><span className="font-medium text-gray-700">Точки за изпълнение:</span> {c.points} т.</p>
+            <p><span className="font-medium text-gray-700">{t('teacher.classChallenges.previewPoints')}</span> {t('teacher.classDashboard.pointsDisplay', { points: c.points })}</p>
           )}
           {c.description && (
-            <p><span className="font-medium text-gray-700">Описание:</span> {c.description}</p>
+            <p><span className="font-medium text-gray-700">{t('teacher.classChallenges.previewDescription')}</span> {c.description}</p>
           )}
           <p>
-            <span className="font-medium text-gray-700">Изпълнение:</span>{' '}
-            {c.completedCount}/{c.totalStudents} ученика
+            <span className="font-medium text-gray-700">{t('teacher.classChallenges.previewCompletion')}</span>{' '}
+            {t('teacher.classChallenges.previewStudents', { completed: c.completedCount, total: c.totalStudents })}
           </p>
         </div>
         <div className="flex justify-end pt-2">
@@ -54,7 +56,7 @@ function ChallengePreviewModal({ c, onClose }: { c: ChallengeDto; onClose: () =>
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200"
           >
-            Затвори
+            {t('common.close')}
           </button>
         </div>
       </div>
@@ -63,9 +65,9 @@ function ChallengePreviewModal({ c, onClose }: { c: ChallengeDto; onClose: () =>
 }
 
 function challengeStudentStatusLabel(started: boolean, completed: boolean) {
-  if (completed) return { text: 'Завършено', variant: 'green' as const }
-  if (started) return { text: 'В процес', variant: 'blue' as const }
-  return { text: 'Не е стартирано', variant: 'gray' as const }
+  if (completed) return { key: 'status.completed', variant: 'green' as const }
+  if (started) return { key: 'status.inProgress', variant: 'blue' as const }
+  return { key: 'status.notStarted', variant: 'gray' as const }
 }
 
 interface ChallengeCardProps {
@@ -75,6 +77,7 @@ interface ChallengeCardProps {
 }
 
 function ChallengeCard({ c, classId, onPreview }: ChallengeCardProps) {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
   const [showExtend, setShowExtend] = useState(false)
   const [extendDate, setExtendDate] = useState('')
@@ -121,14 +124,14 @@ function ChallengeCard({ c, classId, onPreview }: ChallengeCardProps) {
                   {c.title}
                 </p>
                 {c.isExpired
-                  ? <Badge variant="gray">Приключило</Badge>
-                  : <Badge variant="green">Активно</Badge>
+                  ? <Badge variant="gray">{t('teacher.classChallenges.expired')}</Badge>
+                  : <Badge variant="green">{t('teacher.classChallenges.active')}</Badge>
                 }
               </div>
               <p className="text-sm text-gray-400">
                 {targetLabel ? `${targetLabel} · ` : ''}
                 {formatDate(c.startDate)} – {formatDate(c.endDate)}
-                {c.points ? ` · ${c.points} т.` : ''}
+                {c.points ? ` · ${t('teacher.classDashboard.pointsDisplay', { points: c.points })}` : ''}
               </p>
               {c.description && <p className="text-sm text-gray-500 mt-0.5">{c.description}</p>}
             </div>
@@ -143,15 +146,15 @@ function ChallengeCard({ c, classId, onPreview }: ChallengeCardProps) {
                 <EyeIcon />
               </button>
               <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 -top-8 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                Преглед
+                {t('common.preview')}
               </span>
             </div>
             <Badge variant={c.completedCount === c.totalStudents && c.totalStudents > 0 ? 'green' : 'gray'}>
-              {c.completedCount}/{c.totalStudents} завършили
+              {t('teacher.classChallenges.completedBadge', { count: c.completedCount, total: c.totalStudents })}
             </Badge>
             {c.isExpired && (
               <Button size="sm" variant="secondary" onClick={() => setShowExtend((v) => !v)}>
-                Промени срок
+                {t('teacher.classChallenges.changeDeadline')}
               </Button>
             )}
           </div>
@@ -160,7 +163,7 @@ function ChallengeCard({ c, classId, onPreview }: ChallengeCardProps) {
         {showExtend && (
           <div className="mt-3 flex items-end gap-2 border-t border-gray-100 pt-3">
             <DateInput
-              label="Нова крайна дата"
+              label={t('teacher.classChallenges.newEndDateLabel')}
               value={extendDate}
               onChange={setExtendDate}
               className="w-48"
@@ -171,10 +174,10 @@ function ChallengeCard({ c, classId, onPreview }: ChallengeCardProps) {
               disabled={!extendDate}
               onClick={() => extendMutation.mutate()}
             >
-              Запази
+              {t('common.save')}
             </Button>
             <Button size="sm" variant="secondary" onClick={() => setShowExtend(false)}>
-              Отказ
+              {t('common.cancel')}
             </Button>
           </div>
         )}
@@ -186,15 +189,15 @@ function ChallengeCard({ c, classId, onPreview }: ChallengeCardProps) {
                 <Spinner className="text-indigo-600 h-5 w-5" />
               </div>
             ) : students.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-2">Няма ученици.</p>
+              <p className="text-sm text-gray-400 text-center py-2">{t('teacher.classChallenges.noStudents')}</p>
             ) : (
               <div className="divide-y divide-gray-50">
                 {students.map((s) => {
-                  const { text, variant } = challengeStudentStatusLabel(s.started, s.completed)
+                  const { key, variant } = challengeStudentStatusLabel(s.started, s.completed)
                   return (
                     <div key={s.studentId} className="py-3 flex items-center justify-between gap-4">
                       <p className="text-sm font-medium text-gray-800">{s.studentName}</p>
-                      <Badge variant={variant}>{text}</Badge>
+                      <Badge variant={variant}>{t(key)}</Badge>
                     </div>
                   )
                 })}
@@ -208,6 +211,7 @@ function ChallengeCard({ c, classId, onPreview }: ChallengeCardProps) {
 }
 
 export function ClassChallengesPage() {
+  const { t } = useTranslation()
   const { classId } = useParams<{ classId: string }>()
   const qc = useQueryClient()
   const [showForm, setShowForm] = useState(false)
@@ -257,19 +261,19 @@ export function ClassChallengesPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
-        <Button onClick={() => setShowForm(true)}>+ Ново предизвикателство</Button>
+        <Button onClick={() => setShowForm(true)}>{t('teacher.classChallenges.newButton')}</Button>
       </div>
 
       {showForm && (
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-800">Създаване на предизвикателство</h2>
+            <h2 className="font-semibold text-gray-800">{t('teacher.classChallenges.createHeader')}</h2>
           </CardHeader>
           <CardBody>
             <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate() }} className="space-y-4">
-              <Input label="Заглавие" value={form.title} onChange={set('title')} required autoFocus />
+              <Input label={t('teacher.classChallenges.titleLabel')} value={form.title} onChange={set('title')} required autoFocus />
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-700">Описание</label>
+                <label className="text-sm font-medium text-gray-700">{t('teacher.classChallenges.descriptionLabel')}</label>
                 <textarea
                   value={form.description}
                   onChange={set('description')}
@@ -279,25 +283,25 @@ export function ClassChallengesPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <Input
-                  label="Тип цел"
-                  placeholder="напр. Прочети книга, Реши задачи..."
+                  label={t('teacher.classChallenges.targetTypeLabel')}
+                  placeholder={t('teacher.classChallenges.targetTypePlaceholder')}
                   value={form.targetDescription}
                   onChange={set('targetDescription')}
                 />
                 <Input
-                  label="Целева стойност"
+                  label={t('teacher.classChallenges.targetValueLabel')}
                   type="number"
-                  placeholder="напр. 5"
+                  placeholder={t('teacher.classChallenges.targetValuePlaceholder')}
                   value={form.targetValue}
                   onChange={set('targetValue')}
                 />
-                <Input label="Точки" type="number" value={form.points} onChange={set('points')} />
-                <DateInput label="Начална дата" value={form.startDate} onChange={(v) => setForm((p) => ({ ...p, startDate: v }))} required />
-                <DateInput label="Крайна дата" value={form.endDate} onChange={(v) => setForm((p) => ({ ...p, endDate: v }))} required />
+                <Input label={t('teacher.classChallenges.pointsLabel')} type="number" value={form.points} onChange={set('points')} />
+                <DateInput label={t('teacher.classChallenges.startDateLabel')} value={form.startDate} onChange={(v) => setForm((p) => ({ ...p, startDate: v }))} required />
+                <DateInput label={t('teacher.classChallenges.endDateLabel')} value={form.endDate} onChange={(v) => setForm((p) => ({ ...p, endDate: v }))} required />
               </div>
               <div className="flex gap-2">
-                <Button type="submit" loading={createMutation.isPending}>Създай</Button>
-                <Button variant="secondary" type="button" onClick={() => setShowForm(false)}>Отказ</Button>
+                <Button type="submit" loading={createMutation.isPending}>{t('common.create')}</Button>
+                <Button variant="secondary" type="button" onClick={() => setShowForm(false)}>{t('common.cancel')}</Button>
               </div>
             </form>
           </CardBody>
@@ -313,7 +317,7 @@ export function ClassChallengesPage() {
           {active.length === 0 && expired.length === 0 && (
             <Card>
               <CardBody className="text-center py-12">
-                <p className="text-gray-400 text-sm">Няма предизвикателства.</p>
+                <p className="text-gray-400 text-sm">{t('teacher.classChallenges.noChallenges')}</p>
               </CardBody>
             </Card>
           )}
@@ -329,7 +333,7 @@ export function ClassChallengesPage() {
           {expired.length > 0 && (
             <div className="space-y-3">
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                Приключили предизвикателства
+                {t('teacher.classChallenges.completedSection')}
               </h3>
               {expired.map((c) => (
                 <ChallengeCard key={c.id} c={c} classId={classId!} onPreview={setPreviewChallenge} />

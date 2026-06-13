@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { classesApi } from '../../api/classes'
@@ -31,6 +32,7 @@ const schoolYearOptions = generateSchoolYears()
 type EditState = { id: string; name: string; grade: string; schoolYear: string }
 
 export function ClassesPage() {
+  const { t } = useTranslation()
   const qc = useQueryClient()
 
   const [showForm, setShowForm] = useState(false)
@@ -84,7 +86,7 @@ export function ClassesPage() {
       setUpdateError(null)
     },
     onError: (err: unknown) => {
-      const msg = err instanceof Error ? err.message : 'Неочаквана грешка'
+      const msg = err instanceof Error ? err.message : t('common.error')
       setUpdateError(msg)
       setShowSaveConfirm(false)
     },
@@ -139,30 +141,30 @@ export function ClassesPage() {
     <div className="p-6 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-black text-[#1C1917]">Моите класове</h1>
-          <p className="text-[#78716C] text-sm font-semibold mt-0.5">Управлявайте класовете и учениците</p>
+          <h1 className="text-3xl font-black text-[#1C1917]">{t('teacher.classes.title')}</h1>
+          <p className="text-[#78716C] text-sm font-semibold mt-0.5">{t('teacher.classes.subtitle')}</p>
         </div>
-        <Button onClick={() => { setShowForm(true); setEditing(null) }}>+ Нов клас</Button>
+        <Button onClick={() => { setShowForm(true); setEditing(null) }}>{t('teacher.classes.newButton')}</Button>
       </div>
 
       {/* Create form */}
       {showForm && (
         <Card className="mb-6">
           <CardHeader>
-            <h2 className="font-semibold text-gray-800">Създаване на клас</h2>
+            <h2 className="font-semibold text-gray-800">{t('teacher.classes.createHeader')}</h2>
           </CardHeader>
           <CardBody>
             <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate() }} className="flex items-end gap-3 flex-wrap">
               <Input
-                label="Наименование"
+                label={t('teacher.classes.nameLabel')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="напр. 3А"
+                placeholder={t('teacher.classes.namePlaceholder')}
                 required
                 autoFocus
               />
               <Input
-                label="Клас (ниво)"
+                label={t('teacher.classes.gradeLabel')}
                 type="number"
                 value={grade}
                 onChange={(e) => setGrade(e.target.value)}
@@ -171,7 +173,7 @@ export function ClassesPage() {
                 className="w-28"
               />
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-700">Випуск</label>
+                <label className="text-sm font-medium text-gray-700">{t('teacher.classes.schoolYearLabel')}</label>
                 <select
                   value={schoolYear}
                   onChange={(e) => setSchoolYear(e.target.value)}
@@ -184,8 +186,8 @@ export function ClassesPage() {
                 </select>
               </div>
               <div className="flex gap-2 pb-px">
-                <Button type="submit" loading={createMutation.isPending}>Създай</Button>
-                <Button variant="secondary" type="button" onClick={() => setShowForm(false)}>Отказ</Button>
+                <Button type="submit" loading={createMutation.isPending}>{t('teacher.classes.createButton')}</Button>
+                <Button variant="secondary" type="button" onClick={() => setShowForm(false)}>{t('common.cancel')}</Button>
               </div>
             </form>
           </CardBody>
@@ -196,7 +198,7 @@ export function ClassesPage() {
       {editing && (
         <Card className="mb-6">
           <CardHeader>
-            <h2 className="font-semibold text-gray-800">Промяна на клас</h2>
+            <h2 className="font-semibold text-gray-800">{t('teacher.classes.editHeader')}</h2>
           </CardHeader>
           {updateError && (
             <div className="px-4 pb-2">
@@ -206,14 +208,14 @@ export function ClassesPage() {
           <CardBody>
             <form onSubmit={(e) => { e.preventDefault(); handleSave() }} className="flex items-end gap-3 flex-wrap">
               <Input
-                label="Наименование"
+                label={t('teacher.classes.nameLabel')}
                 value={editing.name}
                 onChange={setEditField('name')}
                 required
                 autoFocus
               />
               <Input
-                label="Клас (ниво)"
+                label={t('teacher.classes.gradeLabel')}
                 type="number"
                 value={editing.grade}
                 onChange={setEditField('grade')}
@@ -221,7 +223,7 @@ export function ClassesPage() {
                 className="w-28"
               />
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-700">Випуск</label>
+                <label className="text-sm font-medium text-gray-700">{t('teacher.classes.schoolYearLabel')}</label>
                 <select
                   value={editing.schoolYear}
                   onChange={setEditField('schoolYear')}
@@ -234,8 +236,8 @@ export function ClassesPage() {
                 </select>
               </div>
               <div className="flex gap-2 pb-px">
-                <Button type="submit" loading={updateMutation.isPending}>Запази</Button>
-                <Button variant="secondary" type="button" onClick={handleCancelEdit}>Отказ</Button>
+                <Button type="submit" loading={updateMutation.isPending}>{t('common.save')}</Button>
+                <Button variant="secondary" type="button" onClick={handleCancelEdit}>{t('common.cancel')}</Button>
               </div>
             </form>
           </CardBody>
@@ -250,8 +252,8 @@ export function ClassesPage() {
         <Card>
           <CardBody className="text-center py-16">
             <div className="text-5xl mb-3">🏫</div>
-            <p className="font-semibold text-gray-700">Нямате добавени класове</p>
-            <p className="text-sm text-gray-400 mt-1">Създайте първия клас, за да започнете.</p>
+            <p className="font-semibold text-gray-700">{t('teacher.classes.noClasses')}</p>
+            <p className="text-sm text-gray-400 mt-1">{t('teacher.classes.noClassesHint')}</p>
           </CardBody>
         </Card>
       ) : (
@@ -275,19 +277,19 @@ export function ClassesPage() {
                     >
                       {cls.name}
                     </Link>
-                    <p className="text-sm text-[#A8A29E] font-semibold mt-0.5">{cls.grade}. клас · {cls.schoolYear}</p>
+                    <p className="text-sm text-[#A8A29E] font-semibold mt-0.5">{t('teacher.classes.classMeta', { grade: cls.grade, schoolYear: cls.schoolYear })}</p>
                   </div>
                 </div>
                 {/* Bottom row: action buttons */}
                 <div className="flex items-center gap-2 pt-1 border-t border-[#F5F3EE]">
                   <Link to={`/teacher/classes/${cls.id}/dashboard`} className="flex-1">
-                    <Button size="sm" variant="primary" className="w-full">Отвори</Button>
+                    <Button size="sm" variant="primary" className="w-full">{t('common.open')}</Button>
                   </Link>
                   <Button size="sm" variant="secondary" onClick={() => openEdit(cls)}>
-                    Промени
+                    {t('common.edit')}
                   </Button>
                   <Button size="sm" variant="danger" onClick={() => setConfirmDelete({ id: cls.id, name: cls.name })}>
-                    Изтрий
+                    {t('common.delete')}
                   </Button>
                 </div>
               </CardBody>
@@ -298,7 +300,7 @@ export function ClassesPage() {
 
       {showSaveConfirm && (
         <ConfirmDialog
-          message="Сигурни ли сте, че желаете да направите тази промяна?"
+          message={t('dialog.confirmChanges')}
           loading={updateMutation.isPending}
           onConfirm={() => editing && updateMutation.mutate(editing)}
           onCancel={() => setShowSaveConfirm(false)}
@@ -307,7 +309,7 @@ export function ClassesPage() {
 
       {showCancelConfirm && (
         <ConfirmDialog
-          message="Сигурни ли сте, че желаете да откажете направените промени?"
+          message={t('dialog.confirmDiscard')}
           onConfirm={confirmCancel}
           onCancel={() => setShowCancelConfirm(false)}
         />
@@ -315,7 +317,7 @@ export function ClassesPage() {
 
       {confirmDelete && (
         <ConfirmDialog
-          message={`Сигурни ли сте, че желаете да изтриете клас ${confirmDelete.name}?`}
+          message={t('teacher.classes.confirmDelete', { className: confirmDelete.name })}
           loading={deleteMutation.isPending}
           onConfirm={() => deleteMutation.mutate(confirmDelete.id)}
           onCancel={() => setConfirmDelete(null)}

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
+import i18n from '../i18n'
 import { LANGUAGES, DEFAULT_LANGUAGE, type Language } from '../translations'
 
 const STORAGE_KEY = 'app-language'
@@ -26,6 +27,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const setLanguage = useCallback((lang: Language) => {
     localStorage.setItem(STORAGE_KEY, lang.code)
     setLanguageState(lang)
+    i18n.changeLanguage(lang.code)
   }, [])
 
   const translate = useCallback((text: string) => language.translate(text), [language])

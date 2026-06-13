@@ -1,5 +1,15 @@
+import { useTranslation } from 'react-i18next'
+
 export function Footer() {
+  const { t } = useTranslation()
   const currentYear = new Date().getFullYear()
+
+  const infoLinks = [
+    t('footer.privacyPolicy'),
+    t('footer.termsOfUse'),
+    t('footer.helpCenter'),
+    t('footer.faq'),
+  ]
 
   return (
     <footer style={{
@@ -28,17 +38,17 @@ export function Footer() {
               TeacherDiary
             </p>
             <p style={{ fontSize: '0.875rem', lineHeight: 1.65, color: '#6d28d9', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
-              Платформа за проследяване на учебния напредък и стимулиране на развитието чрез четене, задачи и предизвикателства.
+              {t('footer.description')}
             </p>
           </div>
 
-          {/* Информация */}
+          {/* Information */}
           <div>
             <p style={{ margin: '0 0 12px 0', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#a78bfa', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              Информация
+              {t('footer.information')}
             </p>
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {['Политика за поверителност', 'Условия за ползване', 'Помощен център', 'Често задавани въпроси'].map(label => (
+              {infoLinks.map(label => (
                 <li key={label}>
                   <a href="#" style={{ fontSize: '0.875rem', color: '#6d28d9', textDecoration: 'none', transition: 'color 0.15s', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                     onMouseEnter={e => (e.currentTarget.style.color = '#3b0764')}
@@ -50,10 +60,10 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Контакти */}
+          {/* Contacts */}
           <div>
             <p style={{ margin: '0 0 12px 0', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#a78bfa', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              Контакти
+              {t('footer.contacts')}
             </p>
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '9px' }}>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
@@ -70,7 +80,7 @@ export function Footer() {
                 <svg xmlns="http://www.w3.org/2000/svg" style={{ width: '14px', height: '14px', marginTop: '2px', flexShrink: 0, color: '#7c3aed' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span style={{ fontSize: '0.875rem', color: '#6d28d9', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Пон – Пет, 09:00 – 18:00 ч.</span>
+                <span style={{ fontSize: '0.875rem', color: '#6d28d9', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{t('footer.businessHours')}</span>
               </li>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                 <svg xmlns="http://www.w3.org/2000/svg" style={{ width: '14px', height: '14px', marginTop: '3px', flexShrink: 0, color: '#7c3aed' }} fill="currentColor" viewBox="0 0 24 24">
@@ -89,9 +99,9 @@ export function Footer() {
       </div>
 
       <div style={{ borderTop: '1px solid rgba(124,58,237,0.1)', padding: '12px 28px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', fontSize: '0.75rem', fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#a78bfa' }}>
-        <span>© {currentYear} TeacherDiary. Всички права запазени.</span>
+        <span>{t('footer.copyright', { year: currentYear })}</span>
         <span style={{ background: 'linear-gradient(135deg, #7c3aed, #db2777)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', fontWeight: 600 }}>
-          Изградено с ❤️ за учители, родители и ученици.
+          {t('footer.madeWith')}
         </span>
       </div>
     </footer>

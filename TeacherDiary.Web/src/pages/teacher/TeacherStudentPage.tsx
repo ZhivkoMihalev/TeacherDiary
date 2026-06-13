@@ -1,4 +1,5 @@
 ﻿import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { dashboardApi } from '../../api/dashboard'
 import { Card, CardBody, CardHeader } from '../../components/ui/Card'
@@ -15,16 +16,17 @@ function statusVariant(s: ProgressStatus) {
   return 'gray'
 }
 
-function translateStatus(s: ProgressStatus) {
-  if (s === 'Completed') return 'Завършено'
-  if (s === 'InProgress') return 'В процес'
-  return 'Не е стартирано'
+function statusKey(s: ProgressStatus) {
+  if (s === 'Completed') return 'status.completed'
+  if (s === 'InProgress') return 'status.inProgress'
+  return 'status.notStarted'
 }
 
 export function TeacherStudentPage() {
   const { studentId } = useParams<{ studentId: string }>()
   const navigate = useNavigate()
   const { translate } = useLanguage()
+  const { t } = useTranslation()
 
   const { data, isLoading } = useQuery({
     queryKey: ['teacher-student', studentId],
@@ -62,9 +64,9 @@ export function TeacherStudentPage() {
   }
 
   function challengeStatusLabel(c: StudentChallengeDto) {
-    if (c.completed) return 'Завършено'
-    if (c.started) return 'В процес'
-    return 'Не е стартирано'
+    if (c.completed) return t('status.completed')
+    if (c.started) return t('status.inProgress')
+    return t('status.notStarted')
   }
 
   function challengeTargetLabel(c: StudentChallengeDto) {
@@ -79,7 +81,7 @@ export function TeacherStudentPage() {
         onClick={() => navigate(-1)}
         className="text-sm text-gray-400 hover:text-gray-600"
       >
-        ← Назад
+        {t('teacher.studentDetails.back')}
       </button>
 
       <div className="flex items-center gap-4">
@@ -91,30 +93,30 @@ export function TeacherStudentPage() {
           </h1>
           <p className="text-gray-400 text-sm mt-0.5">
             {data.lastActivityAt
-              ? `Последно активен: ${formatDate(data.lastActivityAt)}`
-              : 'Няма активност'}
+              ? t('teacher.studentDetails.lastActive', { date: formatDate(data.lastActivityAt) })
+              : t('teacher.studentDetails.noActivity')}
           </p>
         </div>
-        {!data.isActive && <Badge variant="gray">Неактивен</Badge>}
+        {!data.isActive && <Badge variant="gray">{t('teacher.studentDetails.inactive')}</Badge>}
       </div>
 
       {/* Статистика */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         <Card>
           <CardBody>
-            <p className="text-xs text-gray-400 mb-1">Прочетени стр.</p>
+            <p className="text-xs text-gray-400 mb-1">{t('teacher.studentDetails.pagesReadStat')}</p>
             <p className="text-2xl font-bold text-gray-900">{data.totalPagesRead}</p>
           </CardBody>
         </Card>
         <Card>
           <CardBody>
-            <p className="text-xs text-gray-400 mb-1">Изпълнени задачи</p>
+            <p className="text-xs text-gray-400 mb-1">{t('teacher.studentDetails.completedAssignmentsStat')}</p>
             <p className="text-2xl font-bold text-gray-900">{data.completedAssignments}</p>
           </CardBody>
         </Card>
         <Card>
           <CardBody>
-            <p className="text-xs text-gray-400 mb-1">Спечелени точки</p>
+            <p className="text-xs text-gray-400 mb-1">{t('teacher.studentDetails.pointsStat')}</p>
             <p className="text-2xl font-bold text-indigo-600">{data.totalPoints}</p>
           </CardBody>
         </Card>
@@ -124,15 +126,15 @@ export function TeacherStudentPage() {
       {data.activityLast7Days.length > 0 && (
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-800">Активност — последните 7 дни</h2>
+            <h2 className="font-semibold text-gray-800">{t('teacher.studentDetails.activity7d')}</h2>
           </CardHeader>
           <CardBody className="p-0">
             <table className="w-full text-sm">
               <thead className="text-xs text-gray-400 border-b border-gray-100">
                 <tr>
-                  <th className="text-left px-6 py-2">Дата</th>
-                  <th className="text-left px-6 py-2">Активност</th>
-                  <th className="text-right px-6 py-2">Точки</th>
+                  <th className="text-left px-6 py-2">{t('teacher.studentDetails.colDate')}</th>
+                  <th className="text-left px-6 py-2">{t('teacher.studentDetails.colActivity')}</th>
+                  <th className="text-right px-6 py-2">{t('teacher.studentDetails.colPoints')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -155,7 +157,7 @@ export function TeacherStudentPage() {
       {activeReading.length > 0 && (
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-800">Четене</h2>
+            <h2 className="font-semibold text-gray-800">{t('teacher.studentDetails.reading')}</h2>
           </CardHeader>
           <div className="divide-y divide-gray-100">
             {activeReading.map((r) => {
@@ -166,10 +168,12 @@ export function TeacherStudentPage() {
                     <div>
                       <p className="font-medium text-gray-900">{r.bookTitle}</p>
                       <p className="text-sm text-gray-400">
-                        Стр. {r.currentPage}{r.totalPages ? ` от ${r.totalPages}` : ''}
+                        {r.totalPages
+                          ? t('teacher.studentDetails.pageOf', { current: r.currentPage, total: r.totalPages })
+                          : t('teacher.studentDetails.pageCurrent', { current: r.currentPage })}
                       </p>
                     </div>
-                    <Badge variant={statusVariant(r.status)}>{translateStatus(r.status)}</Badge>
+                    <Badge variant={statusVariant(r.status)}>{t(statusKey(r.status))}</Badge>
                   </div>
                   {r.totalPages && (
                     <div className="w-full bg-gray-100 rounded-full h-1.5">
@@ -190,7 +194,7 @@ export function TeacherStudentPage() {
       {activeAssignments.length > 0 && (
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-800">Задачи</h2>
+            <h2 className="font-semibold text-gray-800">{t('teacher.studentDetails.assignments')}</h2>
           </CardHeader>
           <div className="divide-y divide-gray-100">
             {activeAssignments.map((a) => (
@@ -198,10 +202,10 @@ export function TeacherStudentPage() {
                 <div>
                   <p className="font-medium text-gray-900">{a.title}</p>
                   <p className="text-sm text-gray-400">
-                    {a.subject}{a.dueDate ? ` · Срок: ${formatDate(a.dueDate)}` : ''}
+                    {a.subject}{a.dueDate ? ` · ${t('teacher.studentDetails.dueShort', { date: formatDate(a.dueDate) })}` : ''}
                   </p>
                 </div>
-                <Badge variant={statusVariant(a.status)}>{translateStatus(a.status)}</Badge>
+                <Badge variant={statusVariant(a.status)}>{t(statusKey(a.status))}</Badge>
               </div>
             ))}
           </div>
@@ -212,7 +216,7 @@ export function TeacherStudentPage() {
       {data.challenges.length > 0 && (
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-800">Предизвикателства</h2>
+            <h2 className="font-semibold text-gray-800">{t('teacher.studentDetails.challenges')}</h2>
           </CardHeader>
           <div className="divide-y divide-gray-100">
             {activeChallenges.map((c) => (
@@ -222,7 +226,7 @@ export function TeacherStudentPage() {
                   {challengeTargetLabel(c) && (
                     <p className="text-sm text-gray-400">{challengeTargetLabel(c)}</p>
                   )}
-                  <p className="text-xs text-gray-400">Срок: {formatDate(c.endDate)}</p>
+                  <p className="text-xs text-gray-400">{t('teacher.studentDetails.dueShort', { date: formatDate(c.endDate) })}</p>
                 </div>
                 <Badge variant={challengeStatusVariant(c)}>{challengeStatusLabel(c)}</Badge>
               </div>
@@ -230,7 +234,7 @@ export function TeacherStudentPage() {
             {completedChallenges.map((c) => (
               <div key={c.challengeId} className="flex items-center justify-between px-6 py-3 opacity-60">
                 <p className="font-medium text-gray-900">{c.title}</p>
-                <Badge variant="green">Завършено</Badge>
+                <Badge variant="green">{t('status.completed')}</Badge>
               </div>
             ))}
           </div>
@@ -241,7 +245,7 @@ export function TeacherStudentPage() {
       {hasArchive && (
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-500">Архив</h2>
+            <h2 className="font-semibold text-gray-500">{t('teacher.studentDetails.archive')}</h2>
           </CardHeader>
           <div className="divide-y divide-gray-50">
             {archivedReading.map((r) => {
@@ -251,9 +255,9 @@ export function TeacherStudentPage() {
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <p className="font-medium text-gray-700">{r.bookTitle}</p>
-                      <p className="text-sm text-gray-400">Стр. {r.currentPage}{r.totalPages ? ` от ${r.totalPages}` : ''}</p>
+                      <p className="text-sm text-gray-400">{r.totalPages ? t('teacher.studentDetails.pageOf', { current: r.currentPage, total: r.totalPages }) : t('teacher.studentDetails.pageCurrent', { current: r.currentPage })}</p>
                     </div>
-                    <Badge variant={statusVariant(r.status)}>{translateStatus(r.status)}</Badge>
+                    <Badge variant={statusVariant(r.status)}>{t(statusKey(r.status))}</Badge>
                   </div>
                   {r.totalPages && (
                     <div className="w-full bg-gray-100 rounded-full h-1.5">
@@ -267,9 +271,9 @@ export function TeacherStudentPage() {
               <div key={a.assignmentId} className="flex items-center justify-between px-6 py-3 opacity-60">
                 <div>
                   <p className="font-medium text-gray-700">{a.title}</p>
-                  <p className="text-sm text-gray-400">{a.subject}{a.dueDate ? ` · Срок: ${formatDate(a.dueDate)}` : ''}</p>
+                  <p className="text-sm text-gray-400">{a.subject}{a.dueDate ? ` · ${t('teacher.studentDetails.dueShort', { date: formatDate(a.dueDate) })}` : ''}</p>
                 </div>
-                <Badge variant={statusVariant(a.status)}>{translateStatus(a.status)}</Badge>
+                <Badge variant={statusVariant(a.status)}>{t(statusKey(a.status))}</Badge>
               </div>
             ))}
             {archivedActivities.map((la) => (
@@ -279,9 +283,9 @@ export function TeacherStudentPage() {
                   <p className="text-sm text-gray-400 capitalize">
                     {la.type}{la.targetValue ? ` · ${la.currentValue} / ${la.targetValue}` : ''}
                   </p>
-                  {la.dueDateUtc && <p className="text-xs text-gray-400">Срок: {formatDate(la.dueDateUtc)}</p>}
+                  {la.dueDateUtc && <p className="text-xs text-gray-400">{t('teacher.studentDetails.dueShort', { date: formatDate(la.dueDateUtc) })}</p>}
                 </div>
-                <Badge variant={statusVariant(la.status)}>{translateStatus(la.status)}</Badge>
+                <Badge variant={statusVariant(la.status)}>{t(statusKey(la.status))}</Badge>
               </div>
             ))}
           </div>
@@ -292,7 +296,7 @@ export function TeacherStudentPage() {
       {badges.length > 0 && (
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-800">Спечелени медали</h2>
+            <h2 className="font-semibold text-gray-800">{t('teacher.studentDetails.badges')}</h2>
           </CardHeader>
           <div className="divide-y divide-gray-100">
             {badges.map((b) => (

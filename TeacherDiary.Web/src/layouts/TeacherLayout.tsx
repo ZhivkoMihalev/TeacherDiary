@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NavLink, Link, Outlet, useNavigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../context/AuthContext'
 import { classesApi } from '../api/classes'
@@ -30,6 +31,7 @@ function ChevronIcon({ open }: { open: boolean }) {
 }
 
 function ClassNavItem({ cls }: { cls: ClassDto }) {
+  const { t } = useTranslation()
   const [studentsOpen, setStudentsOpen] = useState(false)
 
   const { data: students = [] } = useQuery({
@@ -75,7 +77,7 @@ function ClassNavItem({ cls }: { cls: ClassDto }) {
         <div style={{ marginLeft: '12px', borderLeft: '1.5px solid rgba(167,139,250,0.3)', paddingLeft: '4px' }}>
           {sorted.length === 0 ? (
             <p style={{ margin: 0, padding: '5px 10px', fontSize: '0.75rem', color: '#a78bfa', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              Няма ученици
+              {t('nav.noStudents')}
             </p>
           ) : (
             sorted.map(s => (
@@ -100,6 +102,7 @@ function SidebarDivider() {
 }
 
 export function TeacherLayout() {
+  const { t } = useTranslation()
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -156,7 +159,7 @@ export function TeacherLayout() {
         <button
           onClick={() => setSidebarOpen(true)}
           className="p-2 rounded-lg text-violet-500 hover:bg-violet-50 transition-colors"
-          aria-label="Отвори меню"
+          aria-label={t('common.openMenu')}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="3" y1="6" x2="21" y2="6" />
@@ -209,7 +212,7 @@ export function TeacherLayout() {
             <button
               className="lg:hidden p-1.5 rounded-lg text-violet-400 hover:bg-violet-100 hover:text-violet-600 transition-colors"
               onClick={() => setSidebarOpen(false)}
-              aria-label="Затвори меню"
+              aria-label={t('common.closeMenu')}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 6 6 18M6 6l12 12" />
@@ -229,7 +232,7 @@ export function TeacherLayout() {
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
                 <span style={{ fontSize: '1em' }}>🏫</span>
-                Класове
+                {t('nav.classes')}
               </span>
               <ChevronIcon open={classesOpen} />
             </button>
@@ -248,7 +251,7 @@ export function TeacherLayout() {
             className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`}
           >
             <span style={{ fontSize: '1em' }}>📚</span>
-            Книги
+            {t('nav.books')}
           </NavLink>
 
           <NavLink
@@ -256,7 +259,7 @@ export function TeacherLayout() {
             className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`}
           >
             <span style={{ fontSize: '1em' }}>🔔</span>
-            Известия
+            {t('nav.notifications')}
           </NavLink>
 
           <NavLink
@@ -266,7 +269,7 @@ export function TeacherLayout() {
           >
             <span style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
               <span style={{ fontSize: '1em' }}>💬</span>
-              Съобщения
+              {t('nav.messages')}
             </span>
             {unreadCount > 0 && (
               <span style={{
@@ -330,7 +333,7 @@ export function TeacherLayout() {
                 {user?.fullName}
               </p>
               <p style={{ margin: 0, fontSize: '0.72rem', color: '#a78bfa', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                Учител
+                {t('roles.teacher')}
               </p>
             </div>
           </div>
@@ -351,7 +354,7 @@ export function TeacherLayout() {
             onMouseEnter={e => (e.currentTarget.style.color = '#dc2626')}
             onMouseLeave={e => (e.currentTarget.style.color = '#a78bfa')}
           >
-            ← Изход
+            {t('common.logout')}
           </button>
         </div>
       </aside>

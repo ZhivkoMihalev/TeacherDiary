@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { booksApi } from '../../api/books'
 import { Card, CardBody, CardHeader } from '../../components/ui/Card'
@@ -18,6 +19,7 @@ function PencilIcon() {
 }
 
 export function BooksPage() {
+  const { t } = useTranslation()
   const qc = useQueryClient()
 
   const [showForm, setShowForm] = useState(false)
@@ -60,7 +62,7 @@ export function BooksPage() {
       setEditError(null)
     },
     onError: (err: unknown) => {
-      setEditError(err instanceof Error ? err.message : 'Неочаквана грешка')
+      setEditError(err instanceof Error ? err.message : t('common.error'))
     },
   })
 
@@ -90,28 +92,28 @@ export function BooksPage() {
     <div className="p-8 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Каталог с книги</h1>
-          <p className="text-gray-500 text-sm mt-0.5">Всички книги, достъпни за задаване на класа</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('teacher.books.title')}</h1>
+          <p className="text-gray-500 text-sm mt-0.5">{t('teacher.books.subtitle')}</p>
         </div>
-        <Button onClick={() => { setShowForm(true); setEditing(null) }}>+ Добави книга</Button>
+        <Button onClick={() => { setShowForm(true); setEditing(null) }}>{t('teacher.books.addButton')}</Button>
       </div>
 
       {showForm && (
         <Card className="mb-6">
           <CardHeader>
-            <h2 className="font-semibold text-gray-800">Добавяне на книга</h2>
+            <h2 className="font-semibold text-gray-800">{t('teacher.books.addHeader')}</h2>
           </CardHeader>
           <CardBody>
             <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate() }} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <Input label="Заглавие" value={form.title} onChange={set('title')} required autoFocus />
-                <Input label="Автор" value={form.author} onChange={set('author')} required />
-                <Input label="Клас" type="number" value={form.gradeLevel} onChange={set('gradeLevel')} required />
-                <Input label="Брой страници" type="number" value={form.totalPages} onChange={set('totalPages')} required />
+                <Input label={t('teacher.books.titleLabel')} value={form.title} onChange={set('title')} required autoFocus />
+                <Input label={t('teacher.books.authorLabel')} value={form.author} onChange={set('author')} required />
+                <Input label={t('teacher.books.gradeLabel')} type="number" value={form.gradeLevel} onChange={set('gradeLevel')} required />
+                <Input label={t('teacher.books.pagesLabel')} type="number" value={form.totalPages} onChange={set('totalPages')} required />
               </div>
               <div className="flex gap-2">
-                <Button type="submit" loading={createMutation.isPending}>Добави книга</Button>
-                <Button variant="secondary" type="button" onClick={() => setShowForm(false)}>Отказ</Button>
+                <Button type="submit" loading={createMutation.isPending}>{t('teacher.books.addSubmit')}</Button>
+                <Button variant="secondary" type="button" onClick={() => setShowForm(false)}>{t('common.cancel')}</Button>
               </div>
             </form>
           </CardBody>
@@ -121,7 +123,7 @@ export function BooksPage() {
       {editing && (
         <Card className="mb-6">
           <CardHeader>
-            <h2 className="font-semibold text-gray-800">Промяна на книга</h2>
+            <h2 className="font-semibold text-gray-800">{t('teacher.books.editHeader')}</h2>
           </CardHeader>
           {editError && (
             <div className="px-4 pb-2">
@@ -134,14 +136,14 @@ export function BooksPage() {
               className="space-y-4"
             >
               <div className="grid grid-cols-2 gap-4">
-                <Input label="Заглавие" value={editing.title} onChange={setEditField('title')} required autoFocus />
-                <Input label="Автор" value={editing.author} onChange={setEditField('author')} required />
-                <Input label="Клас" type="number" value={editing.gradeLevel} onChange={setEditField('gradeLevel')} required />
-                <Input label="Брой страници" type="number" value={editing.totalPages} onChange={setEditField('totalPages')} required />
+                <Input label={t('teacher.books.titleLabel')} value={editing.title} onChange={setEditField('title')} required autoFocus />
+                <Input label={t('teacher.books.authorLabel')} value={editing.author} onChange={setEditField('author')} required />
+                <Input label={t('teacher.books.gradeLabel')} type="number" value={editing.gradeLevel} onChange={setEditField('gradeLevel')} required />
+                <Input label={t('teacher.books.pagesLabel')} type="number" value={editing.totalPages} onChange={setEditField('totalPages')} required />
               </div>
               <div className="flex gap-2">
-                <Button type="submit" loading={updateMutation.isPending}>Запази</Button>
-                <Button variant="secondary" type="button" onClick={() => setEditing(null)}>Отказ</Button>
+                <Button type="submit" loading={updateMutation.isPending}>{t('common.save')}</Button>
+                <Button variant="secondary" type="button" onClick={() => setEditing(null)}>{t('common.cancel')}</Button>
               </div>
             </form>
           </CardBody>
@@ -155,7 +157,7 @@ export function BooksPage() {
       ) : books.length === 0 ? (
         <Card>
           <CardBody className="text-center py-16">
-            <p className="text-gray-400 text-sm">Няма книги в каталога.</p>
+            <p className="text-gray-400 text-sm">{t('teacher.books.noBooks')}</p>
           </CardBody>
         </Card>
       ) : (
@@ -168,11 +170,11 @@ export function BooksPage() {
               >
                 <div>
                   <p className="font-medium text-gray-900">{book.title}</p>
-                  <p className="text-sm text-gray-400">{book.author} · {book.gradeLevel}. клас · {book.totalPages} стр.</p>
+                  <p className="text-sm text-gray-400">{t('teacher.books.bookMeta', { author: book.author, grade: book.gradeLevel, pages: book.totalPages })}</p>
                 </div>
                 <button
                   onClick={() => openEdit(book)}
-                  title="Промени"
+                  title={t('common.edit')}
                   className="p-2 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
                 >
                   <PencilIcon />

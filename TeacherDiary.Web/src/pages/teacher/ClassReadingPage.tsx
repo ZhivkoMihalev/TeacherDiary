@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { booksApi } from '../../api/books'
@@ -30,22 +31,23 @@ function EyeIcon() {
 }
 
 function BookPreviewModal({ ab, onClose }: { ab: AssignedBookDto; onClose: () => void }) {
+  const { t } = useTranslation()
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div className="relative bg-white rounded-xl shadow-lg p-6 max-w-md w-full mx-4 space-y-3">
         <h2 className="text-lg font-bold text-gray-900">{ab.title}</h2>
         <div className="text-sm text-gray-600 space-y-1">
-          <p><span className="font-medium text-gray-700">Автор:</span> {ab.author}</p>
-          <p><span className="font-medium text-gray-700">Страници:</span> {ab.totalPages}</p>
-          <p><span className="font-medium text-gray-700">Начало:</span> {formatDate(ab.startDateUtc)}</p>
-          <p><span className="font-medium text-gray-700">Краен срок:</span> {formatDate(ab.endDateUtc)}</p>
+          <p><span className="font-medium text-gray-700">{t('teacher.classReading.previewAuthor')}</span> {ab.author}</p>
+          <p><span className="font-medium text-gray-700">{t('teacher.classReading.previewPages')}</span> {ab.totalPages}</p>
+          <p><span className="font-medium text-gray-700">{t('teacher.classReading.previewStart')}</span> {formatDate(ab.startDateUtc)}</p>
+          <p><span className="font-medium text-gray-700">{t('teacher.classReading.previewDeadline')}</span> {formatDate(ab.endDateUtc)}</p>
           {ab.points > 0 && (
-            <p><span className="font-medium text-gray-700">Точки за прочитане:</span> {ab.points} т.</p>
+            <p><span className="font-medium text-gray-700">{t('teacher.classReading.previewPoints')}</span> {t('teacher.classDashboard.pointsDisplay', { points: ab.points })}</p>
           )}
           <p>
-            <span className="font-medium text-gray-700">Напредък:</span>{' '}
-            {ab.completedCount} завършени · {ab.inProgressCount} четат · {ab.notStartedCount} не са започнали
+            <span className="font-medium text-gray-700">{t('teacher.classReading.previewProgress')}</span>{' '}
+            {t('teacher.classReading.progressSummary', { completed: ab.completedCount, reading: ab.inProgressCount, notStarted: ab.notStartedCount })}
           </p>
         </div>
         <div className="flex justify-end pt-2">
@@ -53,7 +55,7 @@ function BookPreviewModal({ ab, onClose }: { ab: AssignedBookDto; onClose: () =>
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200"
           >
-            Затвори
+            {t('common.close')}
           </button>
         </div>
       </div>
@@ -62,9 +64,9 @@ function BookPreviewModal({ ab, onClose }: { ab: AssignedBookDto; onClose: () =>
 }
 
 function statusLabel(s: AssignedBookStudentProgressDto['status']) {
-  if (s === 'Completed') return { text: 'Завършено', variant: 'green' as const }
-  if (s === 'InProgress') return { text: 'Чете', variant: 'blue' as const }
-  return { text: 'Не е започнало', variant: 'gray' as const }
+  if (s === 'Completed') return { key: 'status.completed', variant: 'green' as const }
+  if (s === 'InProgress') return { key: 'status.reading', variant: 'blue' as const }
+  return { key: 'status.notStartedReading', variant: 'gray' as const }
 }
 
 interface AssignedBookRowProps {
@@ -75,6 +77,7 @@ interface AssignedBookRowProps {
 }
 
 function AssignedBookRow({ ab, classId, onRemove, onPreview }: AssignedBookRowProps) {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
   const [editStart, setEditStart] = useState('')
@@ -130,9 +133,9 @@ function AssignedBookRow({ ab, classId, onRemove, onPreview }: AssignedBookRowPr
                 <p className="font-medium text-gray-900 group-hover:text-indigo-600 transition-colors">
                   {ab.title}
                 </p>
-                {ab.isExpired && <Badge variant="gray">Приключила</Badge>}
+                {ab.isExpired && <Badge variant="gray">{t('status.expired')}</Badge>}
               </div>
-              <p className="text-sm text-gray-400">{ab.author} · {ab.totalPages} стр.{ab.points ? ` · ${ab.points} т.` : ''}</p>
+              <p className="text-sm text-gray-400">{ab.author} · {ab.totalPages} {t('common.pages')}{ab.points ? ` · ${t('teacher.classDashboard.pointsDisplay', { points: ab.points })}` : ''}</p>
               <p className="text-xs text-gray-400 mt-0.5">
                 {formatDate(ab.startDateUtc)} – {formatDate(ab.endDateUtc)}
               </p>
@@ -140,9 +143,9 @@ function AssignedBookRow({ ab, classId, onRemove, onPreview }: AssignedBookRowPr
           </button>
 
           <div className="flex items-center gap-2 flex-wrap shrink-0">
-            <Badge variant="gray">{ab.notStartedCount}/{total} не е стартирало</Badge>
-            <Badge variant="blue">{ab.inProgressCount}/{total} чете</Badge>
-            <Badge variant="green">{ab.completedCount}/{total} завършено</Badge>
+            <Badge variant="gray">{t('teacher.classReading.notStartedBadge', { count: ab.notStartedCount, total })}</Badge>
+            <Badge variant="blue">{t('teacher.classReading.readingBadge', { count: ab.inProgressCount, total })}</Badge>
+            <Badge variant="green">{t('teacher.classReading.completedBadge', { count: ab.completedCount, total })}</Badge>
 
             <div className="relative group">
               <button
@@ -152,7 +155,7 @@ function AssignedBookRow({ ab, classId, onRemove, onPreview }: AssignedBookRowPr
                 <EyeIcon />
               </button>
               <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 -top-8 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                Преглед
+                {t('common.preview')}
               </span>
             </div>
 
@@ -164,13 +167,13 @@ function AssignedBookRow({ ab, classId, onRemove, onPreview }: AssignedBookRowPr
                 <PencilIcon />
               </button>
               <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 -top-8 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                Промени
+                {t('common.edit')}
               </span>
             </div>
 
             {!ab.isExpired && (
               <Button variant="secondary" size="sm" onClick={() => onRemove(ab.id)}>
-                Премахни
+                {t('common.remove')}
               </Button>
             )}
           </div>
@@ -178,22 +181,22 @@ function AssignedBookRow({ ab, classId, onRemove, onPreview }: AssignedBookRowPr
 
         {showEdit && (
           <div className="mt-4 border-t border-gray-100 pt-4">
-            <p className="text-sm font-medium text-gray-700 mb-3">Промяна на параметри</p>
+            <p className="text-sm font-medium text-gray-700 mb-3">{t('teacher.classReading.editParamsHeader')}</p>
             <div className="flex items-end gap-3 flex-wrap">
               <DateInput
-                label="Начална дата"
+                label={t('teacher.classReading.startDateLabel')}
                 value={editStart}
                 onChange={setEditStart}
                 className="w-48"
               />
               <DateInput
-                label="Крайна дата"
+                label={t('teacher.classReading.endDateLabel')}
                 value={editEnd}
                 onChange={setEditEnd}
                 className="w-48"
               />
               <Input
-                label="Точки"
+                label={t('teacher.classReading.pointsShort')}
                 type="number"
                 value={editPoints}
                 onChange={(e) => setEditPoints(e.target.value)}
@@ -206,16 +209,16 @@ function AssignedBookRow({ ab, classId, onRemove, onPreview }: AssignedBookRowPr
                   disabled={!editStart || !editEnd}
                   onClick={() => updateMutation.mutate()}
                 >
-                  Запази
+                  {t('common.save')}
                 </Button>
                 <Button size="sm" variant="secondary" onClick={() => setShowEdit(false)}>
-                  Отказ
+                  {t('common.cancel')}
                 </Button>
               </div>
             </div>
             {updateMutation.isError && (
               <p className="text-sm text-red-600 mt-2">
-                {(updateMutation.error as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Грешка при запазване.'}
+                {(updateMutation.error as { response?: { data?: { error?: string } } })?.response?.data?.error ?? t('common.error')}
               </p>
             )}
           </div>
@@ -228,18 +231,18 @@ function AssignedBookRow({ ab, classId, onRemove, onPreview }: AssignedBookRowPr
                 <Spinner className="text-indigo-600 h-5 w-5" />
               </div>
             ) : students.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-2">Няма ученици.</p>
+              <p className="text-sm text-gray-400 text-center py-2">{t('teacher.classReading.noStudents')}</p>
             ) : (
               <div className="divide-y divide-gray-50">
                 {students.map((s) => {
                   const pct = s.totalPages ? Math.round((s.currentPage / s.totalPages) * 100) : 0
-                  const { text, variant } = statusLabel(s.status)
+                  const { key, variant } = statusLabel(s.status)
                   return (
                     <div key={s.studentId} className="py-3 flex items-center gap-4">
                       <div className="w-40 shrink-0">
                         <p className="text-sm font-medium text-gray-800">{s.studentName}</p>
                         <p className="text-xs text-gray-400">
-                          Стр. {s.currentPage}{s.totalPages ? ` / ${s.totalPages}` : ''}
+                          {t('teacher.classReading.pageLabel')} {s.currentPage}{s.totalPages ? ` / ${s.totalPages}` : ''}
                         </p>
                       </div>
                       <div className="flex-1 min-w-0">
@@ -251,7 +254,7 @@ function AssignedBookRow({ ab, classId, onRemove, onPreview }: AssignedBookRowPr
                         </div>
                         <p className="text-xs text-gray-400 mt-0.5">{pct}%</p>
                       </div>
-                      <Badge variant={variant}>{text}</Badge>
+                      <Badge variant={variant}>{t(key)}</Badge>
                     </div>
                   )
                 })}
@@ -265,6 +268,7 @@ function AssignedBookRow({ ab, classId, onRemove, onPreview }: AssignedBookRowPr
 }
 
 export function ClassReadingPage() {
+  const { t } = useTranslation()
   const { classId } = useParams<{ classId: string }>()
   const qc = useQueryClient()
   const [showForm, setShowForm] = useState(false)
@@ -314,7 +318,7 @@ export function ClassReadingPage() {
     },
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      setFormError(msg ?? 'Грешка при задаване на книгата. Моля, опитайте отново.')
+      setFormError(msg ?? t('teacher.classReading.errorAssign'))
     },
   })
 
@@ -324,36 +328,36 @@ export function ClassReadingPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
-        <Button onClick={() => setShowForm(true)}>+ Задай книга</Button>
+        <Button onClick={() => setShowForm(true)}>{t('teacher.classReading.assignButton')}</Button>
       </div>
 
       {showForm && (
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-800">Задаване на книга</h2>
+            <h2 className="font-semibold text-gray-800">{t('teacher.classReading.formHeader')}</h2>
           </CardHeader>
           <CardBody>
             <form onSubmit={(e) => { e.preventDefault(); assignMutation.mutate() }} className="space-y-4">
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-700">Книга</label>
+                <label className="text-sm font-medium text-gray-700">{t('teacher.classReading.bookLabel')}</label>
                 <select
                   value={bookId}
                   onChange={(e) => setBookId(e.target.value)}
                   required
                   className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
-                  <option value="">Изберете книга…</option>
+                  <option value="">{t('teacher.classReading.bookPlaceholder')}</option>
                   {catalog.map((b) => (
                     <option key={b.id} value={b.id}>{b.title} — {b.author}</option>
                   ))}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <DateInput label="Начална дата" value={startDate} onChange={setStartDate} required />
-                <DateInput label="Крайна дата" value={endDate} onChange={setEndDate} required />
+                <DateInput label={t('teacher.classReading.startDateLabel')} value={startDate} onChange={setStartDate} required />
+                <DateInput label={t('teacher.classReading.endDateLabel')} value={endDate} onChange={setEndDate} required />
               </div>
               <Input
-                label="Точки при прочитане"
+                label={t('teacher.classReading.pointsLabel')}
                 type="number"
                 value={points}
                 onChange={(e) => setPoints(e.target.value)}
@@ -362,8 +366,8 @@ export function ClassReadingPage() {
               />
               {formError && <p className="text-sm text-red-600">{formError}</p>}
               <div className="flex gap-2">
-                <Button type="submit" loading={assignMutation.isPending}>Задай</Button>
-                <Button variant="secondary" type="button" onClick={() => { setShowForm(false); setFormError('') }}>Отказ</Button>
+                <Button type="submit" loading={assignMutation.isPending}>{t('common.assign')}</Button>
+                <Button variant="secondary" type="button" onClick={() => { setShowForm(false); setFormError('') }}>{t('common.cancel')}</Button>
               </div>
             </form>
           </CardBody>
@@ -379,7 +383,7 @@ export function ClassReadingPage() {
           {active.length === 0 && expired.length === 0 && (
             <Card>
               <CardBody className="text-center py-12">
-                <p className="text-gray-400 text-sm">Няма зададени книги за този клас.</p>
+                <p className="text-gray-400 text-sm">{t('teacher.classReading.noAssignedBooks')}</p>
               </CardBody>
             </Card>
           )}
@@ -401,7 +405,7 @@ export function ClassReadingPage() {
           {expired.length > 0 && (
             <div className="space-y-3">
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                Приключили книги
+                {t('teacher.classReading.completedSection')}
               </h3>
               {expired.map((ab) => (
                 <AssignedBookRow
@@ -422,7 +426,7 @@ export function ClassReadingPage() {
 
       {confirmRemoveId && (
         <ConfirmDialog
-          message="Сигурни ли сте, че желаете да премахнете книгата?"
+          message={t('teacher.classReading.confirmRemove')}
           loading={removeMutation.isPending}
           onConfirm={() => removeMutation.mutate(confirmRemoveId)}
           onCancel={() => setConfirmRemoveId(null)}
