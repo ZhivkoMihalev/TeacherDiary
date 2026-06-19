@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useLanguage } from '../context/LanguageContext'
 import { LANGUAGES } from '../translations'
 
-export function LanguageSelector() {
+export function LanguageSelector({ dropUp = true }: { dropUp?: boolean } = {}) {
   const { language, setLanguage } = useLanguage()
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -63,7 +63,7 @@ export function LanguageSelector() {
         <div
           style={{
             position: 'absolute',
-            bottom: 'calc(100% + 6px)',
+            ...(dropUp ? { bottom: 'calc(100% + 6px)' } : { top: 'calc(100% + 6px)' }),
             left: 0,
             right: 0,
             background: 'rgba(255,255,255,0.92)',

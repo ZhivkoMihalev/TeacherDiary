@@ -1,52 +1,29 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { authApi } from '../../api/auth'
 import { useAuth } from '../../context/AuthContext'
 import { Input } from '../../components/ui/Input'
+import { LanguageSelector } from '../../components/LanguageSelector'
 import heroImage from '../../assets/hero-roles.png'
 
 type RoleKey = 'Teacher' | 'Student' | 'Parent'
 
-const ROLES: {
+const ROLE_CONFIG: {
   key: RoleKey
-  label: string
-  sublabel: string
   registerPath: string
   accentBg: string
   accentText: string
   ring: string
 }[] = [
-  {
-    key: 'Teacher',
-    label: 'Учител',
-    sublabel: 'Управлявай класа си',
-    registerPath: '/register/teacher',
-    accentBg: 'bg-indigo-600',
-    accentText: 'text-indigo-600',
-    ring: 'ring-indigo-400',
-  },
-  {
-    key: 'Student',
-    label: 'Ученик',
-    sublabel: 'Виж своя напредък',
-    registerPath: '/register/student',
-    accentBg: 'bg-emerald-600',
-    accentText: 'text-emerald-600',
-    ring: 'ring-emerald-400',
-  },
-  {
-    key: 'Parent',
-    label: 'Родител с ученик',
-    sublabel: 'Управлявай напредъка на детето си',
-    registerPath: '/register/parent',
-    accentBg: 'bg-amber-500',
-    accentText: 'text-amber-500',
-    ring: 'ring-amber-400',
-  },
+  { key: 'Teacher', registerPath: '/register/teacher', accentBg: 'bg-indigo-600', accentText: 'text-indigo-600', ring: 'ring-indigo-400' },
+  { key: 'Student', registerPath: '/register/student', accentBg: 'bg-emerald-600', accentText: 'text-emerald-600', ring: 'ring-emerald-400' },
+  { key: 'Parent',  registerPath: '/register/parent',  accentBg: 'bg-amber-500',   accentText: 'text-amber-500',   ring: 'ring-amber-400'   },
 ]
 
 export function LoginPage() {
+  const { t } = useTranslation()
   const { login } = useAuth()
   const navigate = useNavigate()
   const [selectedRole, setSelectedRole] = useState<RoleKey | null>(null)
@@ -54,13 +31,19 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
-  const role = ROLES.find((r) => r.key === selectedRole)
+  const ROLES = ROLE_CONFIG.map(r => ({
+    ...r,
+    label:    t(`auth.roles.${r.key}.label`),
+    sublabel: t(`auth.roles.${r.key}.sublabel`),
+  }))
+
+  const role = ROLES.find(r => r.key === selectedRole)
 
   const mutation = useMutation({
     mutationFn: () => authApi.login({ email, password }),
     onSuccess: (data) => {
       if (selectedRole && data.role !== selectedRole) {
-        setError(`Тези данни не са за профил "${role?.label}". Моля, изберете правилния тип профил.`)
+        setError(t('auth.wrongRole', { role: role?.label }))
         return
       }
       login(data)
@@ -71,7 +54,7 @@ export function LoginPage() {
         { replace: true },
       )
     },
-    onError: () => setError('Невалиден имейл или парола.'),
+    onError: () => setError(t('auth.invalidCredentials')),
   })
 
   function handleRoleClick(key: RoleKey) {
@@ -90,17 +73,23 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-sky-50 to-indigo-50 px-4 py-10">
+
+      {/* Language selector — top right */}
+      <div style={{ position: 'fixed', top: '16px', right: '16px', width: '140px', zIndex: 50 }}>
+        <LanguageSelector dropUp={false} />
+      </div>
+
       {/* Brand */}
       <span className="text-4xl font-extrabold tracking-tight text-indigo-700 mb-2">
-        Учителски дневник
+        {t('auth.brandTitle')}
       </span>
-      <p className="text-gray-500 text-sm mb-8">
-        Твоят дневник за учебни и извънкласни дейности и постижения
+      <p className="text-gray-500 text-sm mb-8 text-center">
+        {t('auth.brandSubtitle')}
       </p>
 
       {/* Prompt */}
       <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 text-center">
-        Здравей, ти си...{' '}
+        {t('auth.greeting')}{' '}
         <span className="text-indigo-500">?</span>
       </h1>
 
@@ -108,7 +97,7 @@ export function LoginPage() {
       <div className="relative w-full max-w-3xl rounded-2xl overflow-hidden shadow-xl border border-white/60">
         <img
           src={heroImage}
-          alt="Избери профил"
+          alt={t('auth.greeting')}
           className="w-full object-cover"
           draggable={false}
         />
@@ -131,7 +120,7 @@ export function LoginPage() {
                 <span
                   className={`absolute top-3 left-1/2 -translate-x-1/2 text-xs font-bold text-white px-3 py-1 rounded-full shadow ${r.accentBg}`}
                 >
-                  ✓ Избрано
+                  {t('auth.selected')}
                 </span>
               )}
             </button>
@@ -141,7 +130,7 @@ export function LoginPage() {
 
       {/* Role label buttons */}
       <div className="w-full max-w-3xl grid grid-cols-3 mt-3 mb-8 gap-2">
-        {ROLES.map((r) => (
+        {ROLES.map(r => (
           <button
             key={r.key}
             onClick={() => handleRoleClick(r.key)}
@@ -166,7 +155,7 @@ export function LoginPage() {
           <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-7">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-bold text-gray-900">
-                Вход като{' '}
+                {t('auth.loginAs')}{' '}
                 <span className={role.accentText}>{role.label}</span>
               </h2>
               <button
@@ -182,7 +171,7 @@ export function LoginPage() {
               className="space-y-4"
             >
               <Input
-                label="Имейл"
+                label={t('auth.email')}
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -191,7 +180,7 @@ export function LoginPage() {
                 autoFocus
               />
               <Input
-                label="Парола"
+                label={t('auth.password')}
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -214,17 +203,17 @@ export function LoginPage() {
                   mutation.isPending ? 'opacity-60 cursor-not-allowed' : '',
                 ].join(' ')}
               >
-                {mutation.isPending ? 'Влизане...' : 'Вход'}
+                {mutation.isPending ? t('auth.submitting') : t('auth.submit')}
               </button>
             </form>
 
             <div className="mt-5 pt-5 border-t border-gray-100 text-center text-sm text-gray-500">
-              <p>Все още не съм се регистрирал?</p>
+              <p>{t('auth.noAccount')}</p>
               <Link
                 to={role.registerPath}
                 className={`font-semibold hover:underline mt-1 inline-block ${role.accentText}`}
               >
-                Регистрирай се от тук →
+                {t('auth.registerLink')}
               </Link>
             </div>
           </div>
